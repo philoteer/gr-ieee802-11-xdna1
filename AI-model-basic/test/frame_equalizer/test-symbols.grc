@@ -1,0 +1,743 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'False'
+    category: Custom
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: Differential conformance test for NPU and GNU Radio frame equalizers.
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: test_symbols_grc
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: run
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Frame Equalizer Symbol Conformance Test
+    window_size: (1400,900)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: algorithm
+  id: variable
+  parameters:
+    comment: ''
+    value: __import__('os').environ.get('EQUALIZER_ALGORITHM', 'LS').lower()
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [200, 8.0]
+    rotation: 0
+    state: enabled
+- name: algorithm_id
+  id: variable
+  parameters:
+    comment: ''
+    value: '{''ls'': 0, ''lms'': 1, ''comb'': 2, ''sta'': 3, ''cnn'': 0}[algorithm]'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [192, 80.0]
+    rotation: 0
+    state: enabled
+- name: freq
+  id: variable
+  parameters:
+    comment: ''
+    value: 2.417e9
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [296, 8.0]
+    rotation: 0
+    state: enabled
+- name: header_damage_mask
+  id: variable
+  parameters:
+    comment: "Flip coded SIGNAL bits 0, 4, and 10 \nonly in the final frame."
+    value: '[int(i in (432,436,442)) for i in range(480)]'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [832, 8.0]
+    rotation: 0
+    state: enabled
+- name: ltf_words
+  id: variable
+  parameters:
+    comment: "Two standard shifted L-LTF vectors, \nthe direct frame_equalizer preamble."
+    value: (tuple((0,0,0,0,0,0,1,1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,1,-1,-1,1,1,-1,1,-1,1,1,1,1,0,1,-1,-1,1,1,-1,1,-1,1,-1,-1,-1,-1,-1,1,1,-1,-1,1,-1,1,-1,1,1,1,1,0,0,0,0,0)),)*2
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1040, 8.0]
+    rotation: 0
+    state: enabled
+- name: occupied_carriers
+  id: variable
+  parameters:
+    comment: Standard 48 legacy data subcarriers.
+    value: (list(range(-26,-21))+list(range(-20,-7))+list(range(-6,0))+list(range(1,7))+list(range(8,21))+list(range(22,27)),)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1456, 8.0]
+    rotation: 0
+    state: enabled
+- name: payload_data
+  id: variable
+  parameters:
+    comment: "Deterministic decision labels; \nstandard blocks perform all constellation\
+      \ mapping."
+    value: '(lambda n,r: n.concatenate([r.integers(0,m,48,dtype=n.uint8) for m in
+      (2,2,4,4,16,16,64,64)]+[r.integers(0,16,8*48,dtype=n.uint8),r.integers(0,2,48,dtype=n.uint8)]))(__import__(''numpy''),__import__(''numpy'').random.default_rng(80211))'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [408, 128.0]
+    rotation: 0
+    state: enabled
+- name: payload_tags
+  id: variable
+  parameters:
+    comment: "packet_len drives tagged blocks; \nencoding and psdu_len drive standard\
+      \ \nWiFi blocks; wifi_start reaches both equalizers."
+    value: '(lambda p: [gr.tag_utils.python_to_tag((o,p.intern(k),v,p.PMT_NIL)) for
+      o,n,e,l,c in zip((0,48,96,144,192,240,288,336,384,768),(48,48,48,48,48,48,48,48,384,48),(0,1,2,3,4,5,6,7,5,0),(0,0,0,0,0,0,0,0,130,0),(0.,0.,0.,0.,0.,0.,0.,0.,round(.002*(1<<29))/float(1<<29),0.))
+      for k,v in ((''packet_len'',p.from_long(n)),(''encoding'',p.from_long(e)),(''psdu_len'',p.from_long(l)),(''wifi_start'',p.from_double(c)))])(__import__(''pmt''))'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [616, 8.0]
+    rotation: 0
+    state: enabled
+- name: pilot_symbols
+  id: variable
+  parameters:
+    comment: "Standard 127-symbol IEEE 802.11 pilot \npolarity sequence."
+    value: tuple((p,p,p,-p) for p in (1,1,1,1,-1,-1,-1,1,-1,-1,-1,-1,1,1,-1,1,-1,-1,1,1,-1,1,1,-1,1,1,1,1,1,1,-1,1,1,1,-1,1,1,-1,-1,1,1,1,-1,1,-1,-1,-1,1,-1,1,-1,-1,1,-1,-1,1,1,1,1,1,-1,-1,1,1,-1,-1,1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,-1,-1,-1,1,-1,-1,1,-1,1,1,1,1,-1,1,-1,1,-1,1,-1,-1,-1,-1,-1,1,-1,1,1,-1,1,-1,1,1,1,-1,-1,1,-1,-1,-1,1,1,1,-1,-1,-1,-1,-1,-1,-1))
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1248, 8.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 20e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [304, 80.0]
+    rotation: 0
+    state: enabled
+- name: signal_formatter
+  id: variable
+  parameters:
+    comment: "GNU Radio's IEEE 802.11 RATE/LENGTH \nencoder and interleaver."
+    value: ieee802_11.signal_field()
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [400, 16.0]
+    rotation: 0
+    state: enabled
+- name: blocks_apply_impairment
+  id: blocks_multiply_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
+    type: complex
+    vlen: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1072, 432.0]
+    rotation: 0
+    state: enabled
+- name: blocks_batch_mux
+  id: blocks_stream_mux
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Form exactly one 256-vector (16384-sample) NPU batch.
+    lengths: (2,47,207)
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '3'
+    type: complex
+    vlen: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1296, 456.0]
+    rotation: 0
+    state: enabled
+- name: blocks_gnu_decisions_sink
+  id: blocks_vector_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Collect every GNU Radio hard-decision symbol.
+    reserve_items: '1024'
+    type: byte
+    vlen: '48'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1040, 1056.0]
+    rotation: 0
+    state: enabled
+- name: blocks_header_damage_source
+  id: blocks_vector_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Standard XOR mask source for the SIGNAL robustness case.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    repeat: 'False'
+    tags: '[]'
+    type: byte
+    vector: header_damage_mask
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 240.0]
+    rotation: 0
+    state: enabled
+- name: blocks_header_payload_mux
+  id: blocks_tagged_stream_mux
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Prefix one standard SIGNAL symbol to each payload packet.
+    lengthtagname: packet_len
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    ninputs: '2'
+    tag_preserve_head_pos: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [856, 264.0]
+    rotation: 0
+    state: enabled
+- name: blocks_header_xor
+  id: blocks_xor_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Corrupt only the final SIGNAL field.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
+    type: byte
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [352, 232.0]
+    rotation: 0
+    state: enabled
+- name: blocks_leading_padding_source
+  id: blocks_vector_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Two leading vectors offset frames across tile boundaries.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    repeat: 'False'
+    tags: '[]'
+    type: complex
+    vector: '[0j] * (2*64)'
+    vlen: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1072, 528.0]
+    rotation: 0
+    state: enabled
+- name: blocks_npu_decisions_sink
+  id: blocks_vector_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Collect every NPU hard-decision symbol and its csi/encoding tags.
+    reserve_items: '1024'
+    type: byte
+    vlen: '48'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1040, 944.0]
+    rotation: 0
+    state: enabled
+- name: blocks_payload_source
+  id: blocks_vector_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    repeat: 'False'
+    tags: payload_tags
+    type: byte
+    vector: payload_data
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 448.0]
+    rotation: 0
+    state: enabled
+- name: blocks_stream_to_vector_npu
+  id: blocks_stream_to_vector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Group NPU decisions into 48-carrier symbols.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '48'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [760, 952.0]
+    rotation: 0
+    state: enabled
+- name: blocks_symbols_debug
+  id: blocks_message_debug
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Store the GNU Radio normalized equalized-symbol PDUs.
+    en_uvec: 'True'
+    log_level: info
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1016, 1136.0]
+    rotation: 0
+    state: enabled
+- name: blocks_trailing_padding_source
+  id: blocks_vector_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: 207 trailing vectors fill the exact NPU batch size.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    repeat: 'False'
+    tags: '[]'
+    type: complex
+    vector: '[0j] * (207*64)'
+    vlen: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1072, 664.0]
+    rotation: 0
+    state: enabled
+- name: blocks_vector_to_stream
+  id: blocks_vector_to_stream
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Scalarize the frequency-domain batch for the NPU adapter.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '64'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [216, 952.0]
+    rotation: 0
+    state: enabled
+- name: digital_carrier_allocator
+  id: digital_ofdm_carrier_allocator_cvc
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    fft_len: '64'
+    len_tag_key: packet_len
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    occupied_carriers: occupied_carriers
+    output_is_shifted: 'True'
+    pilot_carriers: ((-21,-7,7,21),)
+    pilot_symbols: pilot_symbols
+    sync_words: ltf_words
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [824, 412.0]
+    rotation: 0
+    state: enabled
+- name: digital_signal_bpsk
+  id: digital_chunks_to_symbols_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    dimension: '1'
+    in_type: byte
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_ports: '1'
+    out_type: complex
+    symbol_table: '[-1, 1]'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [640, 248.0]
+    rotation: 0
+    state: enabled
+- name: digital_signal_header
+  id: digital_packet_headergenerator_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: gr-ieee802-11 SIGNAL encoder/interleaver.
+    header_formatter: signal_formatter.formatter()
+    len_tag_key: packet_len
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [104, 352.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_frame_equalizer_reference
+  id: ieee802_11_frame_equalizer
+  parameters:
+    affinity: ''
+    algo: ieee802_11.Equalizer(algorithm_id)
+    alias: ''
+    bw: samp_rate
+    comment: Standard GNU Radio receiver reference.
+    debug: 'False'
+    freq: freq
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [248, 1040.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_payload_symbols
+  id: ieee802_11_chunks_to_symbols_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: per-packet BPSK/QPSK/QAM mapper selected by encoding tags.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [216, 472.0]
+    rotation: 0
+    state: enabled
+- name: imports
+  id: import_
+  parameters:
+    alias: ''
+    comment: ''
+    imports: 'import numpy as np
+
+      import pmt'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 16]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_frame_equalizer_npu
+  id: mlir_aie_mlir_aie_cpp_equalizer_test
+  parameters:
+    N_TILES: '16'
+    VECTOR_SIZE: '16384'
+    affinity: ''
+    alias: ''
+    comment: Existing NPU adapter.
+    kernel_name: MLIR_AIE
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nominal_frequency: freq
+    num_slots: '1'
+    path_insts_bin: build/insts.bin
+    path_xclbin: build/final.xclbin
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [480, 892.0]
+    rotation: 0
+    state: enabled
+- name: verify
+  id: snippet
+  parameters:
+    alias: ''
+    code: "import numpy as np\nimport pmt\n\nexpected = np.asarray(self.payload_data,\
+      \ dtype=np.uint8).reshape(-1, 48)\ngnu_hard = np.asarray(self.blocks_gnu_decisions_sink.data(),\
+      \ dtype=np.int8).reshape(-1, 48)\nnpu_hard = np.asarray(self.blocks_npu_decisions_sink.data(),\
+      \ dtype=np.int8).reshape(-1, 48)\nif gnu_hard.shape != (17, 48) or npu_hard.shape\
+      \ != (17, 48):\n    raise AssertionError(\n        f'decoded symbol count mismatch:\
+      \ GNU={gnu_hard.shape}, '\n        f'NPU={npu_hard.shape}, expected=(17, 48)')\n\
+      \nmarker = {}\nwith open('build/frame_equalizer_build_mode.txt') as stream:\n\
+      \    for line in stream:\n        if '=' in line:\n            key, value =\
+      \ line.split('=', 1)\n            marker[key.strip()] = value.strip()\nif marker.get('ENGINE')\
+      \ == 'AI' or marker.get('EQUALIZER_ALGORITHM') == 'CNN':\n    np.testing.assert_array_equal(npu_hard, expected)\nelse:\n \
+      \   np.testing.assert_array_equal(npu_hard[:16], gnu_hard[:16])\n    np.testing.assert_array_equal(npu_hard[16],\
+      \ expected[16])\n\ncsi = {}\nencodings = {}\nfor tag in self.blocks_npu_decisions_sink.tags():\n\
+      \    offset = int(tag.offset)\n    key = pmt.symbol_to_string(tag.key)\n   \
+      \ if key == 'csi':\n        if offset in csi:\n            raise AssertionError(f'duplicate\
+      \ csi tag at symbol {offset}')\n        values = np.asarray(pmt.c32vector_elements(tag.value),\
+      \ dtype=np.complex64)\n        if values.size < 48:\n            raise AssertionError(\n\
+      \                f'csi tag at symbol {offset} has {values.size} values; expected\
+      \ at least 48')\n        csi[offset] = values[:48]\n    elif key == 'encoding':\n\
+      \        if offset in encodings:\n            raise AssertionError(f'duplicate\
+      \ encoding tag at symbol {offset}')\n        encodings[offset] = int(pmt.to_uint64(tag.value))\n\
+      if sorted(csi) != list(range(17)) or sorted(encodings) != list(range(17)):\n\
+      \    raise AssertionError(\n        f'symbol tag coverage mismatch: csi={sorted(csi)},\
+      \ encodings={sorted(encodings)}')\nactual_encodings = [encodings[i] for i in\
+      \ range(17)]\nwanted_encodings = list(range(8)) + [5] * 8 + [0]\nif actual_encodings\
+      \ != wanted_encodings:\n    raise AssertionError(f'encoding tags {actual_encodings!r}\
+      \ != {wanted_encodings!r}')\n\ndebug = self.blocks_symbols_debug\nif debug.num_messages()\
+      \ != 17:\n    raise AssertionError(\n        f'GNU Radio emitted {debug.num_messages()}\
+      \ symbol PDUs; expected 17')\ngnu_symbols = np.asarray([\n    np.asarray(pmt.c32vector_elements(pmt.cdr(debug.get_message(i))),\
+      \ dtype=np.complex64)\n    for i in range(17)])\nif gnu_symbols.shape != (17,\
+      \ 48):\n    raise AssertionError(f'GNU Radio symbol PDU shape mismatch: {gnu_symbols.shape}')\n\
+      npu_symbols = np.asarray([csi[i] for i in range(17)])\n\ndef check_error(label,\
+      \ actual, reference, limit):\n    error = actual - reference\n    evm = np.sqrt(np.mean(abs(error)\
+      \ ** 2) / np.mean(abs(reference) ** 2))\n    gain = np.vdot(reference.ravel(),\
+      \ actual.ravel()) / np.vdot(\n        reference.ravel(), reference.ravel())\n\
+      \    print(f'{label}: rms_evm={100 * evm:.5f}% max_abs={np.max(abs(error)):.7f}\
+      \ '\n          f'gain={abs(gain):.8f} phase={np.angle(gain):.8g} rad')\n   \
+      \ if not evm < limit:\n        raise AssertionError(f'{label}: EVM {evm} is\
+      \ not below {limit}')\n\ncnn = marker.get('EQUALIZER_ALGORITHM') == 'CNN'\ncheck_error('all rates, flat channel', npu_symbols[:8],\
+      \ gnu_symbols[:8], 3e-2 if cnn else 5e-4)\ncheck_error('frequency-selective tracked frame',\n\
+      \            npu_symbols[8:16], gnu_symbols[8:16], 3e-2 if cnn else 2e-3)\nprint(f'frame_equalizer\
+      \ {self.algorithm} GRC symbol comparison passed')"
+    comment: Compare decisions, tags, and symbol EVM; runs after the flowgraph stops.
+    priority: '0'
+    section: main_after_stop
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [496, 1256.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: qam_modulated
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1136, 272.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_0_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: test_payload
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1520, 480.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: qam_modulated
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [600, 464.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_0_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: test_payload
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 1008.0]
+    rotation: 0
+    state: enabled
+- name: zz_build_guard_and_impairment
+  id: epy_block
+  parameters:
+    _source_code: "from pathlib import Path\n\nimport numpy as np\nfrom gnuradio import\
+      \ gr\n\n\ndef _require_build(algorithm):\n    supported = {'ls', 'lms', 'comb',\
+      \ 'sta', 'cnn'}\n    if algorithm not in supported:\n        raise RuntimeError(\n\
+      \            f\"unknown EQUALIZER_ALGORITHM={algorithm!r}; choose LS, LMS, COMB,\
+      \ STA, or CNN\")\n    build = Path('build')\n    marker = build / 'frame_equalizer_build_mode.txt'\n\
+      \    artifacts = [build / 'final.xclbin', build / 'insts.bin']\n    missing\
+      \ = [str(path) for path in [marker, *artifacts] if not path.is_file()]\n   \
+      \ if missing:\n        raise RuntimeError(\n            'missing frame-equalizer\
+      \ build output(s): ' + ', '.join(missing) +\n            '; run `make test-grc\
+      \ EQUALIZER_ALGORITHM=' + algorithm.upper() + '`')\n    mode = {}\n    for line\
+      \ in marker.read_text().splitlines():\n        if '=' in line:\n           \
+      \ key, value = line.split('=', 1)\n            mode[key.strip()] = value.strip()\n\
+      \    if mode.get('DFRAME_EQUALIZER_OUTPUT_SYMBOLS') != '1':\n        raise RuntimeError(\n\
+      \            'NPU is not a symbols build (DFRAME_EQUALIZER_OUTPUT_SYMBOLS='\
+      \ +\n            repr(mode.get('DFRAME_EQUALIZER_OUTPUT_SYMBOLS')) +\n     \
+      \       '); run `make test-grc EQUALIZER_ALGORITHM=' + algorithm.upper() + '`')\n\
+      \    if mode.get('EQUALIZER_ALGORITHM', '').lower() != algorithm:\n        raise\
+      \ RuntimeError(\n            'NPU algorithm is ' + repr(mode.get('EQUALIZER_ALGORITHM',\
+      \ 'unknown')) +\n            ', but the flowgraph selected ' + repr(algorithm)\
+      \ +\n            '; rebuild through `make test-grc EQUALIZER_ALGORITHM=' +\n\
+      \            algorithm.upper() + '`')\n    if mode.get('ENGINE') not in {'CLASSIC',\
+      \ 'AI'}:\n        raise RuntimeError('invalid or missing ENGINE in ' + str(marker))\n\
+      \    if marker.stat().st_mtime_ns < max(path.stat().st_mtime_ns for path in\
+      \ artifacts):\n        raise RuntimeError(\n            str(marker) + ' is older\
+      \ than the NPU artifacts; rebuild with `make test-grc`')\n    instructions =\
+      \ np.fromfile(artifacts[1], dtype=np.uint32)\n    for sentinel in (0x13579BDF,\
+      \ 0x2468ACE0):\n        count = int(np.count_nonzero(instructions == sentinel))\n\
+      \        if count != 1:\n            raise RuntimeError(\n                f'build/insts.bin\
+      \ has {count} copies of RTP marker {sentinel:#x}; expected 1')\n\n\ndef _profiles():\n\
+      \    flat = np.full((32, 64), 0.5, dtype=np.complex64)\n    channel = np.zeros(64,\
+      \ dtype=np.complex128)\n    occupied = [i for i in range(6, 59) if i != 32]\n\
+      \    channel[occupied] = np.linspace(9000, 21000, len(occupied)) / (1 << 15)\
+      \ * np.exp(\n        1j * np.linspace(-0.45, 0.35, len(occupied)))\n    cfo\
+      \ = round(0.002 * (1 << 29)) / float(1 << 29)\n    bins = np.arange(64) - 32\n\
+      \    tracked = np.empty((11, 64), dtype=np.complex64)\n    for number in range(11):\n\
+      \        ramp = cfo * 20 / 2417 * number * 80 * bins / 64\n        tracked[number]\
+      \ = channel * np.exp(1j * (0.08 + 0.012*number - ramp))\n    damaged = np.full((4,\
+      \ 64), 0.5, dtype=np.complex64)\n    return np.concatenate((flat, tracked, damaged))\n\
+      \n\nclass impairment_profile(gr.sync_block):\n    \"\"\"Emit deterministic per-bin\
+      \ channel/CFO coefficients for 47 OFDM vectors.\"\"\"\n\n    def __init__(self,\
+      \ algorithm='ls'):\n        gr.sync_block.__init__(\n            self, name='impairment_profile',\
+      \ in_sig=None,\n            out_sig=[(np.complex64, 64)])\n        self.algorithm\
+       \ = algorithm\n        self.data = _profiles()\n  \
+      \      self.position = 0\n\n    def start(self):\n        _require_build(self.algorithm)\n\
+      \        return True\n\n    def work(self, input_items, output_items):\n   \
+      \     if self.position == len(self.data):\n            return -1\n        count\
+      \ = min(len(output_items[0]), len(self.data) - self.position)\n        output_items[0][:count]\
+      \ = self.data[self.position:self.position + count]\n        self.position +=\
+      \ count\n        return count"
+    affinity: ''
+    algorithm: algorithm
+    alias: ''
+    comment: '*epy: deterministic channel/CFO injection plus build validation.'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: ('impairment_profile', 'impairment_profile', [('algorithm', "'ls'")],
+      [], [('0', 'complex', 64)], 'Emit deterministic per-bin channel/CFO coefficients
+      for 47 OFDM vectors.', ['algorithm'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [672, 672.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_apply_impairment, '0', blocks_batch_mux, '1']
+- [blocks_batch_mux, '0', virtual_sink_0_0, '0']
+- [blocks_header_damage_source, '0', blocks_header_xor, '1']
+- [blocks_header_payload_mux, '0', virtual_sink_0, '0']
+- [blocks_header_xor, '0', digital_signal_bpsk, '0']
+- [blocks_leading_padding_source, '0', blocks_batch_mux, '0']
+- [blocks_payload_source, '0', digital_signal_header, '0']
+- [blocks_payload_source, '0', ieee802_11_payload_symbols, '0']
+- [blocks_stream_to_vector_npu, '0', blocks_npu_decisions_sink, '0']
+- [blocks_trailing_padding_source, '0', blocks_batch_mux, '2']
+- [blocks_vector_to_stream, '0', mlir_aie_frame_equalizer_npu, '0']
+- [digital_carrier_allocator, '0', blocks_apply_impairment, '0']
+- [digital_signal_bpsk, '0', blocks_header_payload_mux, '0']
+- [digital_signal_header, '0', blocks_header_xor, '0']
+- [ieee802_11_frame_equalizer_reference, '0', blocks_gnu_decisions_sink, '0']
+- [ieee802_11_frame_equalizer_reference, symbols, blocks_symbols_debug, store]
+- [ieee802_11_payload_symbols, '0', blocks_header_payload_mux, '1']
+- [mlir_aie_frame_equalizer_npu, '0', blocks_stream_to_vector_npu, '0']
+- [virtual_source_0, '0', digital_carrier_allocator, '0']
+- [virtual_source_0_0, '0', blocks_vector_to_stream, '0']
+- [virtual_source_0_0, '0', ieee802_11_frame_equalizer_reference, '0']
+- [zz_build_guard_and_impairment, '0', blocks_apply_impairment, '1']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

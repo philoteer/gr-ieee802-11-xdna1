@@ -1,0 +1,104 @@
+options:
+  parameters:
+    id: channel_est_test
+    title: Three-stage Receive Test
+    description: FFT dump through preprocess, channel estimation, equalization, and MAC decoding.
+    generate_options: no_gui
+    output_language: python
+    catch_exceptions: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: run
+  states: {coordinate: [8, 8], rotation: 0, state: enabled}
+blocks:
+- name: dump_path
+  id: parameter
+  parameters: {label: FFT input, type: str, value: '', short_id: '', hide: none}
+  states: {coordinate: [8, 64], rotation: 0, state: enabled}
+- name: pcap_path
+  id: parameter
+  parameters: {label: PCAP output, type: str, value: '', short_id: '', hide: none}
+  states: {coordinate: [200, 64], rotation: 0, state: enabled}
+- name: estimator
+  id: parameter
+  parameters: {label: 'Estimator (cnn or mlp)', type: str, value: cnn, short_id: '', hide: none}
+  states: {coordinate: [400, 64], rotation: 0, state: enabled}
+- name: freq
+  id: parameter
+  parameters: {label: Frequency, type: eng_float, value: 2.412e9, short_id: '', hide: none}
+  states: {coordinate: [600, 64], rotation: 0, state: enabled}
+- name: script_dir
+  id: variable
+  parameters:
+    value: str(__import__('pathlib').Path(globals().get('__file__', 'AI-model-CNN-Channel-est/test/frame_equalizer_preproc/channel_est_test.py')).resolve().parent)
+  states: {coordinate: [8, 144], rotation: 0, state: enabled}
+- name: dump_file
+  id: variable
+  parameters: {value: 'dump_path or script_dir + "/tmp_data/fft.iqdata"'}
+  states: {coordinate: [200, 144], rotation: 0, state: enabled}
+- name: pcap_file
+  id: variable
+  parameters: {value: 'pcap_path or script_dir + "/tmp_data/channel_est.pcap"'}
+  states: {coordinate: [400, 144], rotation: 0, state: enabled}
+- name: equalize_dir
+  id: variable
+  parameters: {value: 'script_dir + "/equalize/build"'}
+  states: {coordinate: [800, 144], rotation: 0, state: enabled}
+- name: source
+  id: blocks_file_meta_source
+  parameters: {file: dump_file, hdr_file: 'dump_file + ".hdr"', detached: 'True', repeat: 'False', type: complex, vlen: '1'}
+  states: {coordinate: [8, 272], rotation: 0, state: enabled}
+- name: equalize
+  id: mlir_aie_mlir_aie_cpp_equalizer_test
+  parameters: {path_xclbin: 'equalize_dir + "/final.xclbin"', path_insts_bin: 'equalize_dir + "/insts.bin"', kernel_name: MLIR_AIE, VECTOR_SIZE: '16384', N_TILES: '16', num_slots: '1', nominal_frequency: freq, weights_path: "''", prepared_input: 'False', estimated_input: 'True'}
+  states: {coordinate: [1072, 480], rotation: 180, state: enabled}
+- name: preproc_dir
+  id: variable
+  parameters: {value: 'script_dir + "/preprocess/build"'}
+  states: {coordinate: [600, 144], rotation: 0, state: enabled}
+- name: estimator_dir
+  id: variable
+  parameters: {value: 'script_dir + "/channel_est/build/" + estimator'}
+  states: {coordinate: [800, 64], rotation: 0, state: enabled}
+- name: to_fixed
+  id: mlir_aie_complex64_to_cint32
+  parameters: {integer_bits: '16', fractional_bits: '15', safe: 'False'}
+  states: {coordinate: [240, 272], rotation: 0, state: enabled}
+- name: preprocess
+  id: mlir_aie_mlir_aie_cpp_tagged_int64_to_int64
+  parameters: {path_xclbin: 'preproc_dir + "/final.xclbin"', path_insts_bin: 'preproc_dir + "/insts.bin"', kernel_name: MLIR_AIE, VECTOR_SIZE: '16384', N_TILES: '16', num_slots: '1', preprocess: 'True', nominal_frequency: freq, channel_estimate: 'False'}
+  states: {coordinate: [464, 272], rotation: 0, state: enabled}
+- name: channel_estimate
+  id: mlir_aie_mlir_aie_cpp_tagged_int64_to_int64
+  parameters: {path_xclbin: 'estimator_dir + "/final.xclbin"', path_insts_bin: 'estimator_dir + "/insts.bin"', kernel_name: MLIR_AIE, VECTOR_SIZE: '16384', N_TILES: '16', num_slots: '1', preprocess: 'False', channel_estimate: 'True'}
+  states: {coordinate: [768, 272], rotation: 0, state: enabled}
+- name: to_complex
+  id: mlir_aie_cint32_to_complex64
+  parameters: {integer_bits: '16', fractional_bits: '15'}
+  states: {coordinate: [1072, 272], rotation: 0, state: enabled}
+- name: symbols
+  id: blocks_stream_to_vector
+  parameters: {num_items: '48', type: byte, vlen: '1'}
+  states: {coordinate: [800, 480], rotation: 180, state: enabled}
+- name: decode
+  id: ieee802_11_decode_mac
+  parameters: {debug: 'False', log: 'False'}
+  states: {coordinate: [600, 480], rotation: 180, state: enabled}
+- name: wireshark
+  id: foo_wireshark_connector
+  parameters: {debug: 'False', tech: '127'}
+  states: {coordinate: [400, 480], rotation: 180, state: enabled}
+- name: sink
+  id: blocks_file_sink
+  parameters: {file: pcap_file, append: 'False', unbuffered: 'True', type: byte, vlen: '1'}
+  states: {coordinate: [8, 480], rotation: 180, state: enabled}
+connections:
+- [source, '0', to_fixed, '0']
+- [to_fixed, '0', preprocess, '0']
+- [preprocess, '0', channel_estimate, '0']
+- [channel_estimate, '0', to_complex, '0']
+- [to_complex, '0', equalize, '0']
+- [equalize, '0', symbols, '0']
+- [symbols, '0', decode, '0']
+- [decode, out, wireshark, in]
+- [wireshark, '0', sink, '0']
+metadata: {file_format: 1, grc_version: 3.10.9.2}

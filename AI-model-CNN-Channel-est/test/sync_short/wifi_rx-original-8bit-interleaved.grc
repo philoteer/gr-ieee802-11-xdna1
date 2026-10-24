@@ -1,0 +1,530 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: Custom
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: wifi_rx
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: run
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: ''
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 12.0]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: chan_est
+  id: variable
+  parameters:
+    comment: ''
+    value: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [248, 0.0]
+    rotation: 0
+    state: enabled
+- name: freq
+  id: variable
+  parameters:
+    comment: ''
+    value: 2.417e9
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [360, 56.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 20e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [808, 16.0]
+    rotation: 0
+    state: enabled
+- name: sync_length
+  id: variable
+  parameters:
+    comment: ''
+    value: '320'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 148.0]
+    rotation: 0
+    state: enabled
+- name: window_size
+  id: variable
+  parameters:
+    comment: ''
+    value: '48'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 80.0]
+    rotation: 0
+    state: enabled
+- name: blocks_complex_to_mag_0
+  id: blocks_complex_to_mag
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1208, 320.0]
+    rotation: 0
+    state: enabled
+- name: blocks_complex_to_mag_squared_0
+  id: blocks_complex_to_mag_squared
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [296, 224.0]
+    rotation: 0
+    state: enabled
+- name: blocks_conjugate_cc_0
+  id: blocks_conjugate_cc
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [576, 336.0]
+    rotation: 0
+    state: enabled
+- name: blocks_delay_0_0
+  id: blocks_delay
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    delay: '16'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_ports: '1'
+    showports: 'False'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [264, 328.0]
+    rotation: 0
+    state: enabled
+- name: blocks_divide_xx_0
+  id: blocks_divide_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1424.0, 296]
+    rotation: 270
+    state: enabled
+- name: blocks_file_meta_sink_0
+  id: blocks_file_meta_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    detached: 'True'
+    extra_dict: pmt.make_dict()
+    file: ../../data/tmp_out/_original.iqdata
+    max_seg_size: '1000000'
+    rel_rate: '1'
+    samp_rate: samp_rate
+    type: complex
+    unbuffered: 'True'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [712, 396.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_meta_sink_0_0
+  id: blocks_file_meta_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    detached: 'True'
+    extra_dict: pmt.make_dict()
+    file: ../../data/tmp_out/_npu.iqdata
+    max_seg_size: '1000000'
+    rel_rate: '1'
+    samp_rate: samp_rate
+    type: complex
+    unbuffered: 'True'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [704, 564.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_source_0
+  id: blocks_file_source
+  parameters:
+    affinity: ''
+    alias: ''
+    begin_tag: pmt.PMT_NIL
+    comment: ''
+    file: "../../data/raw_capture/output_head_short.bin"
+    length: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    repeat: 'False'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1240, 128.0]
+    rotation: 0
+    state: enabled
+- name: blocks_interleaved_char_to_complex_0
+  id: blocks_interleaved_char_to_complex
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale_factor: '127.0'
+    vector_input: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1480, 152.0]
+    rotation: 0
+    state: enabled
+- name: blocks_message_debug_0
+  id: blocks_message_debug
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    en_uvec: 'True'
+    log_level: info
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1600, 8.0]
+    rotation: 0
+    state: enabled
+- name: blocks_moving_average_xx_0
+  id: blocks_moving_average_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    length: window_size  + 16
+    max_iter: '4000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale: '1'
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [576, 192.0]
+    rotation: 0
+    state: enabled
+- name: blocks_moving_average_xx_1
+  id: blocks_moving_average_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    length: window_size
+    max_iter: '4000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [952, 288.0]
+    rotation: 0
+    state: enabled
+- name: blocks_multiply_xx_0
+  id: blocks_multiply_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [776, 304.0]
+    rotation: 0
+    state: enabled
+- name: blocks_probe_rate_0
+  id: blocks_probe_rate
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha: '0.15'
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    mintime: '500.0'
+    name: ''
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1344, 16.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_0
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
+      \ GRC will instantiate the first class it finds\nto get ports and parameters\
+      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
+      \ them are required to have default values!\n\"\"\"\n\nimport numpy as np\n\
+      import pmt\nfrom gnuradio import blocks, gr, gr_unittest\n\nimport aie.iron\
+      \ as iron\nfrom aie.utils import DefaultNPURuntime, NPUKernel\n\nclass npu_sync_short(gr.basic_block):\n\
+      \    VECTOR_SIZE = 4096\n    TILE_SIZE = VECTOR_SIZE // 4\n    DELAY_SAMPLES\
+      \ = 320\n    MAX_TAGS = 7\n    METADATA_WORDS = 2 + 2 * MAX_TAGS\n    THRESHOLD\
+      \ = 0.56\n    THRESHOLD_WORDS = (TILE_SIZE + 3) // 4\n    IN_TILE_WORDS = 3\
+      \ * TILE_SIZE + THRESHOLD_WORDS\n    OUT_TILE_WORDS = TILE_SIZE + DELAY_SAMPLES\
+      \ + METADATA_WORDS\n\n    def __init__(self, xclbin=\"build/final.xclbin\",\
+      \ insts=\"build/insts.bin\"):\n        gr.basic_block.__init__(\n          \
+      \  self,\n            name=\"npu_sync_short\",\n            in_sig=[np.complex64,\
+      \ np.complex64, np.float32],\n            out_sig=[np.complex64],\n        )\n\
+      \        self.set_tag_propagation_policy(gr.TPP_DONT)\n        self.set_output_multiple(self.VECTOR_SIZE)\n\
+      \n        kernel = NPUKernel(xclbin, insts, kernel_name=\"MLIR_AIE\")\n    \
+      \    self.kernel_handle = DefaultNPURuntime.load(kernel)\n        self.out_buf\
+      \ = iron.zeros(4 * self.OUT_TILE_WORDS, dtype=np.int32)\n        self.tag_key\
+      \ = pmt.intern(\"wifi_start\")\n        self.tag_srcid = pmt.intern(\"sync_short\"\
+      )\n\n    def forecast(self, noutput_items, ninputs):\n        return [max(self.VECTOR_SIZE,\
+      \ noutput_items)] * ninputs\n\n    @staticmethod\n    def _cint16(values):\n\
+      \        components = np.empty(2 * len(values), dtype=np.int16)\n        scaled\
+      \ = np.rint(\n            np.clip(\n                np.column_stack((values.real,\
+      \ values.imag)), -1.0, 1.0\n            )\n            * 32768.0\n        )\n\
+      \        components[:] = np.clip(scaled, -32768, 32767).astype(np.int16).reshape(-1)\n\
+      \        return components.view(np.int32)\n\n    @staticmethod\n    def _cint32_q24(values):\n\
+      \        scaled = np.rint(\n            np.column_stack((values.real, values.imag))\
+      \ * float(1 << 24)\n        )\n        return np.clip(scaled, -(1 << 31), (1\
+      \ << 31) - 1).astype(np.int32).reshape(-1)\n\n    def _pack_tile(self, samples,\
+      \ abs_values, correlations):\n        packed = np.zeros(self.IN_TILE_WORDS,\
+      \ dtype=np.int32)\n        packed[: self.TILE_SIZE] = self._cint16(samples)\n\
+      \        packed[self.TILE_SIZE : 3 * self.TILE_SIZE] = self._cint32_q24(abs_values)\n\
+      \        threshold_bytes = packed[3 * self.TILE_SIZE :].view(np.int8)\n    \
+      \    threshold_bytes[: self.TILE_SIZE] = correlations.astype(np.float64) > self.THRESHOLD\n\
+      \        return packed\n\n    def general_work(self, input_items, output_items):\n\
+      \        available = min(len(stream) for stream in input_items)\n        n_chunks\
+      \ = min(available // self.VECTOR_SIZE, len(output_items[0]) // self.VECTOR_SIZE)\n\
+      \        if n_chunks == 0:\n            return 0\n\n        produced = 0\n \
+      \       output_abs_start = self.nitems_written(0)\n        for chunk in range(n_chunks):\n\
+      \            chunk_start = chunk * self.VECTOR_SIZE\n            packed_in =\
+      \ np.empty(4 * self.IN_TILE_WORDS, dtype=np.int32)\n            for tile in\
+      \ range(4):\n                src = chunk_start + tile * self.TILE_SIZE\n   \
+      \             dst = tile * self.IN_TILE_WORDS\n                packed_in[dst\
+      \ : dst + self.IN_TILE_WORDS] = self._pack_tile(\n                    input_items[0][src\
+      \ : src + self.TILE_SIZE],\n                    input_items[1][src : src + self.TILE_SIZE],\n\
+      \                    input_items[2][src : src + self.TILE_SIZE],\n         \
+      \       )\n\n            in_tensor = iron.tensor(packed_in, dtype=np.int32)\n\
+      \            DefaultNPURuntime.run(self.kernel_handle, [in_tensor, self.out_buf])\n\
+      \            packed_out = self.out_buf.numpy()\n\n            for tile in range(4):\n\
+      \                tile_base = tile * self.OUT_TILE_WORDS\n                meta_base\
+      \ = tile_base + self.TILE_SIZE + self.DELAY_SAMPLES\n                metadata\
+      \ = packed_out[meta_base : meta_base + self.METADATA_WORDS]\n              \
+      \  tile_len = max(0, min(int(metadata[0]), self.TILE_SIZE))\n              \
+      \  tag_count = max(0, min(int(metadata[1]), self.MAX_TAGS))\n\n            \
+      \    data_start = tile_base + self.DELAY_SAMPLES\n                data = packed_out[data_start\
+      \ : data_start + tile_len]\n                components = data.view(np.int16).reshape(-1,\
+      \ 2).astype(np.float32)\n                next_produced = produced + tile_len\n\
+      \                output_items[0][produced:next_produced] = (\n             \
+      \       components[:, 0] + 1j * components[:, 1]\n                ) * (1.0 /\
+      \ 32768.0)\n\n                for tag in range(tag_count):\n               \
+      \     offset = int(metadata[2 + 2 * tag])\n                    if 0 <= offset\
+      \ < tile_len:\n                        value = float(metadata[3 + 2 * tag])\
+      \ / (1 << 29)\n                        self.add_item_tag(\n                \
+      \            0,\n                            output_abs_start + produced + offset,\n\
+      \                            self.tag_key,\n                            pmt.from_double(value),\n\
+      \                            self.tag_srcid,\n                        )\n  \
+      \              produced = next_produced\n\n        self.consume_each(n_chunks\
+      \ * self.VECTOR_SIZE)\n        return produced\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    insts: '"build/insts.bin"'
+    maxoutbuf: '0'
+    minoutbuf: '4096'
+    xclbin: '"build/final.xclbin"'
+  states:
+    _io_cache: ('npu_sync_short', 'npu_sync_short', [('xclbin', "'build/final.xclbin'"),
+      ('insts', "'build/insts.bin'")], [('0', 'complex', 1), ('1', 'complex', 1),
+      ('2', 'float', 1)], [('0', 'complex', 1)], '', [])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [408, 576.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_sync_short_0
+  id: ieee802_11_sync_short
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    log: 'False'
+    maxoutbuf: '0'
+    min_plateau: '2'
+    minoutbuf: '0'
+    threshold: '0.56'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [424, 440.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: iq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1664, 160.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: iq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [40, 288.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_0_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: iq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1168, 32.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_complex_to_mag_0, '0', blocks_divide_xx_0, '0']
+- [blocks_complex_to_mag_squared_0, '0', blocks_moving_average_xx_0, '0']
+- [blocks_conjugate_cc_0, '0', blocks_multiply_xx_0, '1']
+- [blocks_delay_0_0, '0', blocks_conjugate_cc_0, '0']
+- [blocks_delay_0_0, '0', epy_block_0, '0']
+- [blocks_delay_0_0, '0', ieee802_11_sync_short_0, '0']
+- [blocks_divide_xx_0, '0', epy_block_0, '2']
+- [blocks_divide_xx_0, '0', ieee802_11_sync_short_0, '2']
+- [blocks_file_source_0, '0', blocks_interleaved_char_to_complex_0, '0']
+- [blocks_interleaved_char_to_complex_0, '0', virtual_sink_0, '0']
+- [blocks_moving_average_xx_0, '0', blocks_divide_xx_0, '1']
+- [blocks_moving_average_xx_1, '0', blocks_complex_to_mag_0, '0']
+- [blocks_moving_average_xx_1, '0', epy_block_0, '1']
+- [blocks_moving_average_xx_1, '0', ieee802_11_sync_short_0, '1']
+- [blocks_multiply_xx_0, '0', blocks_moving_average_xx_1, '0']
+- [blocks_probe_rate_0, rate, blocks_message_debug_0, print]
+- [epy_block_0, '0', blocks_file_meta_sink_0_0, '0']
+- [ieee802_11_sync_short_0, '0', blocks_file_meta_sink_0, '0']
+- [virtual_source_0, '0', blocks_complex_to_mag_squared_0, '0']
+- [virtual_source_0, '0', blocks_delay_0_0, '0']
+- [virtual_source_0, '0', blocks_multiply_xx_0, '0']
+- [virtual_source_0_0, '0', blocks_probe_rate_0, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

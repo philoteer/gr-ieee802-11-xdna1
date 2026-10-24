@@ -1,0 +1,36 @@
+id: ieee802_11_decode_mac_BER
+label: WiFi Decode MAC (BER)
+category: '[IEEE802.11]'
+
+templates:
+  imports: import ieee802_11
+  make: ieee802_11.decode_mac_BER(${log}, ${debug})
+
+parameters:
+- id: log
+  label: Log
+  dtype: bool
+  default: 'False'
+  options: ['True', 'False']
+  option_labels: [Enable, Disable]
+- id: debug
+  label: Debug
+  dtype: bool
+  default: 'False'
+  options: ['True', 'False']
+  option_labels: [Enable, Disable]
+
+inputs:
+- domain: stream
+  dtype: byte
+  vlen: 48
+
+outputs:
+- domain: message
+  id: out
+  optional: true
+- domain: message
+  id: coded_bits
+  optional: true
+
+file_format: 1

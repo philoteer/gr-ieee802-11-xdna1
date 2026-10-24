@@ -1,0 +1,246 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: Preserve prepared samples and attach 2168-word estimated metadata.
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: channel_est_dump
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: run
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Channel Estimation Dump
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: dump_file
+  id: variable
+  parameters:
+    comment: ''
+    value: dump_path or script_dir + "/tmp_data/preproc.iqdata"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [200, 144]
+    rotation: 0
+    state: enabled
+- name: estimated_file
+  id: variable
+  parameters:
+    comment: ''
+    value: output_path or script_dir + "/tmp_data/estimated.iqdata"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [400, 144]
+    rotation: 0
+    state: enabled
+- name: kernel_dir
+  id: variable
+  parameters:
+    comment: cnn is CNN-only; mlp enables the CNN estimator and MLP payload updater.
+    value: script_dir + "/channel_est/build/" + estimator
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [640, 64]
+    rotation: 0
+    state: enabled
+- name: script_dir
+  id: variable
+  parameters:
+    comment: ''
+    value: str(__import__('pathlib').Path(globals().get('__file__', 'AI-model-CNN-Channel-est/test/frame_equalizer_preproc/channel_est_dump.py')).resolve().parent)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 144]
+    rotation: 0
+    state: enabled
+- name: channel_estimate
+  id: mlir_aie_mlir_aie_cpp_tagged_int64_to_int64
+  parameters:
+    N_TILES: '16'
+    VECTOR_SIZE: '16384'
+    affinity: ''
+    alias: ''
+    channel_estimate: 'True'
+    comment: ''
+    kernel_name: MLIR_AIE
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nominal_frequency: 2.417e9
+    num_slots: '1'
+    path_insts_bin: kernel_dir + "/insts.bin"
+    path_xclbin: kernel_dir + "/final.xclbin"
+    preprocess: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [464, 272]
+    rotation: 0
+    state: enabled
+- name: dump_path
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: Prepared input
+    short_id: ''
+    type: str
+    value: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1000, 12.0]
+    rotation: 0
+    state: enabled
+- name: estimator
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: Estimator (cnn or mlp)
+    short_id: ''
+    type: str
+    value: cnn
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [400, 64]
+    rotation: 0
+    state: enabled
+- name: output_path
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: Estimated output
+    short_id: ''
+    type: str
+    value: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [200, 64]
+    rotation: 0
+    state: enabled
+- name: sink
+  id: blocks_file_meta_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    detached: 'True'
+    extra_dict: pmt.make_dict()
+    file: estimated_file
+    max_seg_size: '1000000'
+    rel_rate: '1'
+    samp_rate: 20e6
+    type: complex
+    unbuffered: 'False'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [992, 272]
+    rotation: 0
+    state: enabled
+- name: source
+  id: blocks_file_meta_source
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    detached: 'True'
+    file: dump_file
+    hdr_file: dump_file + ".hdr"
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    repeat: 'False'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 272]
+    rotation: 0
+    state: enabled
+- name: to_complex
+  id: mlir_aie_cint32_to_complex64
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    fractional_bits: '15'
+    integer_bits: '16'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [768, 272]
+    rotation: 0
+    state: enabled
+- name: to_fixed
+  id: mlir_aie_complex64_to_cint32
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    fractional_bits: '15'
+    integer_bits: '16'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    safe: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [240, 272]
+    rotation: 0
+    state: enabled
+
+connections:
+- [channel_estimate, '0', to_complex, '0']
+- [source, '0', to_fixed, '0']
+- [to_complex, '0', sink, '0']
+- [to_fixed, '0', channel_estimate, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

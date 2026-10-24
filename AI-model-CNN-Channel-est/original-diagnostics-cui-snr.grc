@@ -1,0 +1,632 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: Per-frame SNR, pre-FEC coded BER and equalized-payload EVM on CRC-valid
+      frames, excluding the final OFDM symbol.
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: wifi_rx
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: run
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: CPU SNR BER and EVM CSV
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [0, 28.0]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: data_dir
+  id: variable
+  parameters:
+    comment: ''
+    value: "\"/home/piloteer/\uBC14\uD0D5\uD654\uBA74/WiFi_Paper_Data/SUB/raw_capture/\""
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [664, 44.0]
+    rotation: 0
+    state: enabled
+- name: dataset
+  id: variable
+  parameters:
+    comment: ''
+    value: '"206"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1472, 60.0]
+    rotation: 0
+    state: enabled
+- name: dataset
+  id: variable
+  parameters:
+    comment: ''
+    value: '"stress_test_awgn_15db"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1400, 276.0]
+    rotation: 0
+    state: disabled
+- name: dataset
+  id: variable
+  parameters:
+    comment: ''
+    value: '"room_20260927"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1424, 204.0]
+    rotation: 0
+    state: disabled
+- name: dataset
+  id: variable
+  parameters:
+    comment: ''
+    value: '"stress_test"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1440, 140.0]
+    rotation: 0
+    state: disabled
+- name: diagnostic_output
+  id: variable
+  parameters:
+    comment: ''
+    value: '"data/tmp_out/ " + dataset + ".csv"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [504, 44.0]
+    rotation: 0
+    state: enabled
+- name: file_path
+  id: variable
+  parameters:
+    comment: ''
+    value: data_dir + "/" + dataset  + ".sigmf"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [816, 44.0]
+    rotation: 0
+    state: enabled
+- name: freq
+  id: variable
+  parameters:
+    comment: ''
+    value: 2.412e9
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [192, 108.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 20e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [192, 44.0]
+    rotation: 0
+    state: enabled
+- name: sync_length
+  id: variable
+  parameters:
+    comment: ''
+    value: '320'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [296, 44.0]
+    rotation: 0
+    state: enabled
+- name: window_size
+  id: variable
+  parameters:
+    comment: ''
+    value: '48'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [408, 44.0]
+    rotation: 0
+    state: enabled
+- name: blocks_complex_to_mag_0
+  id: blocks_complex_to_mag
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [800, 448]
+    rotation: 0
+    state: enabled
+- name: blocks_complex_to_mag_squared_0
+  id: blocks_complex_to_mag_squared
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [48, 360.0]
+    rotation: 0
+    state: enabled
+- name: blocks_conjugate_cc_0
+  id: blocks_conjugate_cc
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [256, 504.0]
+    rotation: 0
+    state: enabled
+- name: blocks_delay_0
+  id: blocks_delay
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    delay: sync_length
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_ports: '1'
+    showports: 'False'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [952, 628.0]
+    rotation: 0
+    state: enabled
+- name: blocks_delay_0_0
+  id: blocks_delay
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    delay: '16'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_ports: '1'
+    showports: 'False'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [88, 524.0]
+    rotation: 0
+    state: enabled
+- name: blocks_divide_xx_0
+  id: blocks_divide_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1168, 456.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_source_0
+  id: blocks_file_source
+  parameters:
+    affinity: ''
+    alias: ''
+    begin_tag: pmt.PMT_NIL
+    comment: ''
+    file: file_path+"-data"
+    length: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    repeat: 'False'
+    type: short
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 208]
+    rotation: 0
+    state: enabled
+- name: blocks_interleaved_short_to_complex_0
+  id: blocks_interleaved_short_to_complex
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale_factor: '32768'
+    swap: 'False'
+    vector_input: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [224, 208]
+    rotation: 0
+    state: enabled
+- name: blocks_moving_average_xx_0
+  id: blocks_moving_average_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    length: window_size+16
+    max_iter: '4000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale: '1'
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [224, 340.0]
+    rotation: 0
+    state: enabled
+- name: blocks_moving_average_xx_1
+  id: blocks_moving_average_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    length: window_size
+    max_iter: '4000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [584, 460.0]
+    rotation: 0
+    state: enabled
+- name: blocks_multiply_xx_0
+  id: blocks_multiply_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [464, 472.0]
+    rotation: 0
+    state: enabled
+- name: blocks_stream_to_vector_0
+  id: blocks_stream_to_vector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '64'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1352, 616.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_iq_tag_sink
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nimport pmt\nfrom gnuradio import gr\n\n\nclass\
+      \ blk(gr.sync_block):\n    def __init__(self, frequency_callback=lambda value:\
+      \ None):\n        gr.sync_block.__init__(self, name='IQ Tag Frequency Retuner',\n\
+      \                               in_sig=[np.complex64], out_sig=None)\n     \
+      \   self.frequency_callback = frequency_callback\n        self.frequency_key\
+      \ = pmt.intern('rx_freq')\n\n    def work(self, input_items, output_items):\n\
+      \        count = len(input_items[0])\n        for tag in self.get_tags_in_window(0,\
+      \ 0, count, self.frequency_key):\n            self.frequency_callback(pmt.to_double(tag.value))\n\
+      \        return count\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    frequency_callback: 'lambda value: self.set_freq(value)'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: ('IQ Tag Frequency Retuner', 'blk', [('frequency_callback', '<function
+      blk.<lambda> at 0x7fc5153f9bc0>')], [('0', 'complex', 1)], [], '', ['frequency_callback'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [816, 244.0]
+    rotation: 0
+    state: enabled
+- name: epy_snr_csv
+  id: epy_block
+  parameters:
+    _source_code: "import csv\nimport threading\nfrom pathlib import Path\n\nimport\
+      \ numpy as np\nimport pmt\nfrom gnuradio import gr\n\n\nclass snr_csv(gr.basic_block):\n\
+      \    \"\"\"One unbinned row per CRC-valid diagnostic PDU; no cross-frame joins.\"\
+      \"\"\n\n    def __init__(self, output_path='data/tmp_out/snr_ber_evm_cpu.csv',\n\
+      \                 estimator_label='LS'):\n        gr.basic_block.__init__(self,\
+      \ name='SNR BER EVM CSV', in_sig=None, out_sig=None)\n        self.output_path\
+      \ = output_path\n        self.estimator_label = str(estimator_label)\n     \
+      \   self.output_file = None\n        self.writer = None\n        self.frame_index\
+      \ = 0\n        self.lock = threading.Lock()\n        self.message_port_register_in(pmt.intern('diag'))\n\
+      \        self.set_msg_handler(pmt.intern('diag'), self._handle_diag)\n\n   \
+      \ def start(self):\n        output = Path(self.output_path)\n        output.parent.mkdir(parents=True,\
+      \ exist_ok=True)\n        self.output_file = output.open('w', newline='', encoding='utf-8')\n\
+      \        self.writer = csv.writer(self.output_file)\n        self.frame_index\
+      \ = 0\n        self.writer.writerow([\n            'frame_index', 'estimator',\
+      \ 'frame_bytes', 'encoding', 'snr_db',\n            'bit_errors', 'bits_compared',\
+      \ 'ber', 'evm_rms_percent', 'evm_rms_db',\n            'evm_error_power', 'evm_reference_power',\n\
+      \        ])\n        self.output_file.flush()\n        return True\n\n    @staticmethod\n\
+      \    def _metadata(metadata, key):\n        value = pmt.dict_ref(metadata, pmt.intern(key),\
+      \ pmt.PMT_NIL)\n        if pmt.is_uint64(value):\n            return int(pmt.to_uint64(value))\n\
+      \        if pmt.is_real(value):\n            return float(pmt.to_double(value))\n\
+      \        return ''\n\n    def _handle_diag(self, message):\n        if not pmt.is_pair(message):\n\
+      \            return\n        metadata, diagnostic = pmt.car(message), pmt.cdr(message)\n\
+      \        if not pmt.is_dict(metadata) or not pmt.is_dict(diagnostic):\n    \
+      \        return\n        bits = []\n        for key in ('pre_viterbi', 'corrected_coded'):\n\
+      \            value = pmt.dict_ref(diagnostic, pmt.intern(key), pmt.PMT_NIL)\n\
+      \            if not pmt.is_u8vector(value):\n                return\n      \
+      \      bits.append(np.asarray(pmt.u8vector_elements(value), dtype=np.uint8))\n\
+      \        received, reference = bits\n        if (not received.size or received.size\
+      \ != reference.size or\n                np.any(received > 1) or np.any(reference\
+      \ > 1)):\n            return\n        errors = int(np.count_nonzero(received\
+      \ != reference))\n        evm_percent = evm_db = error_power = reference_power\
+      \ = ''\n        tx = pmt.dict_ref(diagnostic, pmt.intern('transmitted_iq'),\
+      \ pmt.PMT_NIL)\n        eq = pmt.dict_ref(diagnostic, pmt.intern('equalized_iq'),\
+      \ pmt.PMT_NIL)\n        if pmt.is_c32vector(tx) and pmt.is_c32vector(eq):\n\
+      \            tx = np.asarray(pmt.c32vector_elements(tx), dtype=np.complex128)\n\
+      \            eq = np.asarray(pmt.c32vector_elements(eq), dtype=np.complex128)\n\
+      \            if (tx.size and tx.size % 48 == 0 and tx.size == eq.size and\n\
+      \                    np.all(np.isfinite(tx)) and np.all(np.isfinite(eq))):\n\
+      \                power = float(np.vdot(tx, tx).real)\n                if power\
+      \ > 0:\n                    reference_power = power\n                    error_power\
+      \ = float(np.vdot(eq - tx, eq - tx).real)\n                    ratio = float(np.sqrt(error_power\
+      \ / reference_power))\n                    evm_percent = 100.0 * ratio\n   \
+      \                 evm_db = float(20 * np.log10(ratio)) if ratio else float('-inf')\n\
+      \        with self.lock:\n            if self.output_file is None:\n       \
+      \         return\n            self.frame_index += 1\n            self.writer.writerow([\n\
+      \                self.frame_index, self.estimator_label,\n                self._metadata(metadata,\
+      \ 'frame bytes'), self._metadata(metadata, 'encoding'),\n                self._metadata(metadata,\
+      \ 'snr'), errors, int(received.size),\n                errors / received.size,\
+      \ evm_percent, evm_db, error_power, reference_power,\n            ])\n     \
+      \       self.output_file.flush()\n\n    def stop(self):\n        with self.lock:\n\
+      \            if self.output_file is not None:\n                self.output_file.close()\n\
+      \                self.output_file = None\n        return True\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    estimator_label: '"_"'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    output_path: diagnostic_output
+  states:
+    _io_cache: ('SNR BER EVM CSV', 'snr_csv', [('output_path', "'data/tmp_out/snr_ber_evm_cpu.csv'"),
+      ('estimator_label', "'LS'")], [('diag', 'message', 1)], [], 'One unbinned row
+      per CRC-valid diagnostic PDU; no cross-frame joins.', ['estimator_label', 'output_path'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1352, 772.0]
+    rotation: 0
+    state: enabled
+- name: fft_vxx_0
+  id: fft_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    fft_size: '64'
+    forward: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nthreads: '1'
+    shift: 'True'
+    type: complex
+    window: window.rectangular(64)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [480, 748.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_decode_mac_EVM_0
+  id: ieee802_11_decode_mac_EVM
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1096, 752.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_frame_equalizer_debug_0
+  id: ieee802_11_frame_equalizer_debug
+  parameters:
+    affinity: ''
+    algo: ieee802_11.CNN_CHANNEL_MLP
+    alias: ''
+    bw: samp_rate
+    comment: ''
+    debug: 'False'
+    freq: freq
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [752, 748.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_sync_long_0
+  id: ieee802_11_sync_long
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    sync_length: sync_length
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1128, 596.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_sync_short_0
+  id: ieee802_11_sync_short
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    log: 'False'
+    maxoutbuf: '0'
+    min_plateau: '2'
+    minoutbuf: '0'
+    threshold: '0.56'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [776, 568.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_sigmf_tag_injector_0
+  id: mlir_aie_sigmf_tag_injector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    metadata_file: file_path+"-meta"
+    minoutbuf: '0'
+    start_sample: '0'
+    tag_key: rx_freq
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [528, 220.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_complex_to_mag_0, '0', blocks_divide_xx_0, '0']
+- [blocks_complex_to_mag_squared_0, '0', blocks_moving_average_xx_0, '0']
+- [blocks_conjugate_cc_0, '0', blocks_multiply_xx_0, '1']
+- [blocks_delay_0, '0', ieee802_11_sync_long_0, '1']
+- [blocks_delay_0_0, '0', blocks_conjugate_cc_0, '0']
+- [blocks_delay_0_0, '0', ieee802_11_sync_short_0, '0']
+- [blocks_divide_xx_0, '0', ieee802_11_sync_short_0, '2']
+- [blocks_file_source_0, '0', blocks_interleaved_short_to_complex_0, '0']
+- [blocks_interleaved_short_to_complex_0, '0', mlir_aie_sigmf_tag_injector_0, '0']
+- [blocks_moving_average_xx_0, '0', blocks_divide_xx_0, '1']
+- [blocks_moving_average_xx_1, '0', blocks_complex_to_mag_0, '0']
+- [blocks_moving_average_xx_1, '0', ieee802_11_sync_short_0, '1']
+- [blocks_multiply_xx_0, '0', blocks_moving_average_xx_1, '0']
+- [blocks_stream_to_vector_0, '0', fft_vxx_0, '0']
+- [fft_vxx_0, '0', ieee802_11_frame_equalizer_debug_0, '0']
+- [ieee802_11_decode_mac_EVM_0, diag, epy_snr_csv, diag]
+- [ieee802_11_frame_equalizer_debug_0, '0', ieee802_11_decode_mac_EVM_0, '0']
+- [ieee802_11_sync_long_0, '0', blocks_stream_to_vector_0, '0']
+- [ieee802_11_sync_short_0, '0', blocks_delay_0, '0']
+- [ieee802_11_sync_short_0, '0', ieee802_11_sync_long_0, '0']
+- [mlir_aie_sigmf_tag_injector_0, '0', blocks_complex_to_mag_squared_0, '0']
+- [mlir_aie_sigmf_tag_injector_0, '0', blocks_delay_0_0, '0']
+- [mlir_aie_sigmf_tag_injector_0, '0', blocks_multiply_xx_0, '0']
+- [mlir_aie_sigmf_tag_injector_0, '0', epy_block_iq_tag_sink, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0

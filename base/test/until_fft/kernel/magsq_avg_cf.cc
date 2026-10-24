@@ -1,0 +1,1 @@
+../../../kernel/magsq_avg_cf.cc

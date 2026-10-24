@@ -1,0 +1,1660 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: Custom
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: wifi_rx
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: ''
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 12.0]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: chan_est
+  id: variable
+  parameters:
+    comment: Label the selected GNU Radio channel estimator in diagnostic records.
+    value: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [168, 20.0]
+    rotation: 0
+    state: enabled
+- name: diagnostic_estimator
+  id: variable
+  parameters:
+    comment: Label the selected GNU Radio channel estimator in diagnostic records.
+    value: '[''LS'', ''LMS'', ''COMB'', ''STA''][chan_est]'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 248.0]
+    rotation: 0
+    state: enabled
+- name: diagnostic_evm_output
+  id: variable
+  parameters:
+    comment: Bounded equalized-payload EVM export.
+    value: '"data/tmp_out/channel_estimator_evm.jsonl"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [696, 144.0]
+    rotation: 0
+    state: enabled
+- name: diagnostic_max_records
+  id: variable
+  parameters:
+    comment: Maximum number of frame and CRC event records written to JSONL.
+    value: '10000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [160, 144.0]
+    rotation: 0
+    state: enabled
+- name: diagnostic_output
+  id: variable
+  parameters:
+    comment: Bounded channel-estimator diagnostic export.
+    value: '"data/tmp_out/channel_estimator_diagnostic.jsonl"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [528, 144.0]
+    rotation: 0
+    state: enabled
+- name: file_path
+  id: variable
+  parameters:
+    comment: ''
+    value: '"data/raw_capture/206.sigmf"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [952, 36.0]
+    rotation: 0
+    state: enabled
+- name: freq
+  id: variable
+  parameters:
+    comment: ''
+    value: '2417000000.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [384, 28.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 20e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [808, 16.0]
+    rotation: 0
+    state: enabled
+- name: sync_length
+  id: variable
+  parameters:
+    comment: ''
+    value: '320'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 148.0]
+    rotation: 0
+    state: enabled
+- name: window_size
+  id: variable
+  parameters:
+    comment: ''
+    value: '48'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 80.0]
+    rotation: 0
+    state: enabled
+- name: blocks_complex_to_mag_0
+  id: blocks_complex_to_mag
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1232, 584.0]
+    rotation: 0
+    state: enabled
+- name: blocks_complex_to_mag_squared_0
+  id: blocks_complex_to_mag_squared
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [320, 488.0]
+    rotation: 0
+    state: enabled
+- name: blocks_conjugate_cc_0
+  id: blocks_conjugate_cc
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [600, 600.0]
+    rotation: 0
+    state: enabled
+- name: blocks_delay_0
+  id: blocks_delay
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    delay: sync_length
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_ports: '1'
+    showports: 'False'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [632, 728.0]
+    rotation: 0
+    state: enabled
+- name: blocks_delay_0_0
+  id: blocks_delay
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    delay: '16'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_ports: '1'
+    showports: 'False'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [288, 592.0]
+    rotation: 0
+    state: enabled
+- name: blocks_divide_xx_0
+  id: blocks_divide_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1448.0, 560]
+    rotation: 270
+    state: enabled
+- name: blocks_file_sink_0
+  id: blocks_file_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    append: 'False'
+    comment: ''
+    file: data/tmp_out/orig.pcap
+    type: byte
+    unbuffered: 'True'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [808, 1120.0]
+    rotation: 180
+    state: disabled
+- name: blocks_file_source_0
+  id: blocks_file_source
+  parameters:
+    affinity: ''
+    alias: ''
+    begin_tag: pmt.PMT_NIL
+    comment: ''
+    file: file_path+"-data"
+    length: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    repeat: 'False'
+    type: short
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1000, 140.0]
+    rotation: 0
+    state: enabled
+- name: blocks_interleaved_short_to_complex_0_0
+  id: blocks_interleaved_short_to_complex
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale_factor: '32768'
+    swap: 'False'
+    vector_input: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1224, 180.0]
+    rotation: 0
+    state: enabled
+- name: blocks_message_debug_0
+  id: blocks_message_debug
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    en_uvec: 'True'
+    log_level: info
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1600, 8.0]
+    rotation: 0
+    state: enabled
+- name: blocks_moving_average_xx_0
+  id: blocks_moving_average_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    length: window_size  + 16
+    max_iter: '4000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale: '1'
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [600, 456.0]
+    rotation: 0
+    state: enabled
+- name: blocks_moving_average_xx_1
+  id: blocks_moving_average_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    length: window_size
+    max_iter: '4000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [976, 552.0]
+    rotation: 0
+    state: enabled
+- name: blocks_multiply_xx_0
+  id: blocks_multiply_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [800, 568.0]
+    rotation: 0
+    state: enabled
+- name: blocks_probe_rate_0
+  id: blocks_probe_rate
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha: '0.15'
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    mintime: '500.0'
+    name: ''
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1344, 16.0]
+    rotation: 0
+    state: enabled
+- name: blocks_stream_to_vector_0
+  id: blocks_stream_to_vector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '64'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1160, 720.0]
+    rotation: 0
+    state: enabled
+- name: blocks_vector_to_stream_0
+  id: blocks_vector_to_stream
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '48'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1104, 816.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_iq_tag_sink
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nimport pmt\n\n\nclass\
+      \ blk(gr.sync_block):\n    def __init__(self, frequency_callback=lambda value:\
+      \ None):\n        gr.sync_block.__init__(\n            self, name=\"IQ Tag Frequency\
+      \ Retuner\", in_sig=[np.complex64], out_sig=None)\n        self.frequency_callback\
+      \ = frequency_callback\n        self.frequency_key = pmt.intern(\"rx_freq\"\
+      )\n\n    def work(self, input_items, output_items):\n        count = len(input_items[0])\n\
+      \        for tag in self.get_tags_in_window(0, 0, count, self.frequency_key):\n\
+      \            self.frequency_callback(pmt.to_double(tag.value))\n        return\
+      \ count\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    frequency_callback: 'lambda value: self.set_freq(value)'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: ('IQ Tag Frequency Retuner', 'blk', [('frequency_callback', '<function
+      blk.<lambda> at 0x7e5009945760>')], [('0', 'complex', 1)], [], '', ['frequency_callback'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [192, 820.0]
+    rotation: 0
+    state: enabled
+- name: epy_channel_estimator_diagnostic
+  id: epy_block
+  parameters:
+    _source_code: "# This block observes frame tags from the AIE receiver and produces\n\
+      # bounded diagnostic records and display vectors without altering decoded bytes.\n\
+      #\n# Input stream:\n#   The AIE hard-decision byte stream, used only to locate\
+      \ absolute tag offsets.\n#\n# Message input:\n#   The MAC decoder emits one\
+      \ message after a CRC-valid packet. Its diag port sends one metadata\n#   dictionary\
+      \ containing coded-bit vectors and optional IQ vectors for BER/EVM.\n#\n# Stream\
+      \ outputs:\n#   CSI magnitude, CSI phase residual, delay profile, and eight\
+      \ scalar metrics.\n#\n# The analyzer deliberately does not forward its input.\
+      \ A separate branch keeps\n# the production byte stream connected directly to\
+      \ the MAC decoder.\n#\n# JSONL events:\n#   frame       One valid CSI tag with\
+      \ raw CSI and derived metrics.\n#   crc_ok      One payload passed the MAC decoder\
+      \ CRC check.\n#   invalid_csi A tag was malformed or contained no usable channel\
+      \ power.\n#   pre_fec_coded_ber Counts mismatches between received coded bits\
+      \ and the\n#                     decoder-corrected re-encoded bits on CRC-valid\
+      \ frames.\n#\n# Coded BER uses the bit region published by decode_mac_BER, which\
+      \ omits the\n# final OFDM symbol; failed-CRC frames do not provide a comparison\
+      \ reference.\n#\n# Metric meanings:\n#   Flatness and deepest fade describe\
+      \ frequency selectivity.\n#   Noise enhancement estimates sensitivity of a reciprocal\
+      \ equalizer.\n#   Phase residual removes linear timing slope and exposes ripple.\n\
+      #   Delay spread is an approximate 64-point impulse-response measurement.\n\n\
+      import json\nimport os\nimport threading\nimport time\n\nimport numpy as np\n\
+      import pmt\nfrom gnuradio import gr\n\n\nclass channel_estimator_diagnostic(gr.basic_block):\n\
+      \    \"\"\"Analyze frame-level CSI tags and generate quality metrics.\n\n  \
+      \      Args:\n            output_path: JSONL destination. An empty string disables\
+      \ file output.\n            max_records: Maximum number of JSONL records retained.\n\
+      \            report_interval: Number of frames between console summaries.\n\
+      \            headless_idle_seconds: Inactivity timeout for unattended finite-file\
+      \ runs.\n            estimator_label: Human-readable label identifying the XCLBIN\
+      \ estimator.\n            sample_rate: Input sample rate in samples per second.\n\
+      \n        The input is intentionally not forwarded. The production receiver\
+      \ branch\n        remains connected directly to the MAC decoder.\n        \"\
+      \"\"\n\n    def __init__(self, output_path=\"data/tmp_out/channel_estimator_diagnostic.jsonl\"\
+      ,\n                 max_records=10000, report_interval=25,\n               \
+      \  headless_idle_seconds=10.0, estimator_label=\"CNN\", sample_rate=20e6):\n\
+      \        # The first three outputs are vectors; the remaining eight outputs\
+      \ are\n        # scalar metrics repeated once per analyzed frame for the GUI\
+      \ sinks.\n        gr.basic_block.__init__(\n            self,\n            name=\"\
+      channel_estimator_diagnostic\",\n            in_sig=[np.int8],\n           \
+      \ out_sig=[\n                (np.float32, 53), (np.float32, 53), (np.float32,\
+      \ 64),\n                np.float32, np.float32, np.float32, np.float32,\n  \
+      \              np.float32, np.float32, np.float32, np.float32,\n           \
+      \ ],\n        )\n        # Queue completed frame analyses until all output ports\
+      \ can accept one item.\n        self.output_path = output_path\n        self.sample_rate\
+      \ = float(sample_rate)\n        if self.sample_rate <= 0.0:\n            raise\
+      \ ValueError(\"sample_rate must be positive\")\n        self.max_records = max(0,\
+      \ int(max_records))\n        self.report_interval = max(1, int(report_interval))\n\
+      \        self.estimator_label = str(estimator_label)\n        self.pending =\
+      \ []\n        self.previous_csi = None\n        self.frame_count = 0\n     \
+      \   self.crc_valid_count = 0\n        self.record_count = 0\n        self.pre_fec_bit_errors\
+      \ = 0\n        self.pre_fec_bits_compared = 0\n        self.pre_fec_ber_samples\
+      \ = 0\n        self.evm_samples = 0\n        self.evm_error_power = 0.0\n  \
+      \      self.evm_reference_power = 0.0\n        self.evm_aligned_percent_sum\
+      \ = 0.0\n        self.evm_lock = threading.Lock()\n        self.lock = threading.Lock()\n\
+      \        self.last_work = time.monotonic()\n        self.seen_input = False\n\
+      \        self.stopping = False\n        self.message_port_register_in(pmt.intern(\"\
+      crc_ok\"))\n        self.set_msg_handler(pmt.intern(\"crc_ok\"), self._handle_crc_ok)\n\
+      \        self.message_port_register_in(pmt.intern(\"diag\"))\n        self.set_msg_handler(pmt.intern(\"\
+      diag\"), self._handle_diag)\n\n        directory = os.path.dirname(output_path)\n\
+      \        if directory:\n            os.makedirs(directory, exist_ok=True)\n\
+      \        self.output_file = open(output_path, \"w\", encoding=\"ascii\") if\
+      \ output_path else None\n\n        # In unattended runs the watchdog quits Qt\
+      \ after finite input stops.\n        if os.environ.get(\"WIFI_DIAGNOSTIC_HEADLESS\"\
+      ) == \"1\":\n            self.headless_thread = threading.Thread(\n        \
+      \        target=self._headless_watchdog,\n                args=(max(1.0, float(headless_idle_seconds)),),\n\
+      \                daemon=True,\n            )\n            self.headless_thread.start()\n\
+      \n    def forecast(self, noutput_items, ninputs):\n        return [1] * ninputs\n\
+      \n    @staticmethod\n    def _finite(value):\n        return float(value) if\
+      \ np.isfinite(value) else None\n\n    def _write_record(self, record):\n   \
+      \     with self.lock:\n            if self.output_file is None or self.record_count\
+      \ >= self.max_records:\n                return\n            self.output_file.write(json.dumps(record,\
+      \ separators=(\",\", \":\"), allow_nan=False) + \"\\n\")\n            self.output_file.flush()\n\
+      \            self.record_count += 1\n\n    def _handle_crc_ok(self, _message):\n\
+      \        with self.lock:\n            self.crc_valid_count += 1\n          \
+      \  crc_valid_count = self.crc_valid_count\n        self._write_record({\n  \
+      \          \"event\": \"crc_ok\",\n            \"crc_valid_count\": crc_valid_count,\n\
+      \            \"estimator\": self.estimator_label,\n        })\n\n    def _headless_watchdog(self,\
+      \ idle_seconds):\n        while not self.stopping:\n            time.sleep(0.25)\n\
+      \            if self.seen_input and time.monotonic() - self.last_work >= idle_seconds:\n\
+      \                try:\n                    from PyQt5 import QtWidgets\n   \
+      \                 app = QtWidgets.QApplication.instance()\n                \
+      \    if app is not None:\n                        app.quit()\n             \
+      \   except ImportError:\n                    pass\n                return\n\n\
+      \    def _decode_tags(self, tags):\n        grouped = {}\n        for tag in\
+      \ tags:\n            key = pmt.symbol_to_string(tag.key)\n            grouped.setdefault(int(tag.offset),\
+      \ {})[key] = tag.value\n        return grouped\n\n    def _analyze(self, offset,\
+      \ values):\n        # The AIE adapter publishes CSI as 52 occupied carriers:\
+      \ -26..-1 and\n        # +1..+26. A missing CSI tag means this offset is not\
+      \ a frame record.\n        if \"csi\" not in values:\n            return\n \
+      \       csi = np.asarray(pmt.c32vector_elements(values[\"csi\"]), dtype=np.complex64)\n\
+      \        if csi.size != 52 or not np.all(np.isfinite(csi)):\n            self._write_record({\n\
+      \                \"event\": \"invalid_csi\",\n                \"offset\": offset,\n\
+      \                \"size\": int(csi.size),\n                \"estimator\": self.estimator_label,\n\
+      \            })\n            return\n\n        power = np.abs(csi).astype(np.float64)\
+      \ ** 2\n        mean_power = float(np.mean(power))\n        if mean_power <=\
+      \ np.finfo(np.float64).tiny:\n            self._write_record({\n           \
+      \     \"event\": \"invalid_csi\",\n                \"offset\": offset,\n   \
+      \             \"reason\": \"zero_power\",\n                \"estimator\": self.estimator_label,\n\
+      \            })\n            return\n\n        floor = max(mean_power * 1e-12,\
+      \ np.finfo(np.float64).tiny)\n        # Use a relative floor so logarithms remain\
+      \ finite for deep fades.\n        median_power = max(float(np.median(power)),\
+      \ floor)\n        magnitude_db = 10.0 * np.log10(np.maximum(power, floor) /\
+      \ median_power)\n        subcarriers = np.concatenate((np.arange(-26, 0), np.arange(1,\
+      \ 27)))\n        # Remove the best-fit linear phase slope before displaying\
+      \ phase ripple.\n        unwrapped_phase = np.unwrap(np.angle(csi).astype(np.float64))\n\
+      \        phase_fit = np.polyfit(subcarriers, unwrapped_phase, 1)\n        phase_residual\
+      \ = unwrapped_phase - np.polyval(phase_fit, subcarriers)\n\n        shifted_channel\
+      \ = np.zeros(64, dtype=np.complex128)\n        # Reinsert the occupied carriers\
+      \ into shifted 64-point FFT-bin order.\n        # DC and guard bins remain zero\
+      \ because they are not channel estimates.\n        shifted_channel[6:32] = csi[:26]\n\
+      \        shifted_channel[33:59] = csi[26:]\n        impulse = np.fft.ifft(np.fft.ifftshift(shifted_channel))\n\
+      \        delay_power = np.abs(impulse) ** 2\n        # The 20 MHz sample period\
+      \ is derived from the configured sample rate; report RMS delay in nanoseconds.\n\
+      \        delay_power /= max(float(np.max(delay_power)), floor)\n        delay_profile_db\
+      \ = 10.0 * np.log10(np.maximum(delay_power, 1e-8))\n        peak = int(np.argmax(delay_power))\n\
+      \        distances = (np.arange(64) - peak + 32) % 64 - 32\n        delay_weight\
+      \ = delay_power / np.sum(delay_power)\n        mean_delay = float(np.sum(distances\
+      \ * delay_weight))\n        rms_delay_ns = (1e9 / self.sample_rate) * np.sqrt(\n\
+      \            np.sum(((distances - mean_delay) ** 2) * delay_weight)\n      \
+      \  )\n\n        spectral_flatness_db = 10.0 * np.log10(\n            np.exp(np.mean(np.log(np.maximum(power,\
+      \ floor)))) / mean_power\n        )\n        noise_enhancement_db = 10.0 * np.log10(\n\
+      \            mean_power * np.mean(1.0 / np.maximum(power, floor))\n        )\n\
+      \        deepest_fade_db = 10.0 * np.log10(max(float(np.min(power)), floor)\
+      \ / median_power)\n        if self.previous_csi is None:\n            stability\
+      \ = 0.0\n        else:\n            # Correlation is insensitive to overall\
+      \ gain and is useful for spotting\n            # packet-to-packet channel changes\
+      \ or unstable estimates.\n            denominator = np.linalg.norm(self.previous_csi)\
+      \ * np.linalg.norm(csi)\n            stability = float(abs(np.vdot(self.previous_csi,\
+      \ csi)) / denominator) if denominator else 0.0\n        self.previous_csi =\
+      \ csi.copy()\n\n        self.frame_count += 1\n        snr_db = pmt.to_double(values[\"\
+      snr\"]) if \"snr\" in values else np.nan\n        frequency_offset_hz = (\n\
+      \            pmt.to_double(values[\"frequency offset\"])\n            if \"\
+      frequency offset\" in values else np.nan\n        )\n        beta_rad = pmt.to_double(values[\"\
+      beta\"]) if \"beta\" in values else np.nan\n        frame_bytes = pmt.to_uint64(values[\"\
+      frame bytes\"]) if \"frame bytes\" in values else 0\n        encoding = pmt.to_uint64(values[\"\
+      encoding\"]) if \"encoding\" in values else 0\n        with self.lock:\n   \
+      \         crc_valid_count = self.crc_valid_count\n\n        metrics = {\n  \
+      \          \"snr_db\": self._finite(snr_db),\n            \"frequency_offset_hz\"\
+      : self._finite(frequency_offset_hz),\n            \"beta_rad\": self._finite(beta_rad),\n\
+      \            \"deepest_fade_db\": self._finite(deepest_fade_db),\n         \
+      \   \"spectral_flatness_db\": self._finite(spectral_flatness_db),\n        \
+      \    \"noise_enhancement_db\": self._finite(noise_enhancement_db),\n       \
+      \     \"phase_slope_rad_per_subcarrier\": self._finite(phase_fit[0]),\n    \
+      \        \"phase_residual_rms_rad\": self._finite(np.sqrt(np.mean(phase_residual\
+      \ ** 2))),\n            \"peak_delay_sample\": peak,\n            \"rms_delay_spread_ns\"\
+      : self._finite(rms_delay_ns),\n            \"previous_csi_correlation\": self._finite(stability),\n\
+      \        }\n        self._write_record({\n            \"event\": \"frame\",\n\
+      \            \"frame_index\": self.frame_count,\n            \"offset\": offset,\n\
+      \            \"estimator\": self.estimator_label,\n            \"frame_bytes\"\
+      : int(frame_bytes),\n            \"encoding\": int(encoding),\n            \"\
+      crc_valid_count\": crc_valid_count,\n            \"metrics\": metrics,\n   \
+      \         \"csi_real\": csi.real.astype(float).tolist(),\n            \"csi_imag\"\
+      : csi.imag.astype(float).tolist(),\n        })\n        self.pending.append((\n\
+      \            np.insert(magnitude_db, 26, -50.0).astype(np.float32),\n      \
+      \      np.insert(phase_residual, 26, 0.0).astype(np.float32),\n            delay_profile_db.astype(np.float32),\n\
+      \            np.asarray((\n                snr_db, frequency_offset_hz, deepest_fade_db,\n\
+      \                spectral_flatness_db, noise_enhancement_db,\n             \
+      \   rms_delay_ns, stability,\n                crc_valid_count / self.frame_count,\n\
+      \            ), dtype=np.float32),\n        ))\n\n        if self.frame_count\
+      \ % self.report_interval == 0:\n            ratio = crc_valid_count / self.frame_count\n\
+      \            print(\n                \"channel diagnostic: frames={} crc_ok={}\
+      \ ratio={:.3f} \"\n                \"snr_db={:.2f} fade_db={:.2f} stability={:.4f}\
+      \ delay_ns={:.1f}\".format(\n                    self.frame_count, crc_valid_count,\
+      \ ratio, snr_db,\n                    deepest_fade_db, stability, rms_delay_ns\n\
+      \                )\n            )\n\n    def general_work(self, input_items,\
+      \ output_items):\n        in0 = input_items[0]\n        if len(in0):\n     \
+      \       self.seen_input = True\n            self.last_work = time.monotonic()\n\
+      \            start = self.nitems_read(0)\n            tags = self.get_tags_in_range(0,\
+      \ start, start + len(in0))\n            for offset, values in sorted(self._decode_tags(tags).items()):\n\
+      \                self._analyze(offset, values)\n            self.consume(0,\
+      \ len(in0))\n\n        produced = min(min(map(len, output_items)), len(self.pending))\n\
+      \        for index in range(produced):\n            magnitude_db, phase_residual,\
+      \ delay_profile_db, metrics = self.pending.pop(0)\n            output_items[0][index]\
+      \ = magnitude_db\n            output_items[1][index] = phase_residual\n    \
+      \        output_items[2][index] = delay_profile_db\n            for metric_index\
+      \ in range(8):\n                output_items[3 + metric_index][index] = metrics[metric_index]\n\
+      \        return produced\n\n    def stop(self):\n        self.stopping = True\n\
+      \        with self.lock:\n            if self.output_file is not None:\n   \
+      \             self.output_file.close()\n                self.output_file = None\n\
+      \        return True\n\n    def _metadata_uint64(self, metadata, key):\n   \
+      \     if not pmt.is_dict(metadata):\n            return None\n        value\
+      \ = pmt.dict_ref(metadata, pmt.intern(key), pmt.PMT_NIL)\n        return int(pmt.to_uint64(value))\
+      \ if pmt.is_uint64(value) else None\n\n    def _record_coded_ber(self, metadata,\
+      \ rx_bits, reference_bits):\n        frame_bytes = self._metadata_uint64(metadata,\
+      \ 'frame bytes')\n        encoding = self._metadata_uint64(metadata, 'encoding')\n\
+      \        if rx_bits.size == 0 or rx_bits.size != reference_bits.size:\n    \
+      \        self._write_record({\n                'event': 'invalid_coded_ber_pair',\n\
+      \                'received_bits': int(rx_bits.size),\n                'reference_bits':\
+      \ int(reference_bits.size),\n                'frame_bytes': frame_bytes,\n \
+      \               'encoding': encoding,\n                'estimator': self.estimator_label,\n\
+      \            })\n            return\n        if np.any(rx_bits > 1) or np.any(reference_bits\
+      \ > 1):\n            self._write_record({\n                'event': 'invalid_coded_ber_pair',\n\
+      \                'reason': 'values_are_not_bits',\n                'estimator':\
+      \ self.estimator_label,\n            })\n            return\n\n        bit_errors\
+      \ = int(np.count_nonzero(rx_bits != reference_bits))\n        bits_compared\
+      \ = int(rx_bits.size)\n        sample_ber = bit_errors / bits_compared\n   \
+      \     self.pre_fec_ber_samples += 1\n        self.pre_fec_bit_errors += bit_errors\n\
+      \        self.pre_fec_bits_compared += bits_compared\n        cumulative_ber\
+      \ = self.pre_fec_bit_errors / self.pre_fec_bits_compared\n        self._write_record({\n\
+      \            'event': 'pre_fec_coded_ber',\n            'sample_index': self.pre_fec_ber_samples,\n\
+      \            'frame_bytes': frame_bytes,\n            'encoding': encoding,\n\
+      \            'bit_errors': bit_errors,\n            'bits_compared': bits_compared,\n\
+      \            'ber': sample_ber,\n            'cumulative_bit_errors': self.pre_fec_bit_errors,\n\
+      \            'cumulative_bits_compared': self.pre_fec_bits_compared,\n     \
+      \       'cumulative_ber': cumulative_ber,\n            'region': 'deinterleaved\
+      \ coded bits, excluding final OFDM symbol',\n            'estimator': self.estimator_label,\n\
+      \        })\n        print(\n            'pre-FEC coded BER sample {}: {}/{}\
+      \ ({:.6g}); cumulative {:.6g}'.format(\n                self.pre_fec_ber_samples,\
+      \ bit_errors, bits_compared,\n                sample_ber, cumulative_ber\n \
+      \           )\n        )\n\n    def _handle_diag(self, message):\n        #\
+      \ The decoder combines coded-bit and IQ diagnostics in one PDU dictionary.\n\
+      \        if not pmt.is_pair(message) or not pmt.is_dict(pmt.cdr(message)):\n\
+      \            self._write_record({\n                'event': 'invalid_coded_ber_message',\n\
+      \                'estimator': self.estimator_label,\n            })\n      \
+      \      return\n        metadata = pmt.car(message)\n        diagnostic = pmt.cdr(message)\n\
+      \        received = pmt.dict_ref(diagnostic, pmt.intern('pre_viterbi'), pmt.PMT_NIL)\n\
+      \        corrected = pmt.dict_ref(diagnostic, pmt.intern('corrected_coded'),\
+      \ pmt.PMT_NIL)\n        if not pmt.is_u8vector(received) or not pmt.is_u8vector(corrected):\n\
+      \            self._write_record({\n                'event': 'invalid_coded_ber_message',\n\
+      \                'reason': 'coded_bit_vectors_missing',\n                'estimator':\
+      \ self.estimator_label,\n            })\n            return\n        received\
+      \ = np.asarray(pmt.u8vector_elements(received), dtype=np.uint8)\n        corrected\
+      \ = np.asarray(pmt.u8vector_elements(corrected), dtype=np.uint8)\n        self._record_coded_ber(metadata,\
+      \ received, corrected)\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    estimator_label: diagnostic_estimator
+    headless_idle_seconds: '10.0'
+    max_records: diagnostic_max_records
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    output_path: diagnostic_output
+    report_interval: '25'
+    sample_rate: samp_rate
+  states:
+    _io_cache: '(''channel_estimator_diagnostic'', ''channel_estimator_diagnostic'',
+      [(''output_path'', "''data/tmp_out/channel_estimator_diagnostic.jsonl''"), (''max_records'',
+      ''10000''), (''report_interval'', ''25''), (''headless_idle_seconds'', ''10.0''),
+      (''estimator_label'', "''CNN''"), (''sample_rate'', ''20000000.0'')], [(''0'',
+      ''byte'', 1), (''crc_ok'', ''message'', 1), (''diag'', ''message'', 1)], [(''0'',
+      ''float'', 53), (''1'', ''float'', 53), (''2'', ''float'', 64), (''3'', ''float'',
+      1), (''4'', ''float'', 1), (''5'', ''float'', 1), (''6'', ''float'', 1), (''7'',
+      ''float'', 1), (''8'', ''float'', 1), (''9'', ''float'', 1), (''10'', ''float'',
+      1)], ''Analyze frame-level CSI tags and generate quality metrics.\n\n        Args:\n            output_path:
+      JSONL destination. An empty string disables file output.\n            max_records:
+      Maximum number of JSONL records retained.\n            report_interval: Number
+      of frames between console summaries.\n            headless_idle_seconds: Inactivity
+      timeout for unattended finite-file runs.\n            estimator_label: Human-readable
+      label identifying the XCLBIN estimator.\n            sample_rate: Input sample
+      rate in samples per second.\n\n        The input is intentionally not forwarded.
+      The production receiver branch\n        remains connected directly to the MAC
+      decoder.\n        '', [''estimator_label'', ''max_records'', ''output_path'',
+      ''report_interval'', ''sample_rate''])'
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [592, 1680.0]
+    rotation: 0
+    state: enabled
+- name: epy_evm_diagnostic
+  id: epy_block
+  parameters:
+    _source_code: "import json\nimport os\nimport threading\n\nimport numpy as np\n\
+      import pmt\nfrom gnuradio import gr\n\n\nclass evm_diagnostic(gr.basic_block):\n\
+      \    def __init__(self, output_path='data/tmp_out/channel_estimator_evm.jsonl',\n\
+      \                 max_records=10000, report_interval=25, estimator_label='LS'):\n\
+      \        gr.basic_block.__init__(\n            self,\n            name='evm_diagnostic',\n\
+      \            in_sig=[np.int8],\n            out_sig=[],\n        )\n       \
+      \ self.set_tag_propagation_policy(gr.TPP_DONT)\n        self.output_file = None\n\
+      \        self.max_records = max(0, int(max_records))\n        self.report_interval\
+      \ = max(1, int(report_interval))\n        self.estimator_label = str(estimator_label)\n\
+      \        self.record_count = 0\n        self.evm_samples = 0\n        self.error_power_sum\
+      \ = 0.0\n        self.reference_power_sum = 0.0\n        self.aligned_evm_sum\
+      \ = 0.0\n        self.output_lock = threading.Lock()\n        self.message_port_register_in(pmt.intern('diag'))\n\
+      \        self.set_msg_handler(pmt.intern('diag'), self._handle_iq_data)\n\n\
+      \        directory = os.path.dirname(output_path)\n        if directory:\n \
+      \           os.makedirs(directory, exist_ok=True)\n        if output_path:\n\
+      \            self.output_file = open(output_path, 'w', encoding='ascii')\n\n\
+      \    def forecast(self, noutput_items, ninputs):\n        return [1] * ninputs\n\
+      \n    def general_work(self, input_items, output_items):\n        if len(input_items[0]):\n\
+      \            self.consume(0, len(input_items[0]))\n        return 0\n\n    def\
+      \ _write_record(self, record):\n        with self.output_lock:\n           \
+      \ if self.output_file is None or self.record_count >= self.max_records:\n  \
+      \              return\n            self.output_file.write(\n               \
+      \ json.dumps(record, separators=(',', ':'), allow_nan=False) + '\\n'\n     \
+      \       )\n            self.output_file.flush()\n            self.record_count\
+      \ += 1\n\n    @staticmethod\n    def _metadata_uint64(metadata, key):\n    \
+      \    if not pmt.is_dict(metadata):\n            return None\n        value =\
+      \ pmt.dict_ref(metadata, pmt.intern(key), pmt.PMT_NIL)\n        return int(pmt.to_uint64(value))\
+      \ if pmt.is_uint64(value) else None\n\n    def _handle_iq_data(self, message):\n\
+      \        if not pmt.is_pair(message) or not pmt.is_dict(pmt.cdr(message)):\n\
+      \            self._write_record({\n                'event': 'invalid_evm_message',\n\
+      \                'reason': 'expected_metadata_and_iq_dictionary',\n        \
+      \    })\n            return\n\n        metadata = pmt.car(message)\n       \
+      \ iq_data = pmt.cdr(message)\n        vectors = {}\n        for key in ('transmitted_iq',\
+      \ 'received_iq', 'equalized_iq'):\n            value = pmt.dict_ref(iq_data,\
+      \ pmt.intern(key), pmt.PMT_NIL)\n            if not pmt.is_c32vector(value):\n\
+      \                self._write_record({\n                    'event': 'invalid_evm_message',\n\
+      \                    'reason': 'missing_complex_vector',\n                 \
+      \   'vector': key,\n                })\n                return\n           \
+      \ vectors[key] = np.asarray(\n                pmt.c32vector_elements(value),\
+      \ dtype=np.complex128\n            )\n\n        transmitted = vectors['transmitted_iq']\n\
+      \        received = vectors['received_iq']\n        equalized = vectors['equalized_iq']\n\
+      \        if (transmitted.size == 0 or transmitted.size % 48 != 0 or\n      \
+       \          received.size != (transmitted.size // 48) * 52 or\n                equalized.size\
+      \ != transmitted.size or\n                not np.all(np.isfinite(transmitted))\
+      \ or\n                not np.all(np.isfinite(received)) or\n               \
+      \ not np.all(np.isfinite(equalized))):\n            self._write_record({\n \
+      \               'event': 'invalid_evm_message',\n                'reason': 'invalid_vector_size_or_nonfinite_values',\n\
+      \                'transmitted_iq_size': int(transmitted.size),\n           \
+      \     'received_iq_size': int(received.size),\n                'equalized_iq_size':\
+      \ int(equalized.size),\n            })\n            return\n\n        reference_power\
+      \ = float(np.vdot(transmitted, transmitted).real)\n        if reference_power\
+      \ <= np.finfo(np.float64).tiny:\n            self._write_record({\n        \
+      \        'event': 'invalid_evm_message',\n                'reason': 'zero_reference_power',\n\
+      \            })\n            return\n\n        error = equalized - transmitted\n\
+      \        error_power = float(np.vdot(error, error).real)\n        evm_ratio\
+      \ = float(np.sqrt(error_power / reference_power))\n        gain = np.vdot(transmitted,\
+      \ equalized) / reference_power\n        aligned_error = equalized / gain - transmitted\
+      \ if abs(gain) else error\n        aligned_evm_ratio = float(np.sqrt(\n    \
+      \        np.vdot(aligned_error, aligned_error).real / reference_power\n    \
+      \    ))\n        evm_percent = 100.0 * evm_ratio\n        aligned_evm_percent\
+      \ = 100.0 * aligned_evm_ratio\n        evm_db = float(20.0 * np.log10(max(evm_ratio,\
+      \ 1e-15)))\n        frame_bytes = self._metadata_uint64(metadata, 'frame bytes')\n\
+      \        encoding = self._metadata_uint64(metadata, 'encoding')\n\n        self.evm_samples\
+      \ += 1\n        self.error_power_sum += error_power\n        self.reference_power_sum\
+      \ += reference_power\n        self.aligned_evm_sum += aligned_evm_percent\n\
+      \        cumulative_evm_percent = float(100.0 * np.sqrt(\n            self.error_power_sum\
+      \ / self.reference_power_sum\n        ))\n        mean_aligned_evm_percent =\
+      \ self.aligned_evm_sum / self.evm_samples\n        self._write_record({\n  \
+      \          'event': 'evm',\n            'sample_index': self.evm_samples,\n\
+      \            'frame_bytes': frame_bytes,\n            'encoding': encoding,\n\
+      \            'payload_symbols_compared': int(transmitted.size // 48),\n    \
+      \        'complex_symbols_compared': int(transmitted.size),\n            'evm_rms_percent':\
+      \ evm_percent,\n            'evm_rms_db': evm_db,\n            'mer_db': -evm_db,\n\
+      \            'gain_magnitude_db': 20.0 * np.log10(max(abs(gain), 1e-15)),\n\
+      \            'gain_phase_deg': float(np.degrees(np.angle(gain))),\n        \
+      \    'gain_aligned_evm_rms_percent': aligned_evm_percent,\n            'cumulative_evm_rms_percent':\
+      \ cumulative_evm_percent,\n            'mean_gain_aligned_evm_percent': mean_aligned_evm_percent,\n\
+      \            'region': 'CRC-valid equalized payload symbols, excluding final\
+      \ OFDM symbol',\n            'estimator': self.estimator_label,\n        })\n\
+      \        if self.evm_samples == 1 or self.evm_samples % self.report_interval\
+      \ == 0:\n            print(\n                'EVM: sample={} encoding={} symbols={}\
+      \ raw={:.4f}% aligned={:.4f}% cumulative={:.4f}%'.format(\n                \
+      \    self.evm_samples, encoding, transmitted.size // 48,\n                 \
+      \   evm_percent, aligned_evm_percent, cumulative_evm_percent\n             \
+      \   )\n            )\n\n    def stop(self):\n        if self.output_file is\
+      \ not None:\n            self.output_file.close()\n            self.output_file\
+      \ = None\n        return True"
+    affinity: ''
+    alias: ''
+    comment: ''
+    estimator_label: diagnostic_estimator
+    max_records: diagnostic_max_records
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    output_path: diagnostic_evm_output
+    report_interval: '25'
+  states:
+    _io_cache: ('evm_diagnostic', 'evm_diagnostic', [('output_path', "'data/tmp_out/channel_estimator_evm.jsonl'"),
+      ('max_records', '10000'), ('report_interval', '25'), ('estimator_label', "'LS'")],
+      [('0', 'byte', 1), ('diag', 'message', 1)], [], '', ['estimator_label', 'max_records',
+      'report_interval'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [600, 1560.0]
+    rotation: 0
+    state: enabled
+- name: fft_vxx_0
+  id: fft_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    fft_size: '64'
+    forward: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nthreads: '1'
+    shift: 'True'
+    type: complex
+    window: window.rectangular(64)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [632, 896.0]
+    rotation: 0
+    state: enabled
+- name: foo_wireshark_connector_0
+  id: foo_wireshark_connector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    tech: '127'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1152, 1128.0]
+    rotation: 180
+    state: disabled
+- name: ieee802_11_decode_mac_EVM_0
+  id: ieee802_11_decode_mac_EVM
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1144, 888.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_frame_equalizer_debug_0
+  id: ieee802_11_frame_equalizer_debug
+  parameters:
+    affinity: ''
+    algo: ieee802_11.Equalizer(chan_est)
+    alias: ''
+    bw: samp_rate
+    comment: ''
+    debug: 'False'
+    freq: freq
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [864, 896.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_parse_mac_0
+  id: ieee802_11_parse_mac
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'True'
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1176, 1016.0]
+    rotation: 180
+    state: disabled
+- name: ieee802_11_sync_long_0
+  id: ieee802_11_sync_long
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    sync_length: sync_length
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [848, 696.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_sync_short_0
+  id: ieee802_11_sync_short
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    log: 'False'
+    maxoutbuf: '0'
+    min_plateau: '2'
+    minoutbuf: '0'
+    threshold: '0.56'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [440, 672.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_sigmf_tag_injector_0
+  id: mlir_aie_sigmf_tag_injector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    metadata_file: file_path+"-meta"
+    minoutbuf: '0'
+    start_sample: '0'
+    tag_key: rx_freq
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1400, 180.0]
+    rotation: 0
+    state: enabled
+- name: pdu_pdu_to_tagged_stream_0
+  id: pdu_pdu_to_tagged_stream
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    tag: packet_len
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [872, 1024.0]
+    rotation: 180
+    state: disabled
+- name: qtgui_const_sink_x_0
+  id: qtgui_const_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    axislabels: 'True'
+    color1: '"blue"'
+    color10: '"red"'
+    color2: '"red"'
+    color3: '"red"'
+    color4: '"red"'
+    color5: '"red"'
+    color6: '"red"'
+    color7: '"red"'
+    color8: '"red"'
+    color9: '"red"'
+    comment: ''
+    grid: 'False'
+    gui_hint: ''
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    legend: 'True'
+    marker1: '0'
+    marker10: '0'
+    marker2: '0'
+    marker3: '0'
+    marker4: '0'
+    marker5: '0'
+    marker6: '0'
+    marker7: '0'
+    marker8: '0'
+    marker9: '0'
+    name: '""'
+    nconnections: '1'
+    size: 48*10
+    style1: '0'
+    style10: '0'
+    style2: '0'
+    style3: '0'
+    style4: '0'
+    style5: '0'
+    style6: '0'
+    style7: '0'
+    style8: '0'
+    style9: '0'
+    tr_chan: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_slope: qtgui.TRIG_SLOPE_POS
+    tr_tag: '""'
+    type: complex
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    xmax: '2'
+    xmin: '-2'
+    ymax: '2'
+    ymin: '-2'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [632, 1016.0]
+    rotation: 180
+    state: disabled
+- name: qtgui_number_sink_channel_metrics
+  id: qtgui_number_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    autoscale: 'True'
+    avg: '0.0'
+    color1: ("blue", "red")
+    color10: ("black", "black")
+    color2: ("blue", "red")
+    color3: ("blue", "red")
+    color4: ("blue", "red")
+    color5: ("blue", "red")
+    color6: ("blue", "red")
+    color7: ("blue", "red")
+    color8: ("blue", "red")
+    color9: ("black", "black")
+    comment: ''
+    factor1: '1'
+    factor10: '1'
+    factor2: '1'
+    factor3: '1'
+    factor4: '1'
+    factor5: '1'
+    factor6: '1'
+    factor7: '1'
+    factor8: '100'
+    factor9: '1'
+    graph_type: qtgui.NUM_GRAPH_HORIZ
+    gui_hint: 2,0,1,2
+    label1: '"SNR"'
+    label10: ''
+    label2: '"CFO"'
+    label3: '"Deepest fade"'
+    label4: '"Spectral flatness"'
+    label5: '"Noise enhancement"'
+    label6: '"RMS delay spread"'
+    label7: '"CSI correlation"'
+    label8: '"CRC success"'
+    label9: ''
+    max: '100'
+    min: '-100'
+    name: '"Channel Metrics"'
+    nconnections: '8'
+    type: float
+    unit1: '"dB"'
+    unit10: ''
+    unit2: '"Hz"'
+    unit3: '"dB"'
+    unit4: '"dB"'
+    unit5: '"dB"'
+    unit6: '"ns"'
+    unit7: '""'
+    unit8: '"%"'
+    unit9: ''
+    update_time: '0.10'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1024, 1784.0]
+    rotation: 0
+    state: enabled
+- name: qtgui_time_sink_x_0
+  id: qtgui_time_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    axislabels: 'True'
+    color1: blue
+    color10: dark blue
+    color2: red
+    color3: green
+    color4: black
+    color5: cyan
+    color6: magenta
+    color7: yellow
+    color8: dark red
+    color9: dark green
+    comment: ''
+    ctrlpanel: 'False'
+    entags: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    legend: 'True'
+    marker1: '-1'
+    marker10: '-1'
+    marker2: '-1'
+    marker3: '-1'
+    marker4: '-1'
+    marker5: '-1'
+    marker6: '-1'
+    marker7: '-1'
+    marker8: '-1'
+    marker9: '-1'
+    name: '""'
+    nconnections: '1'
+    size: '1024'
+    srate: samp_rate
+    stemplot: 'False'
+    style1: '1'
+    style10: '1'
+    style2: '1'
+    style3: '1'
+    style4: '1'
+    style5: '1'
+    style6: '1'
+    style7: '1'
+    style8: '1'
+    style9: '1'
+    tr_chan: '0'
+    tr_delay: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_slope: qtgui.TRIG_SLOPE_POS
+    tr_tag: '""'
+    type: float
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    ylabel: Amplitude
+    ymax: '1'
+    ymin: '-1'
+    yunit: '""'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1464.0, 712]
+    rotation: 270
+    state: disabled
+- name: qtgui_vector_sink_csi_magnitude
+  id: qtgui_vector_sink_f
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    average: '1.0'
+    color1: '"blue"'
+    color10: '"dark blue"'
+    color2: '"red"'
+    color3: '"green"'
+    color4: '"black"'
+    color5: '"cyan"'
+    color6: '"magenta"'
+    color7: '"yellow"'
+    color8: '"dark red"'
+    color9: '"dark green"'
+    comment: ''
+    grid: 'True'
+    gui_hint: 0,0,1,1
+    label1: '"Relative CSI magnitude"'
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    legend: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '"CSI Magnitude"'
+    nconnections: '1'
+    ref_level: '0'
+    showports: 'False'
+    update_time: '0.10'
+    vlen: '53'
+    width1: '2'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    x_axis_label: '"Occupied subcarrier index"'
+    x_start: '-26'
+    x_step: '1'
+    x_units: '""'
+    y_axis_label: '"Relative gain (dB)"'
+    y_units: '"dB"'
+    ymax: '20'
+    ymin: '-50'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [960, 1268.0]
+    rotation: 0
+    state: enabled
+- name: qtgui_vector_sink_csi_phase
+  id: qtgui_vector_sink_f
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'True'
+    average: '1.0'
+    color1: '"red"'
+    color10: '"dark blue"'
+    color2: '"red"'
+    color3: '"green"'
+    color4: '"black"'
+    color5: '"cyan"'
+    color6: '"magenta"'
+    color7: '"yellow"'
+    color8: '"dark red"'
+    color9: '"dark green"'
+    comment: ''
+    grid: 'True'
+    gui_hint: 0,1,1,1
+    label1: '"Detrended CSI phase"'
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    legend: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '"CSI Phase Residual"'
+    nconnections: '1'
+    ref_level: '0'
+    showports: 'False'
+    update_time: '0.10'
+    vlen: '53'
+    width1: '2'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    x_axis_label: '"Occupied subcarrier index"'
+    x_start: '-26'
+    x_step: '1'
+    x_units: '""'
+    y_axis_label: '"Residual phase (rad)"'
+    y_units: '"rad"'
+    ymax: '3.2'
+    ymin: '-3.2'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [960, 1444.0]
+    rotation: 0
+    state: enabled
+- name: qtgui_vector_sink_delay_profile
+  id: qtgui_vector_sink_f
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    average: '1.0'
+    color1: '"dark green"'
+    color10: '"dark blue"'
+    color2: '"red"'
+    color3: '"green"'
+    color4: '"black"'
+    color5: '"cyan"'
+    color6: '"magenta"'
+    color7: '"yellow"'
+    color8: '"dark red"'
+    color9: '"dark green"'
+    comment: ''
+    grid: 'True'
+    gui_hint: 1,0,1,2
+    label1: '"Normalized delay power"'
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    legend: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '"Estimated Power Delay Profile"'
+    nconnections: '1'
+    ref_level: '0'
+    showports: 'False'
+    update_time: '0.10'
+    vlen: '64'
+    width1: '2'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    x_axis_label: '"Delay"'
+    x_start: '0'
+    x_step: '0.05'
+    x_units: '"us"'
+    y_axis_label: '"Normalized power (dB)"'
+    y_units: '"dB"'
+    ymax: '3'
+    ymin: '-80'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1024, 1604.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_0_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: iq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1640, 204.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_1
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: diag1
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1296, 800.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_1_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: diag2
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1440, 880.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_1_0_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: diag
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1440, 936.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: iq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [64, 552.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_0_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: iq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1168, 32.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: diag1
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [224, 1720.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: diag2
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [256, 1872.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1_0_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: diag
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [208, 1792.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_complex_to_mag_0, '0', blocks_divide_xx_0, '0']
+- [blocks_complex_to_mag_squared_0, '0', blocks_moving_average_xx_0, '0']
+- [blocks_conjugate_cc_0, '0', blocks_multiply_xx_0, '1']
+- [blocks_delay_0, '0', ieee802_11_sync_long_0, '1']
+- [blocks_delay_0_0, '0', blocks_conjugate_cc_0, '0']
+- [blocks_delay_0_0, '0', ieee802_11_sync_short_0, '0']
+- [blocks_divide_xx_0, '0', ieee802_11_sync_short_0, '2']
+- [blocks_divide_xx_0, '0', qtgui_time_sink_x_0, '0']
+- [blocks_file_source_0, '0', blocks_interleaved_short_to_complex_0_0, '0']
+- [blocks_interleaved_short_to_complex_0_0, '0', mlir_aie_sigmf_tag_injector_0, '0']
+- [blocks_moving_average_xx_0, '0', blocks_divide_xx_0, '1']
+- [blocks_moving_average_xx_1, '0', blocks_complex_to_mag_0, '0']
+- [blocks_moving_average_xx_1, '0', ieee802_11_sync_short_0, '1']
+- [blocks_multiply_xx_0, '0', blocks_moving_average_xx_1, '0']
+- [blocks_probe_rate_0, rate, blocks_message_debug_0, print]
+- [blocks_stream_to_vector_0, '0', fft_vxx_0, '0']
+- [blocks_vector_to_stream_0, '0', virtual_sink_1, '0']
+- [epy_channel_estimator_diagnostic, '0', qtgui_vector_sink_csi_magnitude, '0']
+- [epy_channel_estimator_diagnostic, '1', qtgui_vector_sink_csi_phase, '0']
+- [epy_channel_estimator_diagnostic, '10', qtgui_number_sink_channel_metrics, '7']
+- [epy_channel_estimator_diagnostic, '2', qtgui_vector_sink_delay_profile, '0']
+- [epy_channel_estimator_diagnostic, '3', qtgui_number_sink_channel_metrics, '0']
+- [epy_channel_estimator_diagnostic, '4', qtgui_number_sink_channel_metrics, '1']
+- [epy_channel_estimator_diagnostic, '5', qtgui_number_sink_channel_metrics, '2']
+- [epy_channel_estimator_diagnostic, '6', qtgui_number_sink_channel_metrics, '3']
+- [epy_channel_estimator_diagnostic, '7', qtgui_number_sink_channel_metrics, '4']
+- [epy_channel_estimator_diagnostic, '8', qtgui_number_sink_channel_metrics, '5']
+- [epy_channel_estimator_diagnostic, '9', qtgui_number_sink_channel_metrics, '6']
+- [fft_vxx_0, '0', ieee802_11_frame_equalizer_debug_0, '0']
+- [foo_wireshark_connector_0, '0', blocks_file_sink_0, '0']
+- [ieee802_11_decode_mac_EVM_0, diag, virtual_sink_1_0_0, '0']
+- [ieee802_11_decode_mac_EVM_0, out, foo_wireshark_connector_0, in]
+- [ieee802_11_decode_mac_EVM_0, out, ieee802_11_parse_mac_0, in]
+- [ieee802_11_decode_mac_EVM_0, out, virtual_sink_1_0, '0']
+- [ieee802_11_frame_equalizer_debug_0, '0', blocks_vector_to_stream_0, '0']
+- [ieee802_11_frame_equalizer_debug_0, '0', ieee802_11_decode_mac_EVM_0, '0']
+- [ieee802_11_frame_equalizer_debug_0, symbols, pdu_pdu_to_tagged_stream_0, pdus]
+- [ieee802_11_sync_long_0, '0', blocks_stream_to_vector_0, '0']
+- [ieee802_11_sync_short_0, '0', blocks_delay_0, '0']
+- [ieee802_11_sync_short_0, '0', ieee802_11_sync_long_0, '0']
+- [mlir_aie_sigmf_tag_injector_0, '0', virtual_sink_0_0, '0']
+- [pdu_pdu_to_tagged_stream_0, '0', qtgui_const_sink_x_0, '0']
+- [virtual_source_0, '0', blocks_complex_to_mag_squared_0, '0']
+- [virtual_source_0, '0', blocks_delay_0_0, '0']
+- [virtual_source_0, '0', blocks_multiply_xx_0, '0']
+- [virtual_source_0, '0', epy_block_iq_tag_sink, '0']
+- [virtual_source_0_0, '0', blocks_probe_rate_0, '0']
+- [virtual_source_1, '0', epy_channel_estimator_diagnostic, '0']
+- [virtual_source_1, '0', epy_evm_diagnostic, '0']
+- [virtual_source_1_0, '0', epy_channel_estimator_diagnostic, crc_ok]
+- [virtual_source_1_0_0, '0', epy_channel_estimator_diagnostic, diag]
+- [virtual_source_1_0_0, '0', epy_evm_diagnostic, diag]
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

@@ -1,0 +1,850 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: Custom
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: Channel-estimator diagnostics from the AIE PHY CSI and frame tags.
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: wifi_rx
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: run
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: AIE Channel Estimator Diagnostics
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 12.0]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: diagnostic_label_init
+  id: snippet
+  parameters:
+    code: self.set_diagnostic_estimator(self.diagnostic_estimator)
+    priority: '0'
+    section: main_after_init
+  states:
+    state: enabled
+- name: diagnostic_estimator
+  id: variable
+  parameters:
+    comment: Loaded from kernel/build/frame_equalizer_build_mode.txt before block construction.
+    value: 'None'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [376, 16.0]
+    rotation: 0
+    state: enabled
+- name: diagnostic_max_records
+  id: variable
+  parameters:
+    comment: Maximum number of frame and CRC event records written to JSONL.
+    value: '10000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [368, 112.0]
+    rotation: 0
+    state: enabled
+- name: diagnostic_output
+  id: variable
+  parameters:
+    comment: Bounded channel-estimator diagnostic export.
+    value: '"data/tmp_out/channel_estimator_diagnostic.jsonl"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [696, 16.0]
+    rotation: 0
+    state: enabled
+- name: file_path
+  id: variable
+  parameters:
+    comment: ''
+    value: '"data/raw_capture/206.sigmf"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [888, 28.0]
+    rotation: 0
+    state: enabled
+- name: freq
+  id: variable
+  parameters:
+    comment: ''
+    value: 2.417e9
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [176, 16.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 20e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [272, 16.0]
+    rotation: 0
+    state: enabled
+- name: sync_length
+  id: variable
+  parameters:
+    comment: ''
+    value: '320'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 120.0]
+    rotation: 0
+    state: enabled
+- name: window_size
+  id: variable
+  parameters:
+    comment: ''
+    value: '48'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [120, 120.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_sink_0
+  id: blocks_file_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    append: 'False'
+    comment: ''
+    file: data/tmp_out/replaced.pcap
+    type: byte
+    unbuffered: 'True'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [568, 392.0]
+    rotation: 180
+    state: enabled
+- name: blocks_file_source_0
+  id: blocks_file_source
+  parameters:
+    affinity: ''
+    alias: ''
+    begin_tag: pmt.PMT_NIL
+    comment: ''
+    file: file_path+"-data"
+    length: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    repeat: 'False'
+    type: short
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1160, 132.0]
+    rotation: 0
+    state: enabled
+- name: blocks_interleaved_short_to_complex_0
+  id: blocks_interleaved_short_to_complex
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale_factor: '32768'
+    swap: 'False'
+    vector_input: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1384, 156.0]
+    rotation: 0
+    state: enabled
+- name: blocks_message_debug_0
+  id: blocks_message_debug
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    en_uvec: 'True'
+    log_level: info
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1600, 8.0]
+    rotation: 0
+    state: enabled
+- name: blocks_null_sink_0
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '8'
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [728, 680.0]
+    rotation: 0
+    state: enabled
+- name: blocks_null_sink_0_0
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: float
+    vlen: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [712, 616.0]
+    rotation: 0
+    state: enabled
+- name: blocks_null_sink_0_0_0
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '2'
+    type: float
+    vlen: '53'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [712, 536.0]
+    rotation: 0
+    state: enabled
+- name: blocks_probe_rate_0
+  id: blocks_probe_rate
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha: '0.15'
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    mintime: '500.0'
+    name: ''
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1344, 16.0]
+    rotation: 0
+    state: enabled
+- name: blocks_stream_to_vector_0
+  id: blocks_stream_to_vector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '48'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [640, 288.0]
+    rotation: 0
+    state: enabled
+- name: epy_channel_estimator_diagnostic
+  id: epy_block
+  parameters:
+    _source_code: "# This block observes frame tags from the AIE receiver and produces\n\
+      # bounded diagnostic records and display vectors without altering decoded bytes.\n\
+      #\n# Input stream:\n#   The AIE hard-decision byte stream, used only to locate\
+      \ absolute tag offsets.\n#\n# Message input:\n#   The MAC decoder emits one\
+      \ message after a CRC-valid packet. Its diag port sends one metadata\n#   dictionary\
+      \ containing coded-bit vectors and optional IQ vectors for BER/EVM.\n#\n# Stream\
+      \ outputs:\n#   CSI magnitude, CSI phase residual, delay profile, and eight\
+      \ scalar metrics.\n#\n# The analyzer deliberately does not forward its input.\
+      \ A separate branch keeps\n# the production byte stream connected directly to\
+      \ the MAC decoder.\n#\n# JSONL events:\n#   frame       One valid CSI tag with\
+      \ raw CSI and derived metrics.\n#   crc_ok      One payload passed the MAC decoder\
+      \ CRC check.\n#   invalid_csi A tag was malformed or contained no usable channel\
+      \ power.\n#   pre_fec_coded_ber Counts mismatches between received coded bits\
+      \ and the\n#                     decoder-corrected re-encoded bits on CRC-valid\
+      \ frames.\n#\n# Coded BER uses the bit region published by decode_mac_BER, which\
+      \ omits the\n# final OFDM symbol; failed-CRC frames do not provide a comparison\
+      \ reference.\n#\n# Metric meanings:\n#   Flatness and deepest fade describe\
+      \ frequency selectivity.\n#   Noise enhancement estimates sensitivity of a reciprocal\
+      \ equalizer.\n#   Phase residual removes linear timing slope and exposes ripple.\n\
+      #   Delay spread is an approximate 64-point impulse-response measurement.\n\n\
+      import json\nimport os\nimport threading\nimport time\n\nimport numpy as np\n\
+      import pmt\nfrom gnuradio import gr\n\n\nclass channel_estimator_diagnostic(gr.basic_block):\n\
+      \    \"\"\"Analyze frame-level CSI tags and generate quality metrics.\n\n  \
+      \      Args:\n            output_path: JSONL destination. An empty string disables\
+      \ file output.\n            max_records: Maximum number of JSONL records retained.\n\
+      \            report_interval: Number of frames between console summaries.\n\
+      \            headless_idle_seconds: Inactivity timeout for unattended finite-file\
+      \ runs.\n            estimator_label: Human-readable label identifying the XCLBIN\
+      \ estimator.\n            sample_rate: Input sample rate in samples per second.\n\
+      \n        The input is intentionally not forwarded. The production receiver\
+      \ branch\n        remains connected directly to the MAC decoder.\n        \"\
+      \"\"\n\n    def __init__(self, output_path=\"data/tmp_out/channel_estimator_diagnostic.jsonl\"\
+      ,\n                 max_records=10000, report_interval=25,\n               \
+      \  headless_idle_seconds=10.0, estimator_label=\"CNN\", sample_rate=20e6):\n\
+      \        # The first three outputs are vectors; the remaining eight outputs\
+      \ are\n        # scalar metrics repeated once per analyzed frame for the GUI\
+      \ sinks.\n        gr.basic_block.__init__(\n            self,\n            name=\"\
+      channel_estimator_diagnostic\",\n            in_sig=[np.int8],\n           \
+      \ out_sig=[\n                (np.float32, 53), (np.float32, 53), (np.float32,\
+      \ 64),\n                np.float32, np.float32, np.float32, np.float32,\n  \
+      \              np.float32, np.float32, np.float32, np.float32,\n           \
+      \ ],\n        )\n        # Queue completed frame analyses until all output ports\
+      \ can accept one item.\n        self.output_path = output_path\n        self.sample_rate\
+      \ = float(sample_rate)\n        if self.sample_rate <= 0.0:\n            raise\
+      \ ValueError(\"sample_rate must be positive\")\n        self.max_records = max(0,\
+      \ int(max_records))\n        self.report_interval = max(1, int(report_interval))\n\
+      \        self.estimator_label = str(estimator_label)\n        self.pending =\
+      \ []\n        self.previous_csi = None\n        self.frame_count = 0\n     \
+      \   self.crc_valid_count = 0\n        self.record_count = 0\n        self.pre_fec_bit_errors\
+      \ = 0\n        self.pre_fec_bits_compared = 0\n        self.pre_fec_ber_samples\
+      \ = 0\n        self.evm_samples = 0\n        self.evm_error_power = 0.0\n  \
+      \      self.evm_reference_power = 0.0\n        self.evm_aligned_percent_sum\
+      \ = 0.0\n        self.evm_lock = threading.Lock()\n        self.lock = threading.Lock()\n\
+      \        self.last_work = time.monotonic()\n        self.seen_input = False\n\
+      \        self.stopping = False\n        self.message_port_register_in(pmt.intern(\"\
+      crc_ok\"))\n        self.set_msg_handler(pmt.intern(\"crc_ok\"), self._handle_crc_ok)\n\
+      \        self.message_port_register_in(pmt.intern(\"diag\"))\n        self.set_msg_handler(pmt.intern(\"\
+      diag\"), self._handle_diag)\n\n        directory = os.path.dirname(output_path)\n\
+      \        if directory:\n            os.makedirs(directory, exist_ok=True)\n\
+      \        self.output_file = open(output_path, \"w\", encoding=\"ascii\") if\
+      \ output_path else None\n\n        # In unattended runs the watchdog quits Qt\
+      \ after finite input stops.\n        if os.environ.get(\"WIFI_DIAGNOSTIC_HEADLESS\"\
+      ) == \"1\":\n            self.headless_thread = threading.Thread(\n        \
+      \        target=self._headless_watchdog,\n                args=(max(1.0, float(headless_idle_seconds)),),\n\
+      \                daemon=True,\n            )\n            self.headless_thread.start()\n\
+      \n    def forecast(self, noutput_items, ninputs):\n        return [1] * ninputs\n\
+      \n    @staticmethod\n    def _finite(value):\n        return float(value) if\
+      \ np.isfinite(value) else None\n\n    def _write_record(self, record):\n   \
+      \     with self.lock:\n            if self.output_file is None or self.record_count\
+      \ >= self.max_records:\n                return\n            self.output_file.write(json.dumps(record,\
+      \ separators=(\",\", \":\"), allow_nan=False) + \"\\n\")\n            self.output_file.flush()\n\
+      \            self.record_count += 1\n\n    def _handle_crc_ok(self, _message):\n\
+      \        with self.lock:\n            self.crc_valid_count += 1\n          \
+      \  crc_valid_count = self.crc_valid_count\n        self._write_record({\n  \
+      \          \"event\": \"crc_ok\",\n            \"crc_valid_count\": crc_valid_count,\n\
+      \            \"estimator\": self.estimator_label,\n        })\n\n    def _headless_watchdog(self,\
+      \ idle_seconds):\n        while not self.stopping:\n            time.sleep(0.25)\n\
+      \            if self.seen_input and time.monotonic() - self.last_work >= idle_seconds:\n\
+      \                try:\n                    from PyQt5 import QtWidgets\n   \
+      \                 app = QtWidgets.QApplication.instance()\n                \
+      \    if app is not None:\n                        app.quit()\n             \
+      \   except ImportError:\n                    pass\n                return\n\n\
+      \    def _decode_tags(self, tags):\n        grouped = {}\n        for tag in\
+      \ tags:\n            key = pmt.symbol_to_string(tag.key)\n            grouped.setdefault(int(tag.offset),\
+      \ {})[key] = tag.value\n        return grouped\n\n    def _analyze(self, offset,\
+      \ values):\n        # The AIE adapter publishes CSI as 52 occupied carriers:\
+      \ -26..-1 and\n        # +1..+26. A missing CSI tag means this offset is not\
+      \ a frame record.\n        if \"csi\" not in values:\n            return\n \
+      \       csi = np.asarray(pmt.c32vector_elements(values[\"csi\"]), dtype=np.complex64)\n\
+      \        if csi.size != 52 or not np.all(np.isfinite(csi)):\n            self._write_record({\n\
+      \                \"event\": \"invalid_csi\",\n                \"offset\": offset,\n\
+      \                \"size\": int(csi.size),\n                \"estimator\": self.estimator_label,\n\
+      \            })\n            return\n\n        power = np.abs(csi).astype(np.float64)\
+      \ ** 2\n        mean_power = float(np.mean(power))\n        if mean_power <=\
+      \ np.finfo(np.float64).tiny:\n            self._write_record({\n           \
+      \     \"event\": \"invalid_csi\",\n                \"offset\": offset,\n   \
+      \             \"reason\": \"zero_power\",\n                \"estimator\": self.estimator_label,\n\
+      \            })\n            return\n\n        floor = max(mean_power * 1e-12,\
+      \ np.finfo(np.float64).tiny)\n        # Use a relative floor so logarithms remain\
+      \ finite for deep fades.\n        median_power = max(float(np.median(power)),\
+      \ floor)\n        magnitude_db = 10.0 * np.log10(np.maximum(power, floor) /\
+      \ median_power)\n        subcarriers = np.concatenate((np.arange(-26, 0), np.arange(1,\
+      \ 27)))\n        # Remove the best-fit linear phase slope before displaying\
+      \ phase ripple.\n        unwrapped_phase = np.unwrap(np.angle(csi).astype(np.float64))\n\
+      \        phase_fit = np.polyfit(subcarriers, unwrapped_phase, 1)\n        phase_residual\
+      \ = unwrapped_phase - np.polyval(phase_fit, subcarriers)\n\n        shifted_channel\
+      \ = np.zeros(64, dtype=np.complex128)\n        # Reinsert the occupied carriers\
+      \ into shifted 64-point FFT-bin order.\n        # DC and guard bins remain zero\
+      \ because they are not channel estimates.\n        shifted_channel[6:32] = csi[:26]\n\
+      \        shifted_channel[33:59] = csi[26:]\n        impulse = np.fft.ifft(np.fft.ifftshift(shifted_channel))\n\
+      \        delay_power = np.abs(impulse) ** 2\n        # The 20 MHz sample period\
+      \ is derived from the configured sample rate; report RMS delay in nanoseconds.\n\
+      \        delay_power /= max(float(np.max(delay_power)), floor)\n        delay_profile_db\
+      \ = 10.0 * np.log10(np.maximum(delay_power, 1e-8))\n        peak = int(np.argmax(delay_power))\n\
+      \        distances = (np.arange(64) - peak + 32) % 64 - 32\n        delay_weight\
+      \ = delay_power / np.sum(delay_power)\n        mean_delay = float(np.sum(distances\
+      \ * delay_weight))\n        rms_delay_ns = (1e9 / self.sample_rate) * np.sqrt(\n\
+      \            np.sum(((distances - mean_delay) ** 2) * delay_weight)\n      \
+      \  )\n\n        spectral_flatness_db = 10.0 * np.log10(\n            np.exp(np.mean(np.log(np.maximum(power,\
+      \ floor)))) / mean_power\n        )\n        noise_enhancement_db = 10.0 * np.log10(\n\
+      \            mean_power * np.mean(1.0 / np.maximum(power, floor))\n        )\n\
+      \        deepest_fade_db = 10.0 * np.log10(max(float(np.min(power)), floor)\
+      \ / median_power)\n        if self.previous_csi is None:\n            stability\
+      \ = 0.0\n        else:\n            # Correlation is insensitive to overall\
+      \ gain and is useful for spotting\n            # packet-to-packet channel changes\
+      \ or unstable estimates.\n            denominator = np.linalg.norm(self.previous_csi)\
+      \ * np.linalg.norm(csi)\n            stability = float(abs(np.vdot(self.previous_csi,\
+      \ csi)) / denominator) if denominator else 0.0\n        self.previous_csi =\
+      \ csi.copy()\n\n        self.frame_count += 1\n        snr_db = pmt.to_double(values[\"\
+      snr\"]) if \"snr\" in values else np.nan\n        frequency_offset_hz = (\n\
+      \            pmt.to_double(values[\"frequency offset\"])\n            if \"\
+      frequency offset\" in values else np.nan\n        )\n        beta_rad = pmt.to_double(values[\"\
+      beta\"]) if \"beta\" in values else np.nan\n        frame_bytes = pmt.to_uint64(values[\"\
+      frame bytes\"]) if \"frame bytes\" in values else 0\n        encoding = pmt.to_uint64(values[\"\
+      encoding\"]) if \"encoding\" in values else 0\n        with self.lock:\n   \
+      \         crc_valid_count = self.crc_valid_count\n\n        metrics = {\n  \
+      \          \"snr_db\": self._finite(snr_db),\n            \"frequency_offset_hz\"\
+      : self._finite(frequency_offset_hz),\n            \"beta_rad\": self._finite(beta_rad),\n\
+      \            \"deepest_fade_db\": self._finite(deepest_fade_db),\n         \
+      \   \"spectral_flatness_db\": self._finite(spectral_flatness_db),\n        \
+      \    \"noise_enhancement_db\": self._finite(noise_enhancement_db),\n       \
+      \     \"phase_slope_rad_per_subcarrier\": self._finite(phase_fit[0]),\n    \
+      \        \"phase_residual_rms_rad\": self._finite(np.sqrt(np.mean(phase_residual\
+      \ ** 2))),\n            \"peak_delay_sample\": peak,\n            \"rms_delay_spread_ns\"\
+      : self._finite(rms_delay_ns),\n            \"previous_csi_correlation\": self._finite(stability),\n\
+      \        }\n        self._write_record({\n            \"event\": \"frame\",\n\
+      \            \"frame_index\": self.frame_count,\n            \"offset\": offset,\n\
+      \            \"estimator\": self.estimator_label,\n            \"frame_bytes\"\
+      : int(frame_bytes),\n            \"encoding\": int(encoding),\n            \"\
+      crc_valid_count\": crc_valid_count,\n            \"metrics\": metrics,\n   \
+      \         \"csi_real\": csi.real.astype(float).tolist(),\n            \"csi_imag\"\
+      : csi.imag.astype(float).tolist(),\n        })\n        self.pending.append((\n\
+      \            np.insert(magnitude_db, 26, -50.0).astype(np.float32),\n      \
+      \      np.insert(phase_residual, 26, 0.0).astype(np.float32),\n            delay_profile_db.astype(np.float32),\n\
+      \            np.asarray((\n                snr_db, frequency_offset_hz, deepest_fade_db,\n\
+      \                spectral_flatness_db, noise_enhancement_db,\n             \
+      \   rms_delay_ns, stability,\n                crc_valid_count / self.frame_count,\n\
+      \            ), dtype=np.float32),\n        ))\n\n        if self.frame_count\
+      \ % self.report_interval == 0:\n            ratio = crc_valid_count / self.frame_count\n\
+      \            print(\n                \"channel diagnostic: frames={} crc_ok={}\
+      \ ratio={:.3f} \"\n                \"snr_db={:.2f} fade_db={:.2f} stability={:.4f}\
+      \ delay_ns={:.1f}\".format(\n                    self.frame_count, crc_valid_count,\
+      \ ratio, snr_db,\n                    deepest_fade_db, stability, rms_delay_ns\n\
+      \                )\n            )\n\n    def general_work(self, input_items,\
+      \ output_items):\n        in0 = input_items[0]\n        if len(in0):\n     \
+      \       self.seen_input = True\n            self.last_work = time.monotonic()\n\
+      \            start = self.nitems_read(0)\n            tags = self.get_tags_in_range(0,\
+      \ start, start + len(in0))\n            for offset, values in sorted(self._decode_tags(tags).items()):\n\
+      \                self._analyze(offset, values)\n            self.consume(0,\
+      \ len(in0))\n\n        produced = min(min(map(len, output_items)), len(self.pending))\n\
+      \        for index in range(produced):\n            magnitude_db, phase_residual,\
+      \ delay_profile_db, metrics = self.pending.pop(0)\n            output_items[0][index]\
+      \ = magnitude_db\n            output_items[1][index] = phase_residual\n    \
+      \        output_items[2][index] = delay_profile_db\n            for metric_index\
+      \ in range(8):\n                output_items[3 + metric_index][index] = metrics[metric_index]\n\
+      \        return produced\n\n    def stop(self):\n        self.stopping = True\n\
+      \        with self.lock:\n            if self.output_file is not None:\n   \
+      \             self.output_file.close()\n                self.output_file = None\n\
+      \        return True\n\n    def _metadata_uint64(self, metadata, key):\n   \
+      \     if not pmt.is_dict(metadata):\n            return None\n        value\
+      \ = pmt.dict_ref(metadata, pmt.intern(key), pmt.PMT_NIL)\n        return int(pmt.to_uint64(value))\
+      \ if pmt.is_uint64(value) else None\n\n    def _record_coded_ber(self, metadata,\
+      \ rx_bits, reference_bits):\n        frame_bytes = self._metadata_uint64(metadata,\
+      \ 'frame bytes')\n        encoding = self._metadata_uint64(metadata, 'encoding')\n\
+      \        if rx_bits.size == 0 or rx_bits.size != reference_bits.size:\n    \
+      \        self._write_record({\n                'event': 'invalid_coded_ber_pair',\n\
+      \                'received_bits': int(rx_bits.size),\n                'reference_bits':\
+      \ int(reference_bits.size),\n                'frame_bytes': frame_bytes,\n \
+      \               'encoding': encoding,\n                'estimator': self.estimator_label,\n\
+      \            })\n            return\n        if np.any(rx_bits > 1) or np.any(reference_bits\
+      \ > 1):\n            self._write_record({\n                'event': 'invalid_coded_ber_pair',\n\
+      \                'reason': 'values_are_not_bits',\n                'estimator':\
+      \ self.estimator_label,\n            })\n            return\n\n        bit_errors\
+      \ = int(np.count_nonzero(rx_bits != reference_bits))\n        bits_compared\
+      \ = int(rx_bits.size)\n        sample_ber = bit_errors / bits_compared\n   \
+      \     self.pre_fec_ber_samples += 1\n        self.pre_fec_bit_errors += bit_errors\n\
+      \        self.pre_fec_bits_compared += bits_compared\n        cumulative_ber\
+      \ = self.pre_fec_bit_errors / self.pre_fec_bits_compared\n        self._write_record({\n\
+      \            'event': 'pre_fec_coded_ber',\n            'sample_index': self.pre_fec_ber_samples,\n\
+      \            'frame_bytes': frame_bytes,\n            'encoding': encoding,\n\
+      \            'bit_errors': bit_errors,\n            'bits_compared': bits_compared,\n\
+      \            'ber': sample_ber,\n            'cumulative_bit_errors': self.pre_fec_bit_errors,\n\
+      \            'cumulative_bits_compared': self.pre_fec_bits_compared,\n     \
+      \       'cumulative_ber': cumulative_ber,\n            'region': 'deinterleaved\
+      \ coded bits, excluding final OFDM symbol',\n            'estimator': self.estimator_label,\n\
+      \        })\n        print(\n            'pre-FEC coded BER sample {}: {}/{}\
+      \ ({:.6g}); cumulative {:.6g}'.format(\n                self.pre_fec_ber_samples,\
+      \ bit_errors, bits_compared,\n                sample_ber, cumulative_ber\n \
+      \           )\n        )\n\n    def _handle_diag(self, message):\n        #\
+      \ The decoder combines coded-bit and IQ diagnostics in one PDU dictionary.\n\
+      \        if not pmt.is_pair(message) or not pmt.is_dict(pmt.cdr(message)):\n\
+      \            self._write_record({\n                'event': 'invalid_coded_ber_message',\n\
+      \                'estimator': self.estimator_label,\n            })\n      \
+      \      return\n        metadata = pmt.car(message)\n        diagnostic = pmt.cdr(message)\n\
+      \        received = pmt.dict_ref(diagnostic, pmt.intern('pre_viterbi'), pmt.PMT_NIL)\n\
+      \        corrected = pmt.dict_ref(diagnostic, pmt.intern('corrected_coded'),\
+      \ pmt.PMT_NIL)\n        if not pmt.is_u8vector(received) or not pmt.is_u8vector(corrected):\n\
+      \            self._write_record({\n                'event': 'invalid_coded_ber_message',\n\
+      \                'reason': 'coded_bit_vectors_missing',\n                'estimator':\
+      \ self.estimator_label,\n            })\n            return\n        received\
+      \ = np.asarray(pmt.u8vector_elements(received), dtype=np.uint8)\n        corrected\
+      \ = np.asarray(pmt.u8vector_elements(corrected), dtype=np.uint8)\n        self._record_coded_ber(metadata,\
+      \ received, corrected)\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    estimator_label: diagnostic_estimator
+    headless_idle_seconds: '10.0'
+    max_records: diagnostic_max_records
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    output_path: diagnostic_output
+    report_interval: '25'
+    sample_rate: samp_rate
+  states:
+    _io_cache: '(''channel_estimator_diagnostic'', ''channel_estimator_diagnostic'',
+      [(''output_path'', "''data/tmp_out/channel_estimator_diagnostic.jsonl''"), (''max_records'',
+      ''10000''), (''report_interval'', ''25''), (''headless_idle_seconds'', ''10.0''),
+      (''estimator_label'', "''CNN''"), (''sample_rate'', ''20000000.0'')], [(''0'',
+      ''byte'', 1), (''diag'', ''message'', 1), (''crc_ok'', ''message'', 1)], [(''0'',
+      ''float'', 53), (''1'', ''float'', 53), (''2'', ''float'', 64), (''3'', ''float'',
+      1), (''4'', ''float'', 1), (''5'', ''float'', 1), (''6'', ''float'', 1), (''7'',
+      ''float'', 1), (''8'', ''float'', 1), (''9'', ''float'', 1), (''10'', ''float'',
+      1)], ''Analyze frame-level CSI tags and generate quality metrics.\n\n        Args:\n            output_path:
+      JSONL destination. An empty string disables file output.\n            max_records:
+      Maximum number of JSONL records retained.\n            report_interval: Number
+      of frames between console summaries.\n            headless_idle_seconds: Inactivity
+      timeout for unattended finite-file runs.\n            estimator_label: Human-readable
+      label identifying the XCLBIN estimator.\n            sample_rate: Input sample
+      rate in samples per second.\n\n        The input is intentionally not forwarded.
+      The production receiver branch\n        remains connected directly to the MAC
+      decoder.\n        '', [''estimator_label'', ''max_records'', ''output_path'',
+      ''report_interval'', ''sample_rate''])'
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [456, 592.0]
+    rotation: 0
+    state: enabled
+- name: evm_build_mode_check
+  id: snippet
+  parameters:
+    alias: ''
+    code: 'from pathlib import Path
+
+
+      build = Path(''kernel/build'')
+
+      marker = build / ''frame_equalizer_build_mode.txt''
+
+      artifacts = [build / ''final.xclbin'', build / ''insts.bin'']
+
+      missing = [str(path) for path in [marker, *artifacts] if not path.is_file()]
+
+      if missing: raise RuntimeError(''EVM diagnostics require kernel build output(s):
+      '' + '', ''.join(missing) + ''; run `make -C kernel DFRAME_EQUALIZER_OUTPUT_SYMBOLS=0
+      compile` from stage42/'')
+
+      mode = dict((parts[0].strip(), parts[1].strip()) for parts in (line.split(''='',
+      1) for line in marker.read_text(encoding=''ascii'').splitlines()) if len(parts)
+      == 2)
+
+      if mode.get(''DFRAME_EQUALIZER_OUTPUT_SYMBOLS'') != ''0'': raise RuntimeError(''EVM
+      diagnostics require DFRAME_EQUALIZER_OUTPUT_SYMBOLS=0; rebuild with `make -C
+      kernel DFRAME_EQUALIZER_OUTPUT_SYMBOLS=0 compile`'')
+
+      if marker.stat().st_mtime_ns < max(path.stat().st_mtime_ns for path in artifacts):
+      raise RuntimeError(str(marker) + '' is older than the NPU artifacts; rebuild
+      the kernel'')
+
+      if not mode.get(''EQUALIZER_ALGORITHM''): raise RuntimeError(str(marker) + '' is missing EQUALIZER_ALGORITHM; rebuild the kernel'')
+
+      self.diagnostic_estimator = mode[''EQUALIZER_ALGORITHM'']'
+    comment: ''
+    priority: '0'
+    section: init_before_blocks
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 200.0]
+    rotation: 0
+    state: enabled
+- name: foo_wireshark_connector_0
+  id: foo_wireshark_connector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    tech: '127'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [832, 400.0]
+    rotation: 180
+    state: enabled
+- name: ieee802_11_decode_mac_EVM_0
+  id: ieee802_11_decode_mac_EVM
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [816, 272.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_complex64_to_cint16_0
+  id: mlir_aie_complex64_to_cint16
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    safe: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [168, 280.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_mlir_aie_80211_phy_0
+  id: mlir_aie_mlir_aie_80211_phy
+  parameters:
+    N_TILES: '16'
+    VECTOR_SIZE: '16384'
+    affinity: ''
+    alias: ''
+    comment: ''
+    kernel_name: MLIR_AIE
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nominal_frequency: freq
+    num_slots: '2'
+    path_insts_bin: '"kernel/build/insts.bin"'
+    path_xclbin: '"kernel/build/final.xclbin"'
+    weights_path: ''''''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [360, 220.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_sigmf_tag_injector_0
+  id: mlir_aie_sigmf_tag_injector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    metadata_file: file_path+"-meta"
+    minoutbuf: '0'
+    start_sample: '0'
+    tag_key: rx_freq
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1568, 156.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: iq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1800, 180.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_1
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: diag1
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [648, 224.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_1_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: out
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1136, 264.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_1_0_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: diag
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1128, 320.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: iq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 280.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_0_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: iq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1168, 32.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: diag1
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [80, 648.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: out
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [80, 824.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1_0_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: diag
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [72, 704.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_file_source_0, '0', blocks_interleaved_short_to_complex_0, '0']
+- [blocks_interleaved_short_to_complex_0, '0', mlir_aie_sigmf_tag_injector_0, '0']
+- [blocks_probe_rate_0, rate, blocks_message_debug_0, print]
+- [blocks_stream_to_vector_0, '0', ieee802_11_decode_mac_EVM_0, '0']
+- [epy_channel_estimator_diagnostic, '0', blocks_null_sink_0_0_0, '0']
+- [epy_channel_estimator_diagnostic, '1', blocks_null_sink_0_0_0, '1']
+- [epy_channel_estimator_diagnostic, '10', blocks_null_sink_0, '7']
+- [epy_channel_estimator_diagnostic, '2', blocks_null_sink_0_0, '0']
+- [epy_channel_estimator_diagnostic, '3', blocks_null_sink_0, '0']
+- [epy_channel_estimator_diagnostic, '4', blocks_null_sink_0, '1']
+- [epy_channel_estimator_diagnostic, '5', blocks_null_sink_0, '2']
+- [epy_channel_estimator_diagnostic, '6', blocks_null_sink_0, '3']
+- [epy_channel_estimator_diagnostic, '7', blocks_null_sink_0, '4']
+- [epy_channel_estimator_diagnostic, '8', blocks_null_sink_0, '5']
+- [epy_channel_estimator_diagnostic, '9', blocks_null_sink_0, '6']
+- [foo_wireshark_connector_0, '0', blocks_file_sink_0, '0']
+- [ieee802_11_decode_mac_EVM_0, diag, virtual_sink_1_0_0, '0']
+- [ieee802_11_decode_mac_EVM_0, out, foo_wireshark_connector_0, in]
+- [ieee802_11_decode_mac_EVM_0, out, virtual_sink_1_0, '0']
+- [mlir_aie_complex64_to_cint16_0, '0', mlir_aie_mlir_aie_80211_phy_0, '0']
+- [mlir_aie_mlir_aie_80211_phy_0, '0', blocks_stream_to_vector_0, '0']
+- [mlir_aie_mlir_aie_80211_phy_0, '0', virtual_sink_1, '0']
+- [mlir_aie_sigmf_tag_injector_0, '0', virtual_sink_0, '0']
+- [virtual_source_0, '0', mlir_aie_complex64_to_cint16_0, '0']
+- [virtual_source_0_0, '0', blocks_probe_rate_0, '0']
+- [virtual_source_1, '0', epy_channel_estimator_diagnostic, '0']
+- [virtual_source_1_0, '0', epy_channel_estimator_diagnostic, crc_ok]
+- [virtual_source_1_0_0, '0', epy_channel_estimator_diagnostic, diag]
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

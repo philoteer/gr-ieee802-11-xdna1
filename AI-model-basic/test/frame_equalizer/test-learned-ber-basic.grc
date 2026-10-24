@@ -1,0 +1,1350 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'False'
+    category: Custom
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: Deterministic payload BER benchmark for the active NPU frame-equalizer
+      engine.
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: test_learned_ber_grc
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: run
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Frame Equalizer Learned BER Benchmark
+    window_size: (1600,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: batches
+  id: variable
+  parameters:
+    comment: "Number of sixteen-tile \nNPU batches."
+    value: int(__import__('os').environ.get('BER_BATCHES', '10'))
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [200, 8]
+    rotation: 0
+    state: enabled
+- name: configurations
+  id: variable
+  parameters:
+    comment: 'Report fields: name, RATE, constellation size, LENGTH, encoding.'
+    value: (('bpsk',11,2,20,0),('qpsk',10,4,40,2),('qam16',9,16,90,4),('qam64',8,64,180,6))
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1712, 8.0]
+    rotation: 0
+    state: enabled
+- name: frame_count
+  id: variable
+  parameters:
+    comment: One frame per NPU tile.
+    value: 16*batches
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1248, 128.0]
+    rotation: 0
+    state: enabled
+- name: freq
+  id: variable
+  parameters:
+    comment: ''
+    value: 2.417e9
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [584, 8]
+    rotation: 0
+    state: enabled
+- name: ltf_words
+  id: variable
+  parameters:
+    comment: Two standard shifted L-LTF vectors.
+    value: (tuple((0,0,0,0,0,0,1,1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,1,-1,-1,1,1,-1,1,-1,1,1,1,1,0,1,-1,-1,1,1,-1,1,-1,1,-1,-1,-1,-1,-1,1,1,-1,-1,1,-1,1,-1,1,1,1,1,0,0,0,0,0)),)*2
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [688, 8.0]
+    rotation: 0
+    state: enabled
+- name: marker_payload
+  id: variable
+  parameters:
+    comment: Distinct BPSK decisions delimit each compacted tile output.
+    value: tuple(1-(i&1) for i in range(48))
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 1320.0]
+    rotation: 0
+    state: enabled
+- name: marker_tags
+  id: variable
+  parameters:
+    comment: One zero-length BPSK packet repeated after every test frame.
+    value: '(lambda p: [gr.tag_utils.python_to_tag((0,p.intern(k),v,p.PMT_NIL)) for
+      k,v in (("packet_len",p.from_long(48)),("encoding",p.from_long(0)),("psdu_len",p.from_long(0)),("wifi_start",p.from_double(0.)))])(__import__(''pmt''))'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 1424.0]
+    rotation: 0
+    state: enabled
+- name: noise_amplitudes
+  id: variable
+  parameters:
+    comment: Time-domain AWGN sigma for BPSK, QPSK, 16-QAM, and 64-QAM.
+    value: (0.30,0.19,0.09,0.05)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1712, 128.0]
+    rotation: 0
+    state: enabled
+- name: occupied_carriers
+  id: variable
+  parameters:
+    comment: Standard 48 legacy data subcarriers.
+    value: (list(range(-26,-21))+list(range(-20,-7))+list(range(-6,0))+list(range(1,7))+list(range(8,21))+list(range(22,27)),)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [880, 8.0]
+    rotation: 0
+    state: enabled
+- name: output_file
+  id: variable
+  parameters:
+    comment: ''
+    value: __import__('os').environ.get('BER_OUTPUT', '')
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [472, 8.0]
+    rotation: 0
+    state: enabled
+- name: payload_tags
+  id: variable
+  parameters:
+    comment: Metadata copied onto the standard random-label stream.
+    value: '(lambda p,c,n: [gr.tag_utils.python_to_tag((f*384,p.intern(k),v,p.PMT_NIL))
+      for f in range(n) for k,v in (("packet_len",p.from_long(384)),("encoding",p.from_long(c[f%4][4])),("psdu_len",p.from_long(c[f%4][3])),("wifi_start",p.from_double(0.0)))])(__import__(''pmt''),configurations,frame_count)'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1408, 128.0]
+    rotation: 0
+    state: enabled
+- name: pilot_symbols
+  id: variable
+  parameters:
+    comment: Standard 127-symbol IEEE 802.11 pilot polarity sequence.
+    value: tuple((p,p,p,-p) for p in (1,1,1,1,-1,-1,-1,1,-1,-1,-1,-1,1,1,-1,1,-1,-1,1,1,-1,1,1,-1,1,1,1,1,1,1,-1,1,1,1,-1,1,1,-1,-1,1,1,1,-1,1,-1,-1,-1,1,-1,1,-1,-1,1,-1,-1,1,1,1,1,1,-1,-1,1,1,-1,-1,1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,-1,-1,-1,1,-1,-1,1,-1,1,1,1,1,-1,1,-1,1,-1,1,-1,-1,-1,-1,-1,1,-1,1,1,-1,1,-1,1,1,1,-1,-1,1,-1,-1,-1,1,1,1,-1,-1,-1,-1,-1,-1,-1))
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1088, 8.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 20e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 144.0]
+    rotation: 0
+    state: enabled
+- name: seed
+  id: variable
+  parameters:
+    comment: ''
+    value: int(__import__('os').environ.get('BER_SEED', '39080211'))
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [328, 8.0]
+    rotation: 0
+    state: enabled
+- name: signal_formatter
+  id: variable
+  parameters:
+    comment: GNU Radio's IEEE 802.11 RATE/LENGTH encoder and interleaver.
+    value: ieee802_11.signal_field()
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [536, 120.0]
+    rotation: 0
+    state: enabled
+- name: analog_bpsk_labels
+  id: analog_random_uniform_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maximum: '2'
+    maxoutbuf: '0'
+    minimum: '0'
+    minoutbuf: '0'
+    seed: seed+1
+    type: byte
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 360.0]
+    rotation: 0
+    state: enabled
+- name: analog_bpsk_noise
+  id: analog_noise_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: noise_amplitudes[0]
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_type: analog.GR_GAUSSIAN
+    seed: seed+101
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2280, 696.0]
+    rotation: 0
+    state: enabled
+- name: analog_qam16_labels
+  id: analog_random_uniform_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maximum: '16'
+    maxoutbuf: '0'
+    minimum: '0'
+    minoutbuf: '0'
+    seed: seed+3
+    type: byte
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 536.0]
+    rotation: 0
+    state: enabled
+- name: analog_qam16_noise
+  id: analog_noise_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: noise_amplitudes[2]
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_type: analog.GR_GAUSSIAN
+    seed: seed+103
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2280, 856.0]
+    rotation: 0
+    state: enabled
+- name: analog_qam64_labels
+  id: analog_random_uniform_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maximum: '64'
+    maxoutbuf: '0'
+    minimum: '0'
+    minoutbuf: '0'
+    seed: seed+4
+    type: byte
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 624.0]
+    rotation: 0
+    state: enabled
+- name: analog_qam64_noise
+  id: analog_noise_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: noise_amplitudes[3]
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_type: analog.GR_GAUSSIAN
+    seed: seed+104
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2280, 936.0]
+    rotation: 0
+    state: enabled
+- name: analog_qpsk_labels
+  id: analog_random_uniform_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maximum: '4'
+    maxoutbuf: '0'
+    minimum: '0'
+    minoutbuf: '0'
+    seed: seed+2
+    type: byte
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 448.0]
+    rotation: 0
+    state: enabled
+- name: analog_qpsk_noise
+  id: analog_noise_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: noise_amplitudes[1]
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_type: analog.GR_GAUSSIAN
+    seed: seed+102
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2280, 776.0]
+    rotation: 0
+    state: enabled
+- name: blocks_add_noise
+  id: blocks_add_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [3224, 632.0]
+    rotation: 0
+    state: enabled
+- name: blocks_bpsk_head
+  id: blocks_head
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: 384*4*batches
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [224, 376.0]
+    rotation: 0
+    state: enabled
+- name: blocks_channel_gain
+  id: blocks_multiply_const_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: '0.5'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2984, 608.0]
+    rotation: 0
+    state: enabled
+- name: blocks_channel_stream_to_vector
+  id: blocks_stream_to_vector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '64'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [352, 856.0]
+    rotation: 0
+    state: enabled
+- name: blocks_channel_tag_gate
+  id: blocks_tag_gate
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    propagate_tags: 'False'
+    single_key: '""'
+    type: complex
+    vlen: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [992, 832.0]
+    rotation: 0
+    state: enabled
+- name: blocks_channel_tag_share
+  id: blocks_tag_share
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    io_type: complex
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    share_type: complex
+    vlen: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1192, 968.0]
+    rotation: 0
+    state: enabled
+- name: blocks_fft_scale
+  id: blocks_multiply_const_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: 1/8.0
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [792, 840.0]
+    rotation: 0
+    state: enabled
+- name: blocks_header_payload_mux
+  id: blocks_tagged_stream_mux
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Prefix one standard SIGNAL symbol to each eight-symbol payload.
+    lengthtagname: packet_len
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    ninputs: '2'
+    tag_preserve_head_pos: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1312, 448.0]
+    rotation: 0
+    state: enabled
+- name: blocks_ifft_scale
+  id: blocks_multiply_const_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: 1/8.0
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2048, 600.0]
+    rotation: 0
+    state: enabled
+- name: blocks_marker_header_payload_mux
+  id: blocks_tagged_stream_mux
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Prefix the standards-generated delimiter SIGNAL symbol.
+    lengthtagname: packet_len
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    ninputs: '2'
+    tag_preserve_head_pos: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [752, 1192.0]
+    rotation: 0
+    state: enabled
+- name: blocks_marker_payload_source
+  id: blocks_vector_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Repeating one-symbol delimiter payload.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    repeat: 'True'
+    tags: marker_tags
+    type: byte
+    vector: marker_payload
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 1192.0]
+    rotation: 0
+    state: enabled
+- name: blocks_noise_mux
+  id: blocks_stream_mux
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    lengths: (880,880,880,880)
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '4'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2544, 808.0]
+    rotation: 0
+    state: enabled
+- name: blocks_npu_decisions_sink
+  id: blocks_vector_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Collect compacted candidate and delimiter decisions with metadata tags.
+    reserve_items: '4096'
+    type: byte
+    vlen: '48'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2320, 1208.0]
+    rotation: 0
+    state: enabled
+- name: blocks_npu_stream_to_vector
+  id: blocks_stream_to_vector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Group compacted NPU decisions into OFDM payload symbols.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '48'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2104, 1208.0]
+    rotation: 0
+    state: enabled
+- name: blocks_npu_vector_to_stream
+  id: blocks_vector_to_stream
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Scalarize sixteen-vector tiles for the NPU adapter.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '64'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1648, 1280.0]
+    rotation: 0
+    state: enabled
+- name: blocks_payload_mux
+  id: blocks_stream_mux
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    lengths: (384,384,384,384)
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '4'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [440, 480.0]
+    rotation: 0
+    state: enabled
+- name: blocks_payload_tag_carrier
+  id: blocks_vector_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    repeat: 'False'
+    tags: payload_tags
+    type: byte
+    vector: '[0]*(384*frame_count)'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [416, 640.0]
+    rotation: 0
+    state: enabled
+- name: blocks_payload_tag_share
+  id: blocks_tag_share
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    io_type: byte
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    share_type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [688, 528.0]
+    rotation: 0
+    state: enabled
+- name: blocks_payload_truth_sink
+  id: blocks_vector_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    reserve_items: 384*frame_count
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [872, 688.0]
+    rotation: 0
+    state: enabled
+- name: blocks_qam16_head
+  id: blocks_head
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: 384*4*batches
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [224, 552.0]
+    rotation: 0
+    state: enabled
+- name: blocks_qam64_head
+  id: blocks_head
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: 384*4*batches
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [224, 640.0]
+    rotation: 0
+    state: enabled
+- name: blocks_qpsk_head
+  id: blocks_head
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: 384*4*batches
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [224, 464.0]
+    rotation: 0
+    state: enabled
+- name: blocks_remove_cp
+  id: blocks_keep_m_in_n
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    m: '64'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    n: '80'
+    offset: '16'
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [240, 832.0]
+    rotation: 0
+    state: enabled
+- name: blocks_tile_mux
+  id: blocks_stream_mux
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Pack one eleven-vector test frame, one four-vector marker, and one pad
+      vector per tile.
+    lengths: (11,4,1)
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '3'
+    type: complex
+    vlen: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1408, 1360.0]
+    rotation: 0
+    state: enabled
+- name: blocks_tile_padding_source
+  id: blocks_vector_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: One zero vector completes each sixteen-vector NPU tile.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    repeat: 'True'
+    tags: '[]'
+    type: complex
+    vector: '[0j] * 64'
+    vlen: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1160, 1432.0]
+    rotation: 0
+    state: enabled
+- name: build_guard
+  id: snippet
+  parameters:
+    alias: ''
+    code: "from pathlib import Path\n\nbuild = Path('build')\nmarker = build / 'frame_equalizer_build_mode.txt'\n\
+      artifacts = [build / 'final.xclbin', build / 'insts.bin']\nmissing = [str(path)\
+      \ for path in [marker, *artifacts] if not path.is_file()]\nif missing:\n   \
+      \ raise RuntimeError(\n        'missing frame-equalizer build output(s): ' +\
+      \ ', '.join(missing) +\n        '; run `make learned-ber ENGINE=CLASSIC` or\
+      \ `ENGINE=AI`')\nself.build_mode = {}\nfor line in marker.read_text().splitlines():\n\
+      \    if '=' in line:\n        key, value = line.split('=', 1)\n        self.build_mode[key.strip()]\
+      \ = value.strip()\nif self.build_mode.get('DFRAME_EQUALIZER_OUTPUT_SYMBOLS')\
+      \ != '0':\n    raise RuntimeError('BER benchmark requires a production-mode\
+      \ build')\nif self.build_mode.get('EQUALIZER_ALGORITHM') not in {'LS', 'LMS', 'COMB', 'STA', 'CNN'}:\n    raise\
+      \ RuntimeError('invalid or missing EQUALIZER_ALGORITHM in ' + str(marker))\nif self.build_mode.get('ENGINE')\
+      \ not in {'CLASSIC', 'AI'}:\n    raise RuntimeError('invalid or missing ENGINE\
+      \ in ' + str(marker))\nif marker.stat().st_mtime_ns < max(path.stat().st_mtime_ns\
+      \ for path in artifacts):\n    raise RuntimeError(str(marker) + ' is older than\
+      \ the NPU artifacts; rebuild')"
+    comment: Reject stale or incompatible NPU images before block construction.
+    priority: '0'
+    section: init_before_blocks
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [880, 120.0]
+    rotation: 0
+    state: enabled
+- name: channels_fading
+  id: channels_selective_fading_model
+  parameters:
+    K: '8.0'
+    LOS: 'True'
+    N: '8'
+    affinity: ''
+    alias: ''
+    comment: ''
+    delays: (0.0,3.0,8.0)
+    fDTs: 40.0/samp_rate
+    mags: (1.0,0.35,0.2)
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    ntaps: '16'
+    seed: seed+50
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2728, 548.0]
+    rotation: 0
+    state: enabled
+- name: channels_hardware_impairments
+  id: channels_impairments
+  parameters:
+    affinity: ''
+    alias: ''
+    beta: '0.018'
+    comment: ''
+    freq_offset: '0.0'
+    gamma: '0.0'
+    i_ofs: '0.0'
+    magbal: '0.25'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    phase_noise_mag: '0.0'
+    phasebal: '3.0'
+    q_ofs: '0.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2480, 548.0]
+    rotation: 0
+    state: enabled
+- name: digital_carrier_allocator
+  id: digital_ofdm_carrier_allocator_cvc
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Add L-LTF vectors, pilots, guards, and standard carrier placement.
+    fft_len: '64'
+    len_tag_key: packet_len
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    occupied_carriers: occupied_carriers
+    output_is_shifted: 'True'
+    pilot_carriers: ((-21,-7,7,21),)
+    pilot_symbols: pilot_symbols
+    sync_words: ltf_words
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1576, 404.0]
+    rotation: 0
+    state: enabled
+- name: digital_cyclic_prefixer
+  id: digital_ofdm_cyclic_prefixer
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    cp_len: '16'
+    input_size: '64'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    rolloff: '0'
+    tagname: '""'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2248, 592.0]
+    rotation: 0
+    state: enabled
+- name: digital_marker_carrier_allocator
+  id: digital_ofdm_carrier_allocator_cvc
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Add L-LTF vectors, pilots, and standard delimiter carrier placement.
+    fft_len: '64'
+    len_tag_key: packet_len
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    occupied_carriers: occupied_carriers
+    output_is_shifted: 'True'
+    pilot_carriers: ((-21,-7,7,21),)
+    pilot_symbols: pilot_symbols
+    sync_words: ltf_words
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [976, 1268.0]
+    rotation: 0
+    state: enabled
+- name: digital_marker_signal_bpsk
+  id: digital_chunks_to_symbols_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Map the delimiter SIGNAL decisions to BPSK.
+    dimension: '1'
+    in_type: byte
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_ports: '1'
+    out_type: complex
+    symbol_table: '[-1, 1]'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [512, 1120.0]
+    rotation: 0
+    state: enabled
+- name: digital_marker_signal_header
+  id: digital_packet_headergenerator_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Generate the delimiter's valid zero-length SIGNAL field.
+    header_formatter: signal_formatter.formatter()
+    len_tag_key: packet_len
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [208, 1104.0]
+    rotation: 0
+    state: enabled
+- name: digital_signal_bpsk
+  id: digital_chunks_to_symbols_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Map standards-generated SIGNAL decisions to BPSK.
+    dimension: '1'
+    in_type: byte
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_ports: '1'
+    out_type: complex
+    symbol_table: '[-1, 1]'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1104, 368.0]
+    rotation: 0
+    state: enabled
+- name: digital_signal_header
+  id: digital_packet_headergenerator_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Generate and interleave each IEEE 802.11 SIGNAL field.
+    header_formatter: signal_formatter.formatter()
+    len_tag_key: packet_len
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [776, 352.0]
+    rotation: 0
+    state: enabled
+- name: fft_fft
+  id: fft_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    fft_size: '64'
+    forward: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nthreads: '1'
+    shift: 'True'
+    type: complex
+    window: ()
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [544, 816.0]
+    rotation: 0
+    state: enabled
+- name: fft_ifft
+  id: fft_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    fft_size: '64'
+    forward: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nthreads: '1'
+    shift: 'True'
+    type: complex
+    window: ()
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1840, 576.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_marker_payload_symbols
+  id: ieee802_11_chunks_to_symbols_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Map delimiter labels through the standard WiFi mapper.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [264, 1264.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_payload_symbols
+  id: ieee802_11_chunks_to_symbols_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Per-packet standard BPSK/QPSK/QAM mapper selected by encoding tags.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [920, 544.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_frame_equalizer_npu
+  id: mlir_aie_mlir_aie_cpp_equalizer_test
+  parameters:
+    N_TILES: '16'
+    VECTOR_SIZE: '16384'
+    affinity: ''
+    alias: ''
+    comment: Existing NPU GNU Radio adapter.
+    kernel_name: MLIR_AIE
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nominal_frequency: freq
+    num_slots: '1'
+    path_insts_bin: build/insts.bin
+    path_xclbin: build/final.xclbin
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1832, 1220.0]
+    rotation: 0
+    state: enabled
+- name: report
+  id: snippet
+  parameters:
+    alias: ''
+    code: "# Rebuild per-tile results after the stream stops.\n#\n# The NPU adapter\
+      \ compacts away empty tile outputs. Every transmitted frame\n# is followed by\
+      \ a standards-generated zero-length delimiter frame; splitting\n# at those decisions\
+      \ recovers one result segment per physical tile.\nimport json\nfrom pathlib\
+      \ import Path\nimport numpy as np\nimport pmt\n\nhard = np.asarray(self.blocks_npu_decisions_sink.data(),\
+      \ dtype=np.uint8).reshape(-1, 48)\ntruths = np.asarray(self.blocks_payload_truth_sink.data(),\
+      \ dtype=np.uint8)\nif truths.size != 384 * self.frame_count:\n    raise AssertionError(\n\
+      \        f'truth stream has {truths.size} labels; expected {384 * self.frame_count}')\n\
+      truths = truths.reshape(self.frame_count, 8, 48)\nmarker_hard = np.asarray(self.marker_payload,\
+      \ dtype=np.uint8)\n\n# Index adapter metadata by output-symbol offset.\ntags\
+      \ = {}\nfor tag in self.blocks_npu_decisions_sink.tags():\n    offset = int(tag.offset)\n\
+      \    key = pmt.symbol_to_string(tag.key)\n    tags.setdefault(offset, {})[key]\
+      \ = tag.value\n\n# Split compacted output at each marker frame.\nsegments =\
+      \ []\npending = []\nfor index, decisions in enumerate(hard):\n    frame_bytes\
+      \ = tags.get(index, {}).get('frame bytes')\n    is_marker = (frame_bytes is\
+      \ not None and\n                 pmt.to_uint64(frame_bytes) == 0 and\n     \
+      \            np.array_equal(decisions, marker_hard))\n    if is_marker:\n  \
+      \      segments.append(pending)\n        pending = []\n    else:\n        pending.append(index)\n\
+      if pending:\n    raise AssertionError('NPU output ended without a marker delimiter')\n\
+      if len(segments) != self.frame_count:\n    raise AssertionError(\n        f'marker\
+      \ count {len(segments)} != transmitted frame count {self.frame_count}')\n\n\
+      # Accumulators hold received errors/counts followed by transmitted counts.\n\
+      # Invalid RATE, LENGTH, or output length is reported as a packet miss. The\n\
+      # combined rates additionally count every bit and symbol in that packet wrong.\n\
+      bit_widths = {'bpsk': 1, 'qpsk': 2, 'qam16': 4, 'qam64': 6}\ntotals = {name:\
+      \ np.zeros(6, np.int64) for name in bit_widths}\ndropped = {name: 0 for name\
+      \ in bit_widths}\nframes = {name: 0 for name in bit_widths}\nfor frame_index,\
+      \ (segment, truth) in enumerate(zip(segments, truths)):\n    name, rate, modulation,\
+      \ length, encoding = self.configurations[frame_index % 4]\n    frame_tags =\
+      \ [tags[index] for index in segment\n                  if 'frame bytes' in tags.get(index,\
+      \ {})]\n    tag_valid = len(frame_tags) == 1\n    if tag_valid:\n        tag\
+      \ = frame_tags[0]\n        tag_valid = ('encoding' in tag and\n            \
+      \         (pmt.to_uint64(tag['frame bytes']),\n                      pmt.to_uint64(tag['encoding']))\
+      \ == (length, encoding))\n    frame_valid = tag_valid and len(segment) == 8\n\
+      \    bits_per_symbol = bit_widths[name]\n    expected = truth.reshape(-1)\n\
+      \    total_bits = expected.size * bits_per_symbol\n    if frame_valid:\n   \
+      \     actual = hard[segment].reshape(-1)\n        xor = actual ^ expected\n\
+      \        bit_errors = sum(int(np.count_nonzero((xor >> bit) & 1))\n        \
+      \                 for bit in range(bits_per_symbol))\n        symbol_errors\
+      \ = int(np.count_nonzero(actual != expected))\n        received_bits = total_bits\n\
+      \        received_symbols = expected.size\n    else:\n        bit_errors = 0\n\
+      \        symbol_errors = 0\n        received_bits = 0\n        received_symbols\
+      \ = 0\n    totals[name] += (bit_errors, symbol_errors, received_bits,\n    \
+      \                 received_symbols, total_bits, expected.size)\n    dropped[name]\
+      \ += int(not frame_valid)\n    frames[name] += 1\n\nreport = {\n    'engine':\
+      \ self.build_mode.get('ENGINE'),\n    'algorithm': self.build_mode.get('EQUALIZER_ALGORITHM'),\n    'seed': self.seed,\n    'batches': self.batches,\n\
+      \    'constellation_source': 'installed ieee802_11 Python bindings',\n    'models':\
+      \ {},\n}\nfor name, values in totals.items():\n    (bit_errors, symbol_errors,\
+      \ received_bits, received_symbols,\n     bits, symbols) = map(int, values)\n\
+      \    missed_packets = dropped[name]\n    combined_bit_errors = bit_errors +\
+      \ bits - received_bits\n    combined_symbol_errors = symbol_errors + symbols\
+      \ - received_symbols\n    report['models'][name] = {\n        'ber_received':\
+      \ bit_errors / received_bits if received_bits else None,\n        'ber_combined':\
+      \ combined_bit_errors / bits,\n        'packet_miss_rate': missed_packets /\
+      \ frames[name],\n        'ser_received': symbol_errors / received_symbols if\
+      \ received_symbols else None,\n        'ser_combined': combined_symbol_errors\
+      \ / symbols,\n        'received_bit_errors': bit_errors,\n        'received_bits':\
+      \ received_bits,\n        'combined_bit_errors': combined_bit_errors,\n    \
+      \    'total_bits': bits,\n        'missed_packets': missed_packets,\n      \
+      \  'packets': frames[name],\n    }\nrendered = json.dumps(report, indent=2)\n\
+      print(rendered)\nif self.output_file:\n    Path(self.output_file).write_text(rendered\
+      \ + '\\n')"
+    comment: Reconstruct tile results at marker boundaries and emit the BER JSON report.
+    priority: '0'
+    section: main_after_stop
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1408, 232.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: rx_until_fft
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1400, 976.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_0_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: tx_impaired
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [3456, 832.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_channel_tags
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: Preserve the transmitter tags for restoration after the channel.
+    stream_id: channel_tag_reference
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1888, 312.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: rx_until_fft
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1160, 1200.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: tx_impaired
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 848.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_channel_tags
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: Restore transmitter tags after the time-domain channel and FFT.
+    stream_id: channel_tag_reference
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [848, 1040.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [analog_bpsk_labels, '0', blocks_bpsk_head, '0']
+- [analog_bpsk_noise, '0', blocks_noise_mux, '0']
+- [analog_qam16_labels, '0', blocks_qam16_head, '0']
+- [analog_qam16_noise, '0', blocks_noise_mux, '2']
+- [analog_qam64_labels, '0', blocks_qam64_head, '0']
+- [analog_qam64_noise, '0', blocks_noise_mux, '3']
+- [analog_qpsk_labels, '0', blocks_qpsk_head, '0']
+- [analog_qpsk_noise, '0', blocks_noise_mux, '1']
+- [blocks_add_noise, '0', virtual_sink_0_0, '0']
+- [blocks_bpsk_head, '0', blocks_payload_mux, '0']
+- [blocks_channel_gain, '0', blocks_add_noise, '0']
+- [blocks_channel_stream_to_vector, '0', fft_fft, '0']
+- [blocks_channel_tag_gate, '0', blocks_channel_tag_share, '0']
+- [blocks_channel_tag_share, '0', virtual_sink_0, '0']
+- [blocks_fft_scale, '0', blocks_channel_tag_gate, '0']
+- [blocks_header_payload_mux, '0', digital_carrier_allocator, '0']
+- [blocks_ifft_scale, '0', digital_cyclic_prefixer, '0']
+- [blocks_marker_header_payload_mux, '0', digital_marker_carrier_allocator, '0']
+- [blocks_marker_payload_source, '0', digital_marker_signal_header, '0']
+- [blocks_marker_payload_source, '0', ieee802_11_marker_payload_symbols, '0']
+- [blocks_noise_mux, '0', blocks_add_noise, '1']
+- [blocks_npu_stream_to_vector, '0', blocks_npu_decisions_sink, '0']
+- [blocks_npu_vector_to_stream, '0', mlir_aie_frame_equalizer_npu, '0']
+- [blocks_payload_mux, '0', blocks_payload_tag_share, '0']
+- [blocks_payload_tag_carrier, '0', blocks_payload_tag_share, '1']
+- [blocks_payload_tag_share, '0', blocks_payload_truth_sink, '0']
+- [blocks_payload_tag_share, '0', digital_signal_header, '0']
+- [blocks_payload_tag_share, '0', ieee802_11_payload_symbols, '0']
+- [blocks_qam16_head, '0', blocks_payload_mux, '2']
+- [blocks_qam64_head, '0', blocks_payload_mux, '3']
+- [blocks_qpsk_head, '0', blocks_payload_mux, '1']
+- [blocks_remove_cp, '0', blocks_channel_stream_to_vector, '0']
+- [blocks_tile_mux, '0', blocks_npu_vector_to_stream, '0']
+- [blocks_tile_padding_source, '0', blocks_tile_mux, '2']
+- [channels_fading, '0', blocks_channel_gain, '0']
+- [channels_hardware_impairments, '0', channels_fading, '0']
+- [digital_carrier_allocator, '0', fft_ifft, '0']
+- [digital_carrier_allocator, '0', virtual_sink_channel_tags, '0']
+- [digital_cyclic_prefixer, '0', channels_hardware_impairments, '0']
+- [digital_marker_carrier_allocator, '0', blocks_tile_mux, '1']
+- [digital_marker_signal_bpsk, '0', blocks_marker_header_payload_mux, '0']
+- [digital_marker_signal_header, '0', digital_marker_signal_bpsk, '0']
+- [digital_signal_bpsk, '0', blocks_header_payload_mux, '0']
+- [digital_signal_header, '0', digital_signal_bpsk, '0']
+- [fft_fft, '0', blocks_fft_scale, '0']
+- [fft_ifft, '0', blocks_ifft_scale, '0']
+- [ieee802_11_marker_payload_symbols, '0', blocks_marker_header_payload_mux, '1']
+- [ieee802_11_payload_symbols, '0', blocks_header_payload_mux, '1']
+- [mlir_aie_frame_equalizer_npu, '0', blocks_npu_stream_to_vector, '0']
+- [virtual_source_0, '0', blocks_tile_mux, '0']
+- [virtual_source_1, '0', blocks_remove_cp, '0']
+- [virtual_source_channel_tags, '0', blocks_channel_tag_share, '1']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

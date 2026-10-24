@@ -1,0 +1,759 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'False'
+    category: Custom
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: Standards-block OFDM training data for the frame-equalizer neural
+      demapper.
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: data
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: run
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Frame Equalizer AI Dataset Generator
+    window_size: (1800,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: configurations
+  id: variable
+  parameters:
+    comment: Constellation size, encoding tag, coded bits per symbol, and AWGN amplitude.
+    value: '{''bpsk'':(2,0,24,0.30),''qpsk'':(4,2,48,0.19),''qam16'':(16,4,96,0.09),''qam64'':(64,6,192,0.05)}'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [936, 8.0]
+    rotation: 0
+    state: enabled
+- name: constellation_size
+  id: variable
+  parameters:
+    comment: ''
+    value: configurations[modulation][0]
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1160, 240.0]
+    rotation: 0
+    state: enabled
+- name: encoding
+  id: variable
+  parameters:
+    comment: GNU Radio IEEE 802.11 encoding index.
+    value: configurations[modulation][1]
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [472, 8.0]
+    rotation: 0
+    state: enabled
+- name: frames
+  id: variable
+  parameters:
+    comment: Number of independently tagged WiFi frames.
+    value: int(__import__('os').environ.get('DATASET_FRAMES', '24'))
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1520, 16.0]
+    rotation: 0
+    state: enabled
+- name: ltf_words
+  id: variable
+  parameters:
+    comment: Two standard shifted L-LTF vectors.
+    value: (tuple((0,0,0,0,0,0,1,1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,1,-1,-1,1,1,-1,1,-1,1,1,1,1,0,1,-1,-1,1,1,-1,1,-1,1,-1,-1,-1,-1,-1,1,1,-1,-1,1,-1,1,-1,1,1,1,1,0,0,0,0,0)),)*2
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1024, 128.0]
+    rotation: 0
+    state: enabled
+- name: modulation
+  id: variable
+  parameters:
+    comment: Selected legacy constellation.
+    value: __import__('os').environ.get('DATASET_MODULATION', 'bpsk')
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [992, 224.0]
+    rotation: 0
+    state: enabled
+- name: noise_amplitude
+  id: variable
+  parameters:
+    comment: Time-domain AWGN sigma, matched to test-learned-ber-basic.grc.
+    value: configurations[modulation][3]
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1152, 8.0]
+    rotation: 0
+    state: enabled
+- name: occupied_carriers
+  id: variable
+  parameters:
+    comment: Standard 48 legacy data subcarriers.
+    value: (list(range(-26,-21))+list(range(-20,-7))+list(range(-6,0))+list(range(1,7))+list(range(8,21))+list(range(22,27)),)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1240, 128.0]
+    rotation: 0
+    state: enabled
+- name: output_file
+  id: variable
+  parameters:
+    comment: NPZ path consumed by dataset.py.
+    value: __import__('os').environ.get('DATASET_OUTPUT', 'artifacts/dataset.npz')
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [736, 8.0]
+    rotation: 0
+    state: enabled
+- name: payload_tags
+  id: variable
+  parameters:
+    comment: One packet_len/encoding/LENGTH tag set per payload frame.
+    value: '(lambda p,n,s,e,l: [gr.tag_utils.python_to_tag((f*s*48,p.intern(k),v,p.PMT_NIL))
+      for f in range(n) for k,v in (("packet_len",p.from_long(s*48)),("encoding",p.from_long(e)),("psdu_len",p.from_long(l)),("wifi_start",p.from_double(0.0)))])(__import__(''pmt''),frames,symbols_per_frame,encoding,psdu_len)'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [688, 112.0]
+    rotation: 0
+    state: enabled
+- name: pilot_symbols
+  id: variable
+  parameters:
+    comment: Standard 127-symbol IEEE 802.11 pilot polarity sequence.
+    value: tuple((p,p,p,-p) for p in (1,1,1,1,-1,-1,-1,1,-1,-1,-1,-1,1,1,-1,1,-1,-1,1,1,-1,1,1,-1,1,1,1,1,1,1,-1,1,1,1,-1,1,1,-1,-1,1,1,1,-1,1,-1,-1,-1,1,-1,1,-1,-1,1,-1,-1,1,1,1,1,1,-1,-1,1,1,-1,-1,1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,-1,-1,-1,1,-1,-1,1,-1,1,1,1,1,-1,1,-1,1,-1,1,-1,-1,-1,-1,-1,1,-1,1,1,-1,1,-1,1,1,1,-1,-1,1,-1,-1,-1,1,1,1,-1,-1,-1,-1,-1,-1,-1))
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1416, 128.0]
+    rotation: 0
+    state: enabled
+- name: psdu_len
+  id: variable
+  parameters:
+    comment: Valid LENGTH whose encoded payload occupies symbols_per_frame symbols.
+    value: max(0,(symbols_per_frame*configurations[modulation][2]-22)//8)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [232, 104.0]
+    rotation: 0
+    state: enabled
+- name: seed
+  id: variable
+  parameters:
+    comment: Seed for labels, fading, and AWGN.
+    value: int(__import__('os').environ.get('DATASET_SEED', '39'))
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [480, 96.0]
+    rotation: 0
+    state: enabled
+- name: signal_formatter
+  id: variable
+  parameters:
+    comment: GNU Radio IEEE 802.11 RATE/LENGTH encoder and interleaver.
+    value: ieee802_11.signal_field()
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 136.0]
+    rotation: 0
+    state: enabled
+- name: symbols_per_frame
+  id: variable
+  parameters:
+    comment: Labeled payload OFDM symbols per frame.
+    value: int(__import__('os').environ.get('DATASET_SYMBOLS_PER_FRAME', '2'))
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [224, 8.0]
+    rotation: 0
+    state: enabled
+- name: add_noise
+  id: blocks_add_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [3104, 448.0]
+    rotation: 0
+    state: enabled
+- name: carrier_allocator
+  id: digital_ofdm_carrier_allocator_cvc
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Add two L-LTF vectors, pilots, guards, and standard carrier placement.
+    fft_len: '64'
+    len_tag_key: packet_len
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    occupied_carriers: occupied_carriers
+    output_is_shifted: 'True'
+    pilot_carriers: ((-21,-7,7,21),)
+    pilot_symbols: pilot_symbols
+    sync_words: ltf_words
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1416, 388.0]
+    rotation: 0
+    state: enabled
+- name: channel_gain
+  id: blocks_multiply_const_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Leave fixed-point headroom as in the BER benchmark.
+    const: '0.5'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2856, 440.0]
+    rotation: 0
+    state: enabled
+- name: cyclic_prefixer
+  id: digital_ofdm_cyclic_prefixer
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Add the standard 16-sample cyclic prefix.
+    cp_len: '16'
+    input_size: '64'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    rolloff: '0'
+    tagname: '""'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2112, 424.0]
+    rotation: 0
+    state: enabled
+- name: fading
+  id: channels_selective_fading_model
+  parameters:
+    K: '8.0'
+    LOS: 'True'
+    N: '8'
+    affinity: ''
+    alias: ''
+    comment: Seeded time-varying selective fading shared across each waveform.
+    delays: (0.0,3.0,8.0)
+    fDTs: 40.0/20e6
+    mags: (1.0,0.35,0.2)
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    ntaps: '16'
+    seed: seed+50
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2592, 380.0]
+    rotation: 0
+    state: enabled
+- name: feature_extractor
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\n\nLONG = np.asarray(\n\
+      \    [0,0,0,0,0,0,1,1,-1,-1,1,1,-1,1,-1,1,\n     1,1,1,1,1,-1,-1,1,1,-1,1,-1,1,1,1,1,\n\
+      \     0,1,-1,-1,1,1,-1,1,-1,1,-1,-1,-1,-1,-1,\n     1,1,-1,-1,1,-1,1,-1,1,1,1,1,0,0,0,0,0],\
+      \ np.complex64)\nOCCUPIED_BINS = np.asarray([i for i in range(6, 59) if i !=\
+      \ 32])\nPILOT_POLARITY = (1,1,1,1,-1,-1,-1,1,-1,-1,-1,-1,1,1,-1,1,\n    -1,-1,1,1,-1,1,1,-1,1,1,1,1,1,1,-1,1,1,1,-1,1,1,-1,-1,\n\
+      \    1,1,1,-1,1,-1,-1,-1,1,-1,1,-1,-1,1,-1,-1,1,1,1,1,1,-1,\n    -1,1,1,-1,-1,1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,-1,-1,-1,1,\n\
+      \    -1,-1,1,-1,1,1,1,1,-1,1,-1,1,-1,1,-1,-1,-1,-1,-1,1,-1,\n    1,1,-1,1,-1,1,1,1,-1,-1,1,-1,-1,-1,1,1,1,-1,-1,-1,-1,-1,-1,-1)\n\
+      \nclass blk(gr.sync_block):\n    \"\"\"Expose matched-filter features not available\
+      \ from standard blocks.\"\"\"\n\n    def __init__(self, symbols_per_frame=2):\n\
+      \        gr.sync_block.__init__(\n            self,\n            name='matched-filter\
+      \ feature extractor',\n            in_sig=[(np.complex64, 64)],\n          \
+      \  out_sig=[(np.float32, 192)],\n        )\n        self.frame_vectors = int(symbols_per_frame)\
+      \ + 3\n        self.position = 0\n        self.first_ltf = None\n        self.h_est\
+      \ = np.zeros(64, np.complex64)\n\n    def work(self, input_items, output_items):\n\
+      \        for index, received in enumerate(input_items[0]):\n            received\
+      \ = received.copy()\n            if self.position < 2:\n                pilots\
+      \ = np.asarray([\n                    received[11], -received[25], received[39],\
+      \ received[53]])\n            else:\n                polarity = PILOT_POLARITY[(self.position\
+      \ - 2) % len(PILOT_POLARITY)]\n                pilots = polarity * np.asarray([\n\
+      \                    received[11], received[25], received[39], -received[53]])\n\
+      \            received *= np.exp(-1j * np.angle(np.sum(pilots)))\n\n        \
+      \    if self.position == 0:\n                self.first_ltf = received.copy()\n\
+      \            elif self.position == 1:\n                self.h_est.fill(0)\n\
+      \                self.h_est[OCCUPIED_BINS] = (\n                    self.first_ltf[OCCUPIED_BINS]\
+      \ + received[OCCUPIED_BINS]\n                ) / (2.0 * LONG[OCCUPIED_BINS])\n\
+      \n            matched = received * np.conj(self.h_est)\n            h2 = np.abs(self.h_est)\
+      \ ** 2\n            raw = np.stack((matched.real, matched.imag, h2), axis=-1)\n\
+      \            output_items[0][index] = raw.astype(np.float32).reshape(-1)\n            self.position\
+      \ = (self.position + 1) % self.frame_vectors\n        return len(input_items[0])\n"
+    affinity: ''
+    alias: ''
+    comment: Only custom DSP block; standard GNU Radio blocks do not expose Y*conj(H)
+      and abs(H)^2.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    symbols_per_frame: symbols_per_frame
+  states:
+    _io_cache: ('matched-filter feature extractor', 'blk', [('symbols_per_frame',
+      '2')], [('0', 'complex', 64)], [('0', 'float', 192)], 'Expose matched-filter
+      features not available from standard blocks.', [])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [4104, 448.0]
+    rotation: 0
+    state: enabled
+- name: feature_sink
+  id: blocks_vector_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: All frame vectors; the final snippet selects payload vectors.
+    reserve_items: frames*(symbols_per_frame+3)
+    type: float
+    vlen: '192'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [4416, 448.0]
+    rotation: 0
+    state: enabled
+- name: fft_scale
+  id: blocks_multiply_const_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Undo the transmitter-side normalization.
+    const: 1/8.0
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [3904, 448.0]
+    rotation: 0
+    state: enabled
+- name: hardware_impairments
+  id: channels_impairments
+  parameters:
+    affinity: ''
+    alias: ''
+    beta: '0.018'
+    comment: GNU Radio phase/frequency-selective hardware impairment model.
+    freq_offset: '0.0'
+    gamma: '0.0'
+    i_ofs: '0.0'
+    magbal: '0.25'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    phase_noise_mag: '0.0'
+    phasebal: '3.0'
+    q_ofs: '0.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2352, 380.0]
+    rotation: 0
+    state: enabled
+- name: header_payload_mux
+  id: blocks_tagged_stream_mux
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Prefix one SIGNAL symbol to every payload packet.
+    lengthtagname: packet_len
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    ninputs: '2'
+    tag_preserve_head_pos: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1168, 432]
+    rotation: 0
+    state: enabled
+- name: ifft
+  id: fft_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Standard shifted 64-point OFDM IFFT.
+    fft_size: '64'
+    forward: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nthreads: '1'
+    shift: 'True'
+    type: complex
+    window: ()
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1664, 408.0]
+    rotation: 0
+    state: enabled
+- name: ifft_scale
+  id: blocks_multiply_const_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Match the normalization used by the frame-equalizer BER graph.
+    const: 1/8.0
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1888, 432]
+    rotation: 0
+    state: enabled
+- name: label_head
+  id: blocks_head
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Bound the continuous random source to the requested corpus.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: frames*symbols_per_frame*48
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [232, 424.0]
+    rotation: 0
+    state: enabled
+- name: label_source
+  id: analog_random_uniform_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Standard seeded random constellation labels.
+    maximum: constellation_size
+    maxoutbuf: '0'
+    minimum: '0'
+    minoutbuf: '0'
+    seed: seed+1
+    type: byte
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [0, 408.0]
+    rotation: 0
+    state: enabled
+- name: label_tag_share
+  id: blocks_tag_share
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Attach packet metadata without replacing random labels.
+    io_type: byte
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    share_type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [456, 448.0]
+    rotation: 0
+    state: enabled
+- name: noise_source
+  id: analog_noise_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: noise_amplitude
+    comment: Seeded complex Gaussian noise.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_type: analog.GR_GAUSSIAN
+    seed: seed+101
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2856, 544.0]
+    rotation: 0
+    state: enabled
+- name: payload_mapper
+  id: ieee802_11_chunks_to_symbols_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Standard per-packet WiFi constellation mapper.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [800, 464.0]
+    rotation: 0
+    state: enabled
+- name: remove_cp
+  id: blocks_keep_m_in_n
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Remove 16 samples from each 80-sample OFDM symbol.
+    m: '64'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    n: '80'
+    offset: '16'
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [3240, 440.0]
+    rotation: 0
+    state: enabled
+- name: rx_fft
+  id: fft_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Standard shifted 64-point receiver FFT.
+    fft_size: '64'
+    forward: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nthreads: '1'
+    shift: 'True'
+    type: complex
+    window: ()
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [3656, 424.0]
+    rotation: 0
+    state: enabled
+- name: save_dataset
+  id: snippet
+  parameters:
+    alias: ''
+    code: "from pathlib import Path\nimport numpy as np\n\ndata_bins = np.asarray([i\
+      \ for i in range(6, 59)\n                        if i not in (11, 25, 32, 39,\
+      \ 53)])\nbit_counts = {'bpsk': 1, 'qpsk': 2, 'qam16': 4, 'qam64': 6}\nframe_vectors\
+      \ = self.symbols_per_frame + 3\nall_features = np.asarray(self.feature_sink.data(),\
+      \ dtype=np.float32).reshape(\n    self.frames, frame_vectors, 64, 3)\nfull_features\
+      \ = all_features[:, 3:, :, :].reshape(-1, 64, 3)\nclasses = np.asarray(self.truth_sink.data(),\
+      \ dtype=np.uint8).astype(np.int64)\nexpected = self.frames * self.symbols_per_frame\
+      \ * 48\nif classes.size != expected:\n    raise RuntimeError(f'truth stream\
+      \ has {classes.size} labels; expected {expected}')\nfeatures = full_features[:,\
+      \ data_bins, :].reshape(-1, 3)\nlabels = ((classes[:, None] >> np.arange(bit_counts[self.modulation]))\
+      \ & 1).astype(\n    np.float32)\noutput = Path(self.output_file)\noutput.parent.mkdir(parents=True,\
+      \ exist_ok=True)\nnp.savez(output, features=features, labels=labels, classes=classes,\n\
+      \         full_features=full_features)"
+    comment: Select payload vectors, pair them with source labels, and write NPZ.
+    priority: '0'
+    section: main_after_stop
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [4112, 624]
+    rotation: 0
+    state: enabled
+- name: signal_bpsk
+  id: digital_chunks_to_symbols_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Map generated SIGNAL decisions to BPSK.
+    dimension: '1'
+    in_type: byte
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_ports: '1'
+    out_type: complex
+    symbol_table: '[-1,1]'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [928, 528]
+    rotation: 0
+    state: enabled
+- name: signal_header
+  id: digital_packet_headergenerator_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Generate and interleave each standards-compliant SIGNAL field.
+    header_formatter: signal_formatter.formatter()
+    len_tag_key: packet_len
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [608, 512.0]
+    rotation: 0
+    state: enabled
+- name: stream_to_vector
+  id: blocks_stream_to_vector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '64'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [3448, 464.0]
+    rotation: 0
+    state: enabled
+- name: tag_carrier
+  id: blocks_vector_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Finite dummy stream carrying packet metadata.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    repeat: 'False'
+    tags: payload_tags
+    type: byte
+    vector: '[0]*(frames*symbols_per_frame*48)'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [208, 512.0]
+    rotation: 0
+    state: enabled
+- name: truth_sink
+  id: blocks_vector_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Preserve labels before modulation.
+    reserve_items: frames*symbols_per_frame*48
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [832, 344.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [add_noise, '0', remove_cp, '0']
+- [carrier_allocator, '0', ifft, '0']
+- [channel_gain, '0', add_noise, '0']
+- [cyclic_prefixer, '0', hardware_impairments, '0']
+- [fading, '0', channel_gain, '0']
+- [feature_extractor, '0', feature_sink, '0']
+- [fft_scale, '0', feature_extractor, '0']
+- [hardware_impairments, '0', fading, '0']
+- [header_payload_mux, '0', carrier_allocator, '0']
+- [ifft, '0', ifft_scale, '0']
+- [ifft_scale, '0', cyclic_prefixer, '0']
+- [label_head, '0', label_tag_share, '0']
+- [label_source, '0', label_head, '0']
+- [label_tag_share, '0', payload_mapper, '0']
+- [label_tag_share, '0', signal_header, '0']
+- [label_tag_share, '0', truth_sink, '0']
+- [noise_source, '0', add_noise, '1']
+- [payload_mapper, '0', header_payload_mux, '1']
+- [remove_cp, '0', stream_to_vector, '0']
+- [rx_fft, '0', fft_scale, '0']
+- [signal_bpsk, '0', header_payload_mux, '0']
+- [signal_header, '0', signal_bpsk, '0']
+- [stream_to_vector, '0', rx_fft, '0']
+- [tag_carrier, '0', label_tag_share, '1']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

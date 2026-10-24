@@ -1,0 +1,710 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: Custom
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: wifi_rx
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: run
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: ''
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 12.0]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: freq
+  id: variable
+  parameters:
+    comment: ''
+    value: 2.417e9
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [192, 16.0]
+    rotation: 0
+    state: enabled
+- name: gain_BB
+  id: variable
+  parameters:
+    comment: ''
+    value: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [176, 96.0]
+    rotation: 0
+    state: enabled
+- name: gain_IF
+  id: variable
+  parameters:
+    comment: ''
+    value: '32'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [96, 96.0]
+    rotation: 0
+    state: enabled
+- name: gain_RF
+  id: variable
+  parameters:
+    comment: ''
+    value: '14'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 96.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 20e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [296, 16.0]
+    rotation: 0
+    state: enabled
+- name: attach_collector_radio
+  id: snippet
+  parameters:
+    alias: ''
+    code: self.epy_xy_collector.radio = self.osmosdr_source_0
+    comment: ''
+    priority: '0'
+    section: main_after_init
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1416, 24.0]
+    rotation: 0
+    state: enabled
+- name: blocks_stream_to_vector_0
+  id: blocks_stream_to_vector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '48'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [968, 384.0]
+    rotation: 0
+    state: enabled
+- name: epy_xy_collector
+  id: epy_block
+  parameters:
+    _source_code: "import json\nimport math\nimport os\nfrom datetime import datetime,\
+      \ timezone\nfrom pathlib import Path\nimport threading\n\nimport numpy as np\n\
+      import pmt\nfrom gnuradio import gr\n\n\nPILOT_POLARITY = (\n    1, 1, 1, 1, -1, -1, -1, 1, -1, -1, -1, -1, 1, 1, -1, 1,\n    -1, -1, 1, 1, -1, 1, 1, -1, 1, 1, 1, 1, 1, 1, -1, 1,\n    1, 1, -1, 1, 1, -1, -1, 1, 1, 1, -1, 1, -1, -1, -1, 1,\n    -1, 1, -1, -1, 1, -1, -1, 1, 1, 1, 1, 1, -1, -1, 1, 1,\n    -1, -1, 1, -1, 1, -1, 1, 1, -1, -1, -1, 1, 1, -1, -1, -1,\n    -1, 1, -1, -1, 1, -1, 1, 1, 1, 1, -1, 1, -1, 1, -1, 1,\n    -1, -1, -1, -1, -1, 1, -1, 1, 1, -1, 1, -1, 1, 1, 1, -1,\n    -1, 1, -1, -1, -1, 1, 1, 1, -1, -1, -1, -1, -1, -1, -1,\n)\n\n\nclass xy_collector(gr.basic_block):\n\
+      \    def __init__(self, output_path='data/xy_samples', report_interval=25,\n\
+      \                 center_frequency=2.417e9, sample_rate=20e6,\n            \
+      \     rf_gain=14, if_gain=32, bb_gain=0):\n        gr.basic_block.__init__(self,\
+      \ name='xy_collector', in_sig=[], out_sig=[])\n        self.output_base = Path(output_path)\n\
+      \        self.data_path = None\n        self.meta_path = None\n        self.data_file\
+      \ = None\n        self.report_interval = max(1, int(report_interval))\n    \
+      \    self.frames = 0\n        self.sample_count = 0\n        self.metadata =\
+      \ {\n            'global': {\n                'core:datatype': 'cf32_le',\n\
+      \                'core:num_channels': 2,\n                'core:version': '1.2.6',\n\
+      \                'core:recorder': 'wifi_rx xy_collector',\n                'core:hw':\
+      \ 'osmosdr receiver',\n                'core:description': (\n             \
+      \       'CRC-valid Wi-Fi payload symbols; channel 0 unequalized received, '\n     \
+      \               'channel 1 transmitted ground truth; 52 occupied subcarriers per OFDM\
+      \ symbol.\\n'\n                    'RF center frequency: {} Hz\\nADC sample\
+      \ rate: {} samples/s\\n'\n                    'Requested RF gain: {} dB\\nRequested\
+      \ IF gain: {} dB\\nRequested BB gain: {} dB'.format(\n                     \
+      \   center_frequency, sample_rate, rf_gain, if_gain, bb_gain)),\n          \
+      \  },\n            'captures': [],\n            'annotations': [],\n       \
+      \ }\n        self.center_frequency = float(center_frequency)\n        self.rf_gain\
+      \ = float(rf_gain)\n        self.if_gain = float(if_gain)\n        self.bb_gain\
+      \ = float(bb_gain)\n        self.radio = None\n        self.lock = threading.Lock()\n\
+      \        self.message_port_register_in(pmt.intern('diag'))\n        self.set_msg_handler(pmt.intern('diag'),\
+      \ self._collect)\n\n    def _open_recording(self):\n        self.output_base.parent.mkdir(parents=True,\
+      \ exist_ok=True)\n        stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')\n\
+      \        base = self.output_base.with_name(self.output_base.name + '-' + stamp)\n\
+      \        self.data_path = base.with_suffix('.sigmf-data')\n        self.meta_path\
+      \ = base.with_suffix('.sigmf-meta')\n        self.data_file = self.data_path.open('xb')\n\
+      \n    def _save_metadata(self):\n        temporary = self.meta_path.with_name(self.meta_path.name\
+      \ + '.tmp')\n        with temporary.open('w', encoding='utf-8') as output:\n\
+      \            json.dump(self.metadata, output, indent=2)\n            output.write('\\\
+      n')\n        os.replace(temporary, self.meta_path)\n\n    @staticmethod\n  \
+      \  def _field(metadata, name):\n        value = pmt.dict_ref(metadata, pmt.intern(name),\
+      \ pmt.PMT_NIL)\n        return int(pmt.to_uint64(value)) if pmt.is_uint64(value)\
+      \ else None\n\n    @staticmethod\n    def _real_field(metadata, name):\n   \
+      \     value = pmt.dict_ref(metadata, pmt.intern(name), pmt.PMT_NIL)\n      \
+      \  if pmt.is_real(value):\n            number = float(pmt.to_double(value))\n\
+      \            return number if math.isfinite(number) else None\n        return\
+      \ None\n\n    def _collect(self, message):\n        if not pmt.is_pair(message):\n\
+      \            return\n        metadata, iq = pmt.car(message), pmt.cdr(message)\n\
+      \        if not pmt.is_dict(metadata) or not pmt.is_dict(iq):\n            return\n\
+      \        vectors = []\n        for name in ('transmitted_iq', 'equalized_iq', 'received_iq'):\n\
+      \            value = pmt.dict_ref(iq, pmt.intern(name), pmt.PMT_NIL)\n     \
+      \       if not pmt.is_c32vector(value):\n                return\n          \
+      \  vectors.append(np.asarray(pmt.c32vector_elements(value), dtype=np.complex64))\n\
+      \        x, y, unequalized = vectors\n        frame_bytes = self._field(metadata, 'frame\
+      \ bytes')\n        encoding = self._field(metadata, 'encoding')\n        if\
+      \ (frame_bytes is None or encoding is None or x.size == 0 or\n             \
+      \   x.size % 48 or x.size != y.size or unequalized.size != x.size // 48 * 52 or\n                not np.all(np.isfinite(x))\
+      \ or not np.all(np.isfinite(y)) or not np.all(np.isfinite(unequalized))):\n            return\n        expected = np.empty((x.size // 48, 52), dtype=np.complex64)\n        expected[:, [i for i in range(52) if i not in (5, 19, 32, 46)]] = x.reshape(-1, 48)\n        polarity = np.asarray([PILOT_POLARITY[(n - 2) % 127] for n in range(3, 3 + expected.shape[0])], dtype=np.float32)\n        expected[:, (5, 19, 32, 46)] = polarity[:, None] * np.array([1, 1, 1, -1], dtype=np.float32)\n        samples = np.empty((unequalized.size, 2), dtype='<c8')\n        samples[:, 0] = unequalized\n        samples[:, 1] = expected.ravel()\n \
+      \       frequency = self._real_field(metadata, 'nominal frequency')\n      \
+      \  if frequency is None or frequency <= 0:\n            frequency = self.center_frequency\n\
+      \        diagnostics = ['frame_bytes={}', 'encoding={}']\n        values = [frame_bytes,\
+      \ encoding]\n        for name, label in (('snr', 'snr_db'),\n              \
+      \              ('frequency offset', 'frequency_offset_hz'),\n              \
+      \              ('beta', 'pilot_phase_rad')):\n            value = self._real_field(metadata,\
+      \ name)\n            if value is not None:\n                diagnostics.append(label\
+      \ + '={}')\n                values.append(value)\n        error = y.astype(np.complex128)\
+      \ - x\n        error_power = float(np.vdot(error, error).real)\n        reference_power\
+      \ = float(np.vdot(x.astype(np.complex128), x).real)\n        if reference_power\
+      \ > 0:\n            diagnostics.append('evm_rms_percent={}')\n            values.append(100.0\
+      \ * math.sqrt(error_power / reference_power))\n        received_bits = pmt.dict_ref(iq,\
+      \ pmt.intern('pre_viterbi'), pmt.PMT_NIL)\n        corrected_bits = pmt.dict_ref(iq,\
+      \ pmt.intern('corrected_coded'), pmt.PMT_NIL)\n        if pmt.is_u8vector(received_bits)\
+      \ and pmt.is_u8vector(corrected_bits):\n            received = np.asarray(pmt.u8vector_elements(received_bits),\
+      \ dtype=np.uint8)\n            corrected = np.asarray(pmt.u8vector_elements(corrected_bits),\
+      \ dtype=np.uint8)\n            if (received.size and received.size == corrected.size\
+      \ and\n                    np.all(received <= 1) and np.all(corrected <= 1)):\n\
+      \                diagnostics.append('pre_fec_ber={}')\n                values.append(float(np.count_nonzero(received\
+      \ != corrected) / received.size))\n        with self.lock:\n            gains\
+      \ = (self.rf_gain, self.if_gain, self.bb_gain)\n            if self.radio is\
+      \ not None and all(name in self.radio.get_gain_names(0) for name in ('RF', 'IF',\
+      \ 'BB')):\n                gains = tuple(self.radio.get_gain(name, 0) for name\
+      \ in ('RF', 'IF', 'BB'))\n            if self.data_file is None:\n         \
+      \       self._open_recording()\n            self.data_file.write(samples.tobytes())\n\
+      \            self.data_file.flush()\n            self.metadata['captures'].append({\n\
+      \                'core:sample_start': self.sample_count,\n                'core:frequency':\
+      \ frequency,\n            })\n            self.metadata['annotations'].append({\n\
+      \                'core:sample_start': self.sample_count,\n                'core:sample_count':\
+      \ int(samples.shape[0]),\n                'core:label': 'wifi-frame',\n              \
+      \  'core:comment': '; '.join(diagnostics + ['rf_gain_db={}', 'if_gain_db={}',\
+      \ 'bb_gain_db={}']).format(*(values + list(gains))),\n            })\n     \
+      \       self.sample_count += samples.shape[0]\n            self._save_metadata()\n   \
+      \         self.frames += 1\n            if self.frames == 1 or self.frames %\
+      \ self.report_interval == 0:\n                print('Collected {} CRC-valid\
+      \ Wi-Fi frames ({} symbols): {}'.format(\n                    self.frames, samples.shape[0],\
+      \ self.data_path), flush=True)\n\n    def stop(self):\n        with self.lock:\n\
+      \            if self.data_file is not None:\n                self.data_file.close()\n\
+      \                self.data_file = None\n        return True"
+    affinity: ''
+    alias: ''
+    bb_gain: gain_BB
+    center_frequency: freq
+    comment: ''
+    if_gain: gain_IF
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    output_path: '"data/xy_samples"'
+    report_interval: '25'
+    rf_gain: gain_RF
+    sample_rate: samp_rate
+  states:
+    _io_cache: ('xy_collector', 'xy_collector', [('output_path', "'data/xy_samples'"),
+      ('report_interval', '25'), ('center_frequency', '2417000000.0'), ('sample_rate',
+      '20000000.0'), ('rf_gain', '14'), ('if_gain', '32'), ('bb_gain', '0')], [('diag',
+      'message', 1)], [], '', ['bb_gain', 'center_frequency', 'if_gain', 'report_interval',
+      'rf_gain'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1408, 332.0]
+    rotation: 0
+    state: enabled
+- name: evm_build_mode_check
+  id: snippet
+  parameters:
+    alias: ''
+    code: 'from pathlib import Path
+
+
+      build = Path(''../../kernel/build'')
+
+      marker = build / ''frame_equalizer_build_mode.txt''
+
+      artifacts = [build / ''final.xclbin'', build / ''insts.bin'']
+
+      missing = [str(path) for path in [marker, *artifacts] if not path.is_file()]
+
+      if missing: raise RuntimeError(''EVM diagnostics require kernel build output(s):
+      '' + '', ''.join(missing) + ''; run `make -C kernel DFRAME_EQUALIZER_OUTPUT_SYMBOLS=1
+      compile` from stage42/'')
+
+      mode = dict((parts[0].strip(), parts[1].strip()) for parts in (line.split(''='',
+      1) for line in marker.read_text(encoding=''ascii'').splitlines()) if len(parts)
+      == 2)
+
+      if mode.get(''DFRAME_EQUALIZER_OUTPUT_SYMBOLS'') != ''1'': raise RuntimeError(''EVM
+      diagnostics require DFRAME_EQUALIZER_OUTPUT_SYMBOLS=1; rebuild with `make -C
+      kernel DFRAME_EQUALIZER_OUTPUT_SYMBOLS=1 compile`'')
+
+      if marker.stat().st_mtime_ns < max(path.stat().st_mtime_ns for path in artifacts):
+      raise RuntimeError(str(marker) + '' is older than the NPU artifacts; rebuild
+      the kernel'')'
+    comment: ''
+    priority: '0'
+    section: init_before_blocks
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [392, 16.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_decode_mac_EVM_0
+  id: ieee802_11_decode_mac_EVM
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1160, 368.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_complex64_to_cint16_0
+  id: mlir_aie_complex64_to_cint16
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    safe: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [440, 376.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_mlir_aie_80211_phy_evm_0_0
+  id: mlir_aie_mlir_aie_80211_phy_evm
+  parameters:
+    N_TILES: '16'
+    VECTOR_SIZE: '16384'
+    affinity: ''
+    alias: ''
+    comment: ''
+    kernel_name: MLIR_AIE
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nominal_frequency: freq
+    num_slots: '2'
+    path_insts_bin: '"../../kernel/build/insts.bin"'
+    path_xclbin: '"../../kernel/build/final.xclbin"'
+    weights_path: ''''''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [656, 316.0]
+    rotation: 0
+    state: enabled
+- name: osmosdr_source_0
+  id: osmosdr_source
+  parameters:
+    affinity: ''
+    alias: ''
+    ant0: ''
+    ant1: ''
+    ant10: ''
+    ant11: ''
+    ant12: ''
+    ant13: ''
+    ant14: ''
+    ant15: ''
+    ant16: ''
+    ant17: ''
+    ant18: ''
+    ant19: ''
+    ant2: ''
+    ant20: ''
+    ant21: ''
+    ant22: ''
+    ant23: ''
+    ant24: ''
+    ant25: ''
+    ant26: ''
+    ant27: ''
+    ant28: ''
+    ant29: ''
+    ant3: ''
+    ant30: ''
+    ant31: ''
+    ant4: ''
+    ant5: ''
+    ant6: ''
+    ant7: ''
+    ant8: ''
+    ant9: ''
+    args: '""'
+    bb_gain0: gain_BB
+    bb_gain1: '20'
+    bb_gain10: '20'
+    bb_gain11: '20'
+    bb_gain12: '20'
+    bb_gain13: '20'
+    bb_gain14: '20'
+    bb_gain15: '20'
+    bb_gain16: '20'
+    bb_gain17: '20'
+    bb_gain18: '20'
+    bb_gain19: '20'
+    bb_gain2: '20'
+    bb_gain20: '20'
+    bb_gain21: '20'
+    bb_gain22: '20'
+    bb_gain23: '20'
+    bb_gain24: '20'
+    bb_gain25: '20'
+    bb_gain26: '20'
+    bb_gain27: '20'
+    bb_gain28: '20'
+    bb_gain29: '20'
+    bb_gain3: '20'
+    bb_gain30: '20'
+    bb_gain31: '20'
+    bb_gain4: '20'
+    bb_gain5: '20'
+    bb_gain6: '20'
+    bb_gain7: '20'
+    bb_gain8: '20'
+    bb_gain9: '20'
+    bw0: samp_rate
+    bw1: '0'
+    bw10: '0'
+    bw11: '0'
+    bw12: '0'
+    bw13: '0'
+    bw14: '0'
+    bw15: '0'
+    bw16: '0'
+    bw17: '0'
+    bw18: '0'
+    bw19: '0'
+    bw2: '0'
+    bw20: '0'
+    bw21: '0'
+    bw22: '0'
+    bw23: '0'
+    bw24: '0'
+    bw25: '0'
+    bw26: '0'
+    bw27: '0'
+    bw28: '0'
+    bw29: '0'
+    bw3: '0'
+    bw30: '0'
+    bw31: '0'
+    bw4: '0'
+    bw5: '0'
+    bw6: '0'
+    bw7: '0'
+    bw8: '0'
+    bw9: '0'
+    clock_source0: ''
+    clock_source1: ''
+    clock_source2: ''
+    clock_source3: ''
+    clock_source4: ''
+    clock_source5: ''
+    clock_source6: ''
+    clock_source7: ''
+    comment: ''
+    corr0: '0'
+    corr1: '0'
+    corr10: '0'
+    corr11: '0'
+    corr12: '0'
+    corr13: '0'
+    corr14: '0'
+    corr15: '0'
+    corr16: '0'
+    corr17: '0'
+    corr18: '0'
+    corr19: '0'
+    corr2: '0'
+    corr20: '0'
+    corr21: '0'
+    corr22: '0'
+    corr23: '0'
+    corr24: '0'
+    corr25: '0'
+    corr26: '0'
+    corr27: '0'
+    corr28: '0'
+    corr29: '0'
+    corr3: '0'
+    corr30: '0'
+    corr31: '0'
+    corr4: '0'
+    corr5: '0'
+    corr6: '0'
+    corr7: '0'
+    corr8: '0'
+    corr9: '0'
+    dc_offset_mode0: '0'
+    dc_offset_mode1: '0'
+    dc_offset_mode10: '0'
+    dc_offset_mode11: '0'
+    dc_offset_mode12: '0'
+    dc_offset_mode13: '0'
+    dc_offset_mode14: '0'
+    dc_offset_mode15: '0'
+    dc_offset_mode16: '0'
+    dc_offset_mode17: '0'
+    dc_offset_mode18: '0'
+    dc_offset_mode19: '0'
+    dc_offset_mode2: '0'
+    dc_offset_mode20: '0'
+    dc_offset_mode21: '0'
+    dc_offset_mode22: '0'
+    dc_offset_mode23: '0'
+    dc_offset_mode24: '0'
+    dc_offset_mode25: '0'
+    dc_offset_mode26: '0'
+    dc_offset_mode27: '0'
+    dc_offset_mode28: '0'
+    dc_offset_mode29: '0'
+    dc_offset_mode3: '0'
+    dc_offset_mode30: '0'
+    dc_offset_mode31: '0'
+    dc_offset_mode4: '0'
+    dc_offset_mode5: '0'
+    dc_offset_mode6: '0'
+    dc_offset_mode7: '0'
+    dc_offset_mode8: '0'
+    dc_offset_mode9: '0'
+    freq0: freq
+    freq1: 100e6
+    freq10: 100e6
+    freq11: 100e6
+    freq12: 100e6
+    freq13: 100e6
+    freq14: 100e6
+    freq15: 100e6
+    freq16: 100e6
+    freq17: 100e6
+    freq18: 100e6
+    freq19: 100e6
+    freq2: 100e6
+    freq20: 100e6
+    freq21: 100e6
+    freq22: 100e6
+    freq23: 100e6
+    freq24: 100e6
+    freq25: 100e6
+    freq26: 100e6
+    freq27: 100e6
+    freq28: 100e6
+    freq29: 100e6
+    freq3: 100e6
+    freq30: 100e6
+    freq31: 100e6
+    freq4: 100e6
+    freq5: 100e6
+    freq6: 100e6
+    freq7: 100e6
+    freq8: 100e6
+    freq9: 100e6
+    gain0: gain_RF
+    gain1: '10'
+    gain10: '10'
+    gain11: '10'
+    gain12: '10'
+    gain13: '10'
+    gain14: '10'
+    gain15: '10'
+    gain16: '10'
+    gain17: '10'
+    gain18: '10'
+    gain19: '10'
+    gain2: '10'
+    gain20: '10'
+    gain21: '10'
+    gain22: '10'
+    gain23: '10'
+    gain24: '10'
+    gain25: '10'
+    gain26: '10'
+    gain27: '10'
+    gain28: '10'
+    gain29: '10'
+    gain3: '10'
+    gain30: '10'
+    gain31: '10'
+    gain4: '10'
+    gain5: '10'
+    gain6: '10'
+    gain7: '10'
+    gain8: '10'
+    gain9: '10'
+    gain_mode0: 'False'
+    gain_mode1: 'False'
+    gain_mode10: 'False'
+    gain_mode11: 'False'
+    gain_mode12: 'False'
+    gain_mode13: 'False'
+    gain_mode14: 'False'
+    gain_mode15: 'False'
+    gain_mode16: 'False'
+    gain_mode17: 'False'
+    gain_mode18: 'False'
+    gain_mode19: 'False'
+    gain_mode2: 'False'
+    gain_mode20: 'False'
+    gain_mode21: 'False'
+    gain_mode22: 'False'
+    gain_mode23: 'False'
+    gain_mode24: 'False'
+    gain_mode25: 'False'
+    gain_mode26: 'False'
+    gain_mode27: 'False'
+    gain_mode28: 'False'
+    gain_mode29: 'False'
+    gain_mode3: 'False'
+    gain_mode30: 'False'
+    gain_mode31: 'False'
+    gain_mode4: 'False'
+    gain_mode5: 'False'
+    gain_mode6: 'False'
+    gain_mode7: 'False'
+    gain_mode8: 'False'
+    gain_mode9: 'False'
+    if_gain0: gain_IF
+    if_gain1: '20'
+    if_gain10: '20'
+    if_gain11: '20'
+    if_gain12: '20'
+    if_gain13: '20'
+    if_gain14: '20'
+    if_gain15: '20'
+    if_gain16: '20'
+    if_gain17: '20'
+    if_gain18: '20'
+    if_gain19: '20'
+    if_gain2: '20'
+    if_gain20: '20'
+    if_gain21: '20'
+    if_gain22: '20'
+    if_gain23: '20'
+    if_gain24: '20'
+    if_gain25: '20'
+    if_gain26: '20'
+    if_gain27: '20'
+    if_gain28: '20'
+    if_gain29: '20'
+    if_gain3: '20'
+    if_gain30: '20'
+    if_gain31: '20'
+    if_gain4: '20'
+    if_gain5: '20'
+    if_gain6: '20'
+    if_gain7: '20'
+    if_gain8: '20'
+    if_gain9: '20'
+    iq_balance_mode0: '0'
+    iq_balance_mode1: '0'
+    iq_balance_mode10: '0'
+    iq_balance_mode11: '0'
+    iq_balance_mode12: '0'
+    iq_balance_mode13: '0'
+    iq_balance_mode14: '0'
+    iq_balance_mode15: '0'
+    iq_balance_mode16: '0'
+    iq_balance_mode17: '0'
+    iq_balance_mode18: '0'
+    iq_balance_mode19: '0'
+    iq_balance_mode2: '0'
+    iq_balance_mode20: '0'
+    iq_balance_mode21: '0'
+    iq_balance_mode22: '0'
+    iq_balance_mode23: '0'
+    iq_balance_mode24: '0'
+    iq_balance_mode25: '0'
+    iq_balance_mode26: '0'
+    iq_balance_mode27: '0'
+    iq_balance_mode28: '0'
+    iq_balance_mode29: '0'
+    iq_balance_mode3: '0'
+    iq_balance_mode30: '0'
+    iq_balance_mode31: '0'
+    iq_balance_mode4: '0'
+    iq_balance_mode5: '0'
+    iq_balance_mode6: '0'
+    iq_balance_mode7: '0'
+    iq_balance_mode8: '0'
+    iq_balance_mode9: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nchan: '1'
+    num_mboards: '1'
+    sample_rate: samp_rate
+    sync: sync
+    time_source0: ''
+    time_source1: ''
+    time_source2: ''
+    time_source3: ''
+    time_source4: ''
+    time_source5: ''
+    time_source6: ''
+    time_source7: ''
+    type: fc32
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [128, 284.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_stream_to_vector_0, '0', ieee802_11_decode_mac_EVM_0, '0']
+- [ieee802_11_decode_mac_EVM_0, diag, epy_xy_collector, diag]
+- [mlir_aie_complex64_to_cint16_0, '0', mlir_aie_mlir_aie_80211_phy_evm_0_0, '0']
+- [mlir_aie_mlir_aie_80211_phy_evm_0_0, '0', blocks_stream_to_vector_0, '0']
+- [osmosdr_source_0, '0', mlir_aie_complex64_to_cint16_0, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

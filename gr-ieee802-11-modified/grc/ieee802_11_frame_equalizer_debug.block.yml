@@ -1,0 +1,74 @@
+id: ieee802_11_frame_equalizer_debug
+label: WiFi Frame Equalizer Debug
+category: '[IEEE802.11]'
+
+templates:
+  imports: import ieee802_11
+  make: ieee802_11.frame_equalizer_debug(${algo}, ${freq}, ${bw}, ${log}, ${debug})
+  callbacks:
+  - set_algorithm(${algo})
+  - set_frequency(${freq})
+  - set_bandwidth(${bw})
+
+#  Make one 'parameters' list entry for every parameter you want settable from the GUI.
+#     Keys include:
+#     * id (makes the value accessible as keyname, e.g. in the make entry)
+#     * label (label shown in the GUI)
+#     * dtype (e.g. int, float, complex, byte, short, xxx_vector, ...)
+#     * default
+parameters:
+- id: algo
+  label: Algorithm
+  dtype: raw
+  default: ieee802_11.LS
+  options: [ieee802_11.LS, ieee802_11.LMS, ieee802_11.COMB, ieee802_11.STA, ieee802_11.CNN_FRAME, ieee802_11.CNN_CHANNEL, ieee802_11.CNN_FRAME_MLP, ieee802_11.CNN_CHANNEL_MLP, ieee802_11.CNN_FRAME_INT8, ieee802_11.CNN_CHANNEL_INT8, ieee802_11.CNN_FRAME_MLP_INT8, ieee802_11.CNN_CHANNEL_MLP_INT8, ieee802_11.CNN_BUS_TO_ROOM, ieee802_11.CNN_ROOM_TO_BUS, ieee802_11.CNN_BUS_TO_ROOM_INT8, ieee802_11.CNN_ROOM_TO_BUS_INT8, ieee802_11.CNN_BUS_TO_ROOM_MLP, ieee802_11.CNN_ROOM_TO_BUS_MLP, ieee802_11.CNN_BUS_TO_ROOM_MLP_INT8, ieee802_11.CNN_ROOM_TO_BUS_MLP_INT8]
+  option_labels: [LS, LMS, COMB, STA, CNN (frame split), CNN (channel split), CNN (frame split) + MLP, CNN (channel split) + MLP, CNN int8 (frame split), CNN int8 (channel split), CNN int8 (frame split) + MLP, CNN int8 (channel split) + MLP, CNN (bus to room), CNN (room to bus), CNN int8 (bus to room), CNN int8 (room to bus), CNN (bus to room) + MLP, CNN (room to bus) + MLP, CNN int8 (bus to room) + MLP, CNN int8 (room to bus) + MLP]
+- id: freq
+  label: Frequency
+  dtype: real
+  default: 5.89e9
+- id: bw
+  label: Bandwidth
+  dtype: real
+  default: 10e6
+- id: log
+  label: Log
+  dtype: bool
+  default: 'False'
+  options: ['True', 'False']
+  option_labels: [Enable, Disable]
+- id: debug
+  label: Debug
+  dtype: bool
+  default: 'False'
+  options: ['True', 'False']
+  option_labels: [Enable, Disable]
+#- id: ...
+#  label: ...
+#  dtype: ...
+
+#  Make one 'inputs' list entry per input and one 'outputs' list entry per output.
+#  Keys include:
+#      * label (an identifier for the GUI)
+#      * domain (optional - stream or message. Default is stream)
+#      * dtype (e.g. int, float, complex, byte, short, xxx_vector, ...)
+#      * vlen (optional - data stream vector length. Default is 1)
+#      * optional (optional - set to 1 for optional inputs. Default is 0)
+inputs:
+-   domain: stream
+    dtype: complex
+    vlen: 64
+    multiplicity: '1'
+
+outputs:
+-   domain: stream
+    dtype: byte
+    vlen: 48
+    multiplicity: '1'
+-   domain: message
+    id: symbols
+    optional: true
+
+#  'file_format' specifies the version of the GRC yml format used in the file
+#  and should usually not be changed.
+file_format: 1

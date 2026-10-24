@@ -1,0 +1,818 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'False'
+    category: Custom
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: Compare GNU Radio and NPU equalizers on isolated recorded wifi_start
+      candidates.
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: compare_recorded_symbols_grc
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: run
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Recorded Frame Equalizer Symbol Comparison
+    window_size: (1400,900)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: algorithm
+  id: variable
+  parameters:
+    comment: ''
+    value: __import__('os').environ.get('EQUALIZER_ALGORITHM', 'LS').lower()
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [200, 8.0]
+    rotation: 0
+    state: enabled
+- name: algorithm_id
+  id: variable
+  parameters:
+    comment: ''
+    value: '{''ls'': 0, ''lms'': 1, ''comb'': 2, ''sta'': 3}[algorithm]'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [192, 80.0]
+    rotation: 0
+    state: enabled
+- name: freq
+  id: variable
+  parameters:
+    comment: ''
+    value: 2.417e9
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [288, 8.0]
+    rotation: 0
+    state: enabled
+- name: header_file
+  id: variable
+  parameters:
+    comment: ''
+    value: "__import__('os').environ.get('RECORDED_HEADER', '/home/piloteer/\uBC14\
+      \uD0D5\uD654\uBA74/fft_full.iqdata.hdr')"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [560, 16.0]
+    rotation: 0
+    state: enabled
+- name: input_file
+  id: variable
+  parameters:
+    comment: ''
+    value: "__import__('os').environ.get('RECORDED_INPUT', '/home/piloteer/\uBC14\uD0D5\
+      \uD654\uBA74/fft_full.iqdata')"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [384, 16.0]
+    rotation: 0
+    state: enabled
+- name: ltf_words
+  id: variable
+  parameters:
+    comment: Two standard shifted L-LTF vectors for each delimiter frame.
+    value: (tuple((0,0,0,0,0,0,1,1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,1,-1,-1,1,1,-1,1,-1,1,1,1,1,0,1,-1,-1,1,1,-1,1,-1,1,-1,-1,-1,-1,-1,1,1,-1,-1,1,-1,1,-1,1,1,1,1,0,0,0,0,0)),)*2
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [584, 88.0]
+    rotation: 0
+    state: enabled
+- name: marker_payload
+  id: variable
+  parameters:
+    comment: "Two distinct BPSK payload symbols \nidentify each delimiter pair."
+    value: tuple([1-(i&1) for i in range(48)] + [i&1 for i in range(48)])
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 200.0]
+    rotation: 0
+    state: enabled
+- name: marker_tags
+  id: variable
+  parameters:
+    comment: "Two zero-length BPSK packets, each \ncarrying one marker symbol."
+    value: '(lambda p: [gr.tag_utils.python_to_tag((o,p.intern(k),v,p.PMT_NIL)) for
+      o in (0,48) for k,v in (("packet_len",p.from_long(48)),("encoding",p.from_long(0)),("psdu_len",p.from_long(0)),("wifi_start",p.from_double(0.)))])(__import__(''pmt''))'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [904, 120.0]
+    rotation: 0
+    state: enabled
+- name: occupied_carriers
+  id: variable
+  parameters:
+    comment: Standard 48 legacy data subcarriers.
+    value: (list(range(-26,-21))+list(range(-20,-7))+list(range(-6,0))+list(range(1,7))+list(range(8,21))+list(range(22,27)),)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [872, 16.0]
+    rotation: 0
+    state: enabled
+- name: pilot_symbols
+  id: variable
+  parameters:
+    comment: Standard 127-symbol IEEE 802.11 pilot polarity sequence.
+    value: tuple((p,p,p,-p) for p in (1,1,1,1,-1,-1,-1,1,-1,-1,-1,-1,1,1,-1,1,-1,-1,1,1,-1,1,1,-1,1,1,1,1,1,1,-1,1,1,1,-1,1,1,-1,-1,1,1,1,-1,1,-1,-1,-1,1,-1,1,-1,-1,1,-1,-1,1,1,1,1,1,-1,-1,1,1,-1,-1,1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,-1,-1,-1,1,-1,-1,1,-1,1,1,1,1,-1,1,-1,1,-1,1,-1,-1,-1,-1,-1,1,-1,1,1,-1,1,-1,1,1,1,-1,-1,1,-1,-1,-1,1,1,1,-1,-1,-1,-1,-1,-1,-1))
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1080, 16.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 20e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [288, 80.0]
+    rotation: 0
+    state: enabled
+- name: sample_limit
+  id: variable
+  parameters:
+    comment: ''
+    value: int(__import__('os').environ.get('RECORDED_SAMPLES', '2097152'))
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [744, 16.0]
+    rotation: 0
+    state: enabled
+- name: signal_formatter
+  id: variable
+  parameters:
+    comment: GNU Radio's IEEE 802.11 RATE/LENGTH encoder and interleaver.
+    value: ieee802_11.signal_field()
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1128, 112.0]
+    rotation: 0
+    state: enabled
+- name: blocks_candidate_delimiter_mux
+  id: blocks_stream_mux
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Append two standard four-vector delimiter frames to every candidate.
+    lengths: (4,8)
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
+    type: complex
+    vlen: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [872, 544.0]
+    rotation: 0
+    state: enabled
+- name: blocks_fft_vectors
+  id: blocks_stream_to_vector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: 'Group scalar FFT bins into the 64-bin vectors the equalizers consume;
+
+      recorded wifi_start tags are 64-bin aligned.'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '64'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [472, 536.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_meta_source
+  id: blocks_file_meta_source
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Recorded scalar frequency-domain FFT output and wifi_start metadata.
+    detached: 'True'
+    file: input_file
+    hdr_file: header_file
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    repeat: 'False'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 512.0]
+    rotation: 0
+    state: enabled
+- name: blocks_head
+  id: blocks_head
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: "Recorded-prefix limit; keep a multiple of 64 \nto preserve whole FFT\
+      \ vectors."
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: sample_limit
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [240, 536.0]
+    rotation: 0
+    state: enabled
+- name: blocks_marker_header_payload_mux
+  id: blocks_tagged_stream_mux
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: "Prefix a standards-generated \nSIGNAL symbol to each marker payload."
+    lengthtagname: packet_len
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    ninputs: '2'
+    tag_preserve_head_pos: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [872, 360.0]
+    rotation: 0
+    state: enabled
+- name: blocks_marker_payload_source
+  id: blocks_vector_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: "Repeating pair of delimiter \npayload decision vectors."
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    repeat: 'True'
+    tags: marker_tags
+    type: byte
+    vector: marker_payload
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 312.0]
+    rotation: 0
+    state: enabled
+- name: blocks_npu_batch_mux
+  id: blocks_stream_mux
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Pad each twelve-vector candidate/delimiter segment to one 16384-sample
+      NPU batch.
+    lengths: (12,244)
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
+    type: complex
+    vlen: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [768, 672.0]
+    rotation: 0
+    state: enabled
+- name: blocks_npu_decisions_sink
+  id: blocks_vector_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: NPU hard decisions and normalized-symbol csi tags.
+    reserve_items: '4096'
+    type: byte
+    vlen: '48'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1680, 664.0]
+    rotation: 0
+    state: enabled
+- name: blocks_npu_stream_to_vector
+  id: blocks_stream_to_vector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Group NPU decisions into OFDM payload symbols.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '48'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1488, 672.0]
+    rotation: 0
+    state: enabled
+- name: blocks_npu_vector_to_stream
+  id: blocks_vector_to_stream
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Scalarize each padded NPU batch.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '64'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1008, 672.0]
+    rotation: 0
+    state: enabled
+- name: blocks_reference_decisions_sink
+  id: blocks_vector_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: GNU Radio hard decisions and decoded frame tags.
+    reserve_items: '4096'
+    type: byte
+    vlen: '48'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1144, 832.0]
+    rotation: 0
+    state: enabled
+- name: blocks_reference_symbols_debug
+  id: blocks_message_debug
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: GNU Radio normalized equalized-symbol PDUs.
+    en_uvec: 'True'
+    log_level: info
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1128, 920.0]
+    rotation: 0
+    state: enabled
+- name: blocks_zero_padding_source
+  id: blocks_vector_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: 244 zero vectors complete every NPU batch.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    repeat: 'True'
+    tags: '[]'
+    type: complex
+    vector: '[0j] * (244*64)'
+    vlen: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [440, 672.0]
+    rotation: 0
+    state: enabled
+- name: digital_marker_carrier_allocator
+  id: digital_ofdm_carrier_allocator_cvc
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Add L-LTF vectors, pilots, and standard carrier placement.
+    fft_len: '64'
+    len_tag_key: packet_len
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    occupied_carriers: occupied_carriers
+    output_is_shifted: 'True'
+    pilot_carriers: ((-21,-7,7,21),)
+    pilot_symbols: pilot_symbols
+    sync_words: ltf_words
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1128, 316.0]
+    rotation: 0
+    state: enabled
+- name: digital_marker_signal_bpsk
+  id: digital_chunks_to_symbols_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Map the standards-generated SIGNAL decisions to BPSK.
+    dimension: '1'
+    in_type: byte
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_ports: '1'
+    out_type: complex
+    symbol_table: '[-1, 1]'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [688, 224.0]
+    rotation: 0
+    state: enabled
+- name: digital_marker_signal_header
+  id: digital_packet_headergenerator_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: "Generate and interleave each \nmarker's IEEE 802.11 SIGNAL field."
+    header_formatter: signal_formatter.formatter()
+    len_tag_key: packet_len
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [320, 208.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_frame_equalizer_reference
+  id: ieee802_11_frame_equalizer
+  parameters:
+    affinity: ''
+    algo: ieee802_11.Equalizer(algorithm_id)
+    alias: ''
+    bw: samp_rate
+    comment: Standard GNU Radio frame equalizer reference.
+    debug: 'False'
+    freq: freq
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [736, 816.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_marker_payload_symbols
+  id: ieee802_11_chunks_to_symbols_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Map marker labels using the standard per-packet WiFi mapper.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [312, 392.0]
+    rotation: 0
+    state: enabled
+- name: imports
+  id: import_
+  parameters:
+    alias: ''
+    comment: ''
+    imports: 'import numpy as np
+
+      import pmt'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 16]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_frame_equalizer_npu
+  id: mlir_aie_mlir_aie_cpp_equalizer_test
+  parameters:
+    N_TILES: '16'
+    VECTOR_SIZE: '16384'
+    affinity: ''
+    alias: ''
+    comment: Existing NPU GNU Radio adapter.
+    kernel_name: MLIR_AIE
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nominal_frequency: freq
+    num_slots: '1'
+    path_insts_bin: build/insts.bin
+    path_xclbin: build/final.xclbin
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1240, 612.0]
+    rotation: 0
+    state: enabled
+- name: verify
+  id: snippet
+  parameters:
+    alias: ''
+    code: "import numpy as np\nimport pmt\n\n# The extractor records source offsets,\
+      \ while the two standard transmitter\n# marker payloads delimit the corresponding\
+      \ compressed equalizer outputs.\nreplay = self.zz_candidate_replay\nmarker_hard_a\
+      \ = np.asarray(self.marker_payload[:48], dtype=np.int8)\nmarker_hard_b = np.asarray(self.marker_payload[48:],\
+      \ dtype=np.int8)\n\n# Convert a sink's flat tag list into metadata indexed by\
+      \ output-symbol offset.\ndef sink_tags(sink):\n    result = {}\n    for tag\
+      \ in sink.tags():\n        offset = int(tag.offset)\n        key = pmt.symbol_to_string(tag.key)\n\
+      \        result.setdefault(offset, {})[key] = tag.value\n    return result\n\
+      \n# Split the compressed output at each two-marker signature. A four-input-symbol\n\
+      # candidate can produce zero or one payload symbol before its delimiter pair.\n\
+      def split_candidates(hard, symbols, tags, label):\n    if len(hard) != len(symbols):\n\
+      \        raise AssertionError(\n            f'{label} hard/symbol count mismatch:\
+      \ {len(hard)} != {len(symbols)}')\n    segments = []\n    pending = []\n   \
+      \ for index, (decisions, equalized) in enumerate(zip(hard, symbols)):\n    \
+      \    frame_bytes = tags.get(index, {}).get('frame bytes')\n        pending.append((decisions,\
+      \ equalized, frame_bytes))\n        is_delimiter = (\n            len(pending)\
+      \ >= 2\n            and pending[-2][2] is not None\n            and pmt.to_uint64(pending[-2][2])\
+      \ == 0\n            and np.array_equal(pending[-2][0], marker_hard_a)\n    \
+      \        and pending[-1][2] is not None\n            and pmt.to_uint64(pending[-1][2])\
+      \ == 0\n            and np.array_equal(pending[-1][0], marker_hard_b))\n   \
+      \     if is_delimiter:\n            candidate = pending[:-2]\n            if\
+      \ len(candidate) > 1:\n                raise AssertionError(\n             \
+      \       f'{label} emitted {len(candidate)} candidate symbols before marker '\n\
+      \                    f'{len(segments)}; expected at most one')\n           \
+      \ segments.append(candidate[0][:2] if candidate else None)\n            pending\
+      \ = []\n    if pending:\n        raise AssertionError(f'{label} output ended\
+      \ without a marker delimiter')\n    if len(segments) != len(replay.candidate_offsets):\n\
+      \        raise AssertionError(\n            f'{label} marker count {len(segments)}\
+      \ != replayed candidate count '\n            f'{len(replay.candidate_offsets)}')\n\
+      \    return segments\n\n# GNU Radio publishes hard decisions as a stream and\
+      \ normalized symbols as PDUs;\n# their order is identical, so zip them before\
+      \ delimiter reconstruction.\nreference_hard = np.asarray(\n    self.blocks_reference_decisions_sink.data(),\
+      \ dtype=np.int8).reshape(-1, 48)\nreference_debug = self.blocks_reference_symbols_debug\n\
+      reference_symbols = [\n    np.asarray(pmt.c32vector_elements(\n        pmt.cdr(reference_debug.get_message(i))),\
+      \ dtype=np.complex64)\n    for i in range(reference_debug.num_messages())]\n\
+      reference = split_candidates(\n    reference_hard, reference_symbols,\n    sink_tags(self.blocks_reference_decisions_sink),\
+      \ 'GNU Radio')\n\n# In symbols mode, every NPU output symbol carries its normalized\
+      \ 48-carrier\n# values in the csi tag attached to the same hard-decision vector.\n\
+      npu_hard = np.asarray(\n    self.blocks_npu_decisions_sink.data(), dtype=np.int8).reshape(-1,\
+      \ 48)\nnpu_tags = sink_tags(self.blocks_npu_decisions_sink)\nnpu_symbols = []\n\
+      for index in range(len(npu_hard)):\n    value = npu_tags.get(index, {}).get('csi')\n\
+      \    if value is None:\n        raise AssertionError(f'NPU output symbol {index}\
+      \ has no csi tag')\n    values = np.asarray(pmt.c32vector_elements(value), dtype=np.complex64)\n\
+      \    if values.size < 48:\n        raise AssertionError(\n            f'NPU\
+      \ csi tag {index} has {values.size} values; expected at least 48')\n    npu_symbols.append(values[:48])\n\
+      actual = split_candidates(npu_hard, npu_symbols, npu_tags, 'NPU')\n\n# Reproduce\
+      \ the procedural oracle's candidate classifications. The reference\n# magnitude\
+      \ check rejects false wifi_start detections before cross-engine checks.\nmatched_actual\
+      \ = []\nmatched_reference = []\nmatched_evm = []\ngnu_only = 0\nnpu_only = 0\n\
+      decision_disagreements = 0\nunusable = 0\nfor offset, reference_item, actual_item\
+      \ in zip(\n        replay.candidate_offsets, reference, actual):\n    if (reference_item\
+      \ is not None\n            and np.max(np.abs(reference_item[1])) > 3.0):\n \
+      \       unusable += 1\n        continue\n    if reference_item is None:\n  \
+      \      npu_only += actual_item is not None\n        continue\n    if actual_item\
+      \ is None:\n        gnu_only += 1\n        continue\n    if not np.array_equal(reference_item[0],\
+      \ actual_item[0]):\n        decision_disagreements += 1\n        continue\n\
+      \    reference_symbol = reference_item[1]\n    actual_symbol = actual_item[1]\n\
+      \    evm = float(np.sqrt(\n        np.mean(np.abs(actual_symbol - reference_symbol)\
+      \ ** 2) /\n        np.mean(np.abs(reference_symbol) ** 2)))\n    gain = np.vdot(reference_symbol,\
+      \ actual_symbol) / np.vdot(\n        reference_symbol, reference_symbol)\n \
+      \   matched_reference.append(reference_symbol)\n    matched_actual.append(actual_symbol)\n\
+      \    matched_evm.append(evm)\n    print(f'  offset={offset} evm={100*evm:.4f}%\
+      \ '\n          f'gain={abs(gain):.5f} phase={np.angle(gain):.5f} '\n       \
+      \   f'ref_max={np.max(np.abs(reference_symbol)):.3f} '\n          f'npu_max={np.max(np.abs(actual_symbol)):.3f}')\n\
+      \n# Report per-candidate accounting first, then enforce one aggregate EVM limit\n\
+      # across only mutually decoded candidates with matching hard decisions.\n\n\
+      print(f'recorded candidates: samples={replay.sample_count} '\n      f'wifi_start={replay.wifi_start_count}\
+      \ matched={len(matched_actual)} '\n      f'GNU_only={gnu_only} NPU_only={npu_only}\
+      \ '\n      f'hard_disagreements={decision_disagreements} '\n      f'unusable_false_frames={unusable}')\n\
+      if not matched_actual:\n    raise AssertionError('no mutually decoded recorded\
+      \ frame candidates')\nprint(f'matched-frame EVM: median={100*np.median(matched_evm):.4f}%\
+      \ '\n      f'min={100*np.min(matched_evm):.4f}% '\n      f'max={100*np.max(matched_evm):.4f}%')\n\
+      actual_array = np.asarray(matched_actual)\nreference_array = np.asarray(matched_reference)\n\
+      error = actual_array - reference_array\nevm = np.sqrt(np.mean(np.abs(error)\
+      \ ** 2) /\n              np.mean(np.abs(reference_array) ** 2))\ngain = np.vdot(reference_array.ravel(),\
+      \ actual_array.ravel()) / np.vdot(\n    reference_array.ravel(), reference_array.ravel())\n\
+      print(f'recorded FFT matched candidates: rms_evm={100*evm:.5f}% '\n      f'max_abs={np.max(np.abs(error)):.7f}\
+      \ gain={abs(gain):.8f} '\n      f'phase={np.angle(gain):.8g} rad')\nif not evm\
+      \ < 5e-2:\n    raise AssertionError(\n        f'recorded FFT matched candidates:\
+      \ EVM {evm} is not below 0.05')\nprint(f'frame_equalizer {self.algorithm} recorded\
+      \ GRC comparison passed')"
+    comment: Reconstruct candidate results at marker boundaries and apply the Python
+      oracle's checks.
+    priority: '0'
+    section: main_after_stop
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [128, 816.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: mux_in
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1400, 368.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: mux_in
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [608, 616.0]
+    rotation: 0
+    state: enabled
+- name: zz_candidate_replay
+  id: epy_block
+  parameters:
+    _source_code: "from collections import deque\nfrom pathlib import Path\n\nimport\
+      \ numpy as np\nimport pmt\nfrom gnuradio import gr\n\n\ndef _require_build(algorithm):\n\
+      \    supported = {'ls', 'lms', 'comb', 'sta'}\n    if algorithm not in supported:\n\
+      \        raise RuntimeError(\n            f'unknown EQUALIZER_ALGORITHM={algorithm!r};\
+      \ choose LS, LMS, COMB, or STA')\n    build = Path('build')\n    marker = build\
+      \ / 'frame_equalizer_build_mode.txt'\n    artifacts = [build / 'final.xclbin',\
+      \ build / 'insts.bin']\n    missing = [str(path) for path in [marker, *artifacts]\
+      \ if not path.is_file()]\n    if missing:\n        raise RuntimeError(\n   \
+      \         'missing frame-equalizer build output(s): ' + ', '.join(missing) +\n\
+      \            '; run `make compare EQUALIZER_ALGORITHM=' + algorithm.upper()\
+      \ + '`')\n    mode = {}\n    for line in marker.read_text().splitlines():\n\
+      \        if '=' in line:\n            key, value = line.split('=', 1)\n    \
+      \        mode[key.strip()] = value.strip()\n    if mode.get('DFRAME_EQUALIZER_OUTPUT_SYMBOLS')\
+      \ != '1':\n        raise RuntimeError(\n            'NPU is not a symbols build\
+      \ (DFRAME_EQUALIZER_OUTPUT_SYMBOLS=' +\n            repr(mode.get('DFRAME_EQUALIZER_OUTPUT_SYMBOLS'))\
+      \ +\n            '); run `make compare EQUALIZER_ALGORITHM=' + algorithm.upper()\
+      \ + '`')\n    if mode.get('EQUALIZER_ALGORITHM', '').lower() != algorithm:\n\
+      \        raise RuntimeError(\n            'NPU algorithm is ' + repr(mode.get('EQUALIZER_ALGORITHM',\
+      \ 'unknown')) +\n            ', but the flowgraph selected ' + repr(algorithm)\
+      \ +\n            '; rebuild through `make compare EQUALIZER_ALGORITHM=' +\n\
+      \            algorithm.upper() + '`')\n    if mode.get('ENGINE') not in {'CLASSIC',\
+      \ 'AI'}:\n        raise RuntimeError('invalid or missing ENGINE in ' + str(marker))\n\
+      \    if marker.stat().st_mtime_ns < max(path.stat().st_mtime_ns for path in\
+      \ artifacts):\n        raise RuntimeError(str(marker) + ' is older than the\
+      \ NPU artifacts; rebuild')\n    instructions = np.fromfile(artifacts[1], dtype=np.uint32)\n\
+      \    for sentinel in (0x13579BDF, 0x2468ACE0):\n        count = int(np.count_nonzero(instructions\
+      \ == sentinel))\n        if count != 1:\n            raise RuntimeError(\n \
+      \               f'build/insts.bin has {count} copies of RTP marker {sentinel:#x};\
+      \ expected 1')\n\n\nclass candidate_replay(gr.basic_block):\n    \"\"\"Emit\
+      \ the four 64-bin vectors selected by each aligned wifi_start tag.\"\"\"\n\n\
+      \    def __init__(self, algorithm='ls'):\n        gr.basic_block.__init__(\n\
+      \            self, name='candidate_replay',\n            in_sig=[(np.complex64,\
+      \ 64)], out_sig=[(np.complex64, 64)])\n        self.algorithm = algorithm\n\
+      \        self.wifi_key = pmt.intern('wifi_start')\n        # Output offsets\
+      \ describe a new candidate-only stream, so input tags must not\n        # propagate\
+      \ automatically; work() recreates only quantized wifi_start tags.\n        self.set_tag_propagation_policy(gr.TPP_DONT)\n\
+      \        self._buffer = np.empty((0, 64), dtype=np.complex64)\n        self._base\
+      \ = 0\n        # _pending holds (vector offset, Q29 CFO) pairs awaiting four\
+      \ vectors;\n        # _ready holds complete vectors waiting for scheduler output\
+      \ space.\n        self._pending = deque()\n        self._ready = deque()\n \
+      \       self.sample_count = 0\n        self.wifi_start_count = 0\n        self.candidate_offsets\
+      \ = []\n        if Path('build/frame_equalizer_build_mode.txt').exists():\n\
+      \            _require_build(algorithm)\n\n    def start(self):\n        # Check\
+      \ again at start so construction before a build cannot bypass the guard.\n \
+      \       _require_build(self.algorithm)\n        return True\n\n    def forecast(self,\
+      \ noutput_items, ninputs):\n        # Queued vectors can drain without requiring\
+      \ another input item.\n        return [0 if self._ready else 1]\n\n    def general_work(self,\
+      \ input_items, output_items):\n        in0 = input_items[0]\n        if len(in0):\n\
+      \            # Buffer vectors because candidate windows can cross scheduler\
+      \ chunks.\n            absolute_start = self.nitems_read(0)\n            if\
+      \ self._base + len(self._buffer) != absolute_start:\n                raise RuntimeError('candidate\
+      \ replay input is not contiguous')\n            tags = self.get_tags_in_range(\n\
+      \                0, absolute_start, absolute_start + len(in0), self.wifi_key)\n\
+      \            self._buffer = np.concatenate((self._buffer, np.asarray(in0)))\n\
+      \            # Round recorded CFO values exactly as the kernel's Q29 metadata\
+      \ ABI does;\n            # stream_to_vector already converted sample offsets\
+      \ to vector indices.\n            self._pending.extend(\n                (int(tag.offset),\n\
+      \                 round(pmt.to_double(tag.value) * (1 << 29)) / float(1 << 29))\n\
+      \                for tag in tags)\n            self.wifi_start_count += len(tags)\n\
+      \            self.sample_count = (absolute_start + len(in0)) * 64\n        \
+      \    self.consume(0, len(in0))\n\n            available_end = self._base + len(self._buffer)\n\
+      \            # A tag becomes runnable only after all four vectors arrive. Incomplete\n\
+      \            # tags at EOF are intentionally omitted, matching the procedural\
+      \ oracle.\n            while self._pending and self._pending[0][0] + 4 <= available_end:\n\
+      \                offset, cfo = self._pending.popleft()\n                self.candidate_offsets.append(offset\
+      \ * 64)\n                begin = offset - self._base\n                for index,\
+      \ vector in enumerate(self._buffer[begin:begin + 4]):\n                    self._ready.append((vector.copy(),\n\
+      \                                         cfo if index == 0 else None))\n  \
+      \          # Future tags cannot point into consumed vectors. Keep only the prefix\n\
+      \            # needed by the earliest incomplete candidate and discard the rest.\n\
+      \            retain_from = self._pending[0][0] if self._pending else available_end\n\
+      \            discard = retain_from - self._base\n            if discard:\n \
+      \               self._buffer = self._buffer[discard:].copy()\n             \
+      \   self._base = retain_from\n\n        count = min(len(output_items[0]), len(self._ready))\n\
+      \        # Reattach wifi_start to the first vector only. Standard blocks append\
+      \ the\n        # delimiter frames and fixed-size NPU padding downstream.\n \
+      \       for index in range(count):\n            vector, cfo = self._ready.popleft()\n\
+      \            output_items[0][index] = vector\n            if cfo is not None:\n\
+      \                self.add_item_tag(\n                    0, self.nitems_written(0)\
+      \ + index, self.wifi_key,\n                    pmt.from_double(cfo), pmt.intern('candidate_replay'))\n\
+      \        return count"
+    affinity: ''
+    algorithm: algorithm
+    alias: ''
+    comment: '*epy: isolate overlapping recorded candidates and validate the build.'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: ('candidate_replay', 'candidate_replay', [('algorithm', "'ls'")], [('0',
+      'complex', 64)], [('0', 'complex', 64)], 'Emit the four 64-bin vectors selected
+      by each aligned wifi_start tag.', ['algorithm'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [664, 528.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_candidate_delimiter_mux, '0', blocks_npu_batch_mux, '0']
+- [blocks_candidate_delimiter_mux, '0', ieee802_11_frame_equalizer_reference, '0']
+- [blocks_fft_vectors, '0', zz_candidate_replay, '0']
+- [blocks_file_meta_source, '0', blocks_head, '0']
+- [blocks_head, '0', blocks_fft_vectors, '0']
+- [blocks_marker_header_payload_mux, '0', digital_marker_carrier_allocator, '0']
+- [blocks_marker_payload_source, '0', digital_marker_signal_header, '0']
+- [blocks_marker_payload_source, '0', ieee802_11_marker_payload_symbols, '0']
+- [blocks_npu_batch_mux, '0', blocks_npu_vector_to_stream, '0']
+- [blocks_npu_stream_to_vector, '0', blocks_npu_decisions_sink, '0']
+- [blocks_npu_vector_to_stream, '0', mlir_aie_frame_equalizer_npu, '0']
+- [blocks_zero_padding_source, '0', blocks_npu_batch_mux, '1']
+- [digital_marker_carrier_allocator, '0', virtual_sink_0, '0']
+- [digital_marker_signal_bpsk, '0', blocks_marker_header_payload_mux, '0']
+- [digital_marker_signal_header, '0', digital_marker_signal_bpsk, '0']
+- [ieee802_11_frame_equalizer_reference, '0', blocks_reference_decisions_sink, '0']
+- [ieee802_11_frame_equalizer_reference, symbols, blocks_reference_symbols_debug,
+  store]
+- [ieee802_11_marker_payload_symbols, '0', blocks_marker_header_payload_mux, '1']
+- [mlir_aie_frame_equalizer_npu, '0', blocks_npu_stream_to_vector, '0']
+- [virtual_source_0, '0', blocks_candidate_delimiter_mux, '1']
+- [zz_candidate_replay, '0', blocks_candidate_delimiter_mux, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

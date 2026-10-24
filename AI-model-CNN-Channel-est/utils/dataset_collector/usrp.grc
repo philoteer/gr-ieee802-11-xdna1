@@ -1,0 +1,1015 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: Custom
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: wifi_rx_usrp
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: run
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: ''
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 16.0]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: freq
+  id: variable
+  parameters:
+    comment: ''
+    value: 2.412e9
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [200, 16.0]
+    rotation: 0
+    state: enabled
+- name: initial_gains
+  id: variable
+  parameters:
+    comment: ''
+    value: '[44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44]'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [392, 88.0]
+    rotation: 0
+    state: enabled
+- name: gain
+  id: variable
+  parameters:
+    comment: ''
+    value: initial_gains[0]
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [608, 16.0]
+    rotation: 0
+    state: enabled
+- name: gain_noise_std_db
+  id: variable
+  parameters:
+    comment: ''
+    value: '1.5'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [192, 88.0]
+    rotation: 0
+    state: enabled
+- name: gain_settle_s
+  id: variable
+  parameters:
+    comment: ''
+    value: '1.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [328, 88.0]
+    rotation: 0
+    state: enabled
+- name: other_dwell_s
+  id: variable
+  parameters:
+    comment: ''
+    value: '60'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [392, 16.0]
+    rotation: 0
+    state: enabled
+- name: popular_dwell_s
+  id: variable
+  parameters:
+    comment: ''
+    value: '180'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [496, 16.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 20e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [288, 16.0]
+    rotation: 0
+    state: enabled
+- name: attach_collector_radio
+  id: snippet
+  parameters:
+    alias: ''
+    code: self.epy_xy_collector.radio = self.uhd_usrp_source_0
+    comment: ''
+    priority: '0'
+    section: main_after_init
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [920, 16.0]
+    rotation: 0
+    state: enabled
+- name: blocks_complex_to_mag_squared_0
+  id: blocks_complex_to_mag_squared
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [656, 560.0]
+    rotation: 0
+    state: enabled
+- name: blocks_integrate_clip
+  id: blocks_integrate_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    decim: '2048'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1104, 664.0]
+    rotation: 0
+    state: enabled
+- name: blocks_integrate_power
+  id: blocks_integrate_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    decim: '2048'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [888, 552.0]
+    rotation: 0
+    state: enabled
+- name: blocks_keep_one_in_n_0
+  id: blocks_keep_one_in_n
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    n: '4'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [440, 560.0]
+    rotation: 0
+    state: enabled
+- name: blocks_probe_clip
+  id: blocks_probe_signal_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    type: float
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1312, 664.0]
+    rotation: 0
+    state: enabled
+- name: blocks_probe_power
+  id: blocks_probe_signal_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    type: float
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1096, 552.0]
+    rotation: 0
+    state: enabled
+- name: blocks_stream_to_vector_0
+  id: blocks_stream_to_vector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '48'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [920, 384.0]
+    rotation: 0
+    state: enabled
+- name: blocks_threshold_clip
+  id: blocks_threshold_ff
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    high: 0.95 * 0.95
+    init: '0'
+    low: 0.95 * 0.95
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [912, 648.0]
+    rotation: 0
+    state: enabled
+- name: epy_xy_collector
+  id: epy_block
+  parameters:
+    _source_code: "import json\nimport math\nimport os\nfrom datetime import datetime,\
+      \ timezone\nfrom pathlib import Path\nimport threading\nimport time\n\nimport\
+      \ numpy as np\nimport pmt\nfrom gnuradio import gr\n\n\nPILOT_POLARITY = (\n    1, 1, 1, 1, -1, -1, -1, 1, -1, -1, -1, -1, 1, 1, -1, 1,\n    -1, -1, 1, 1, -1, 1, 1, -1, 1, 1, 1, 1, 1, 1, -1, 1,\n    1, 1, -1, 1, 1, -1, -1, 1, 1, 1, -1, 1, -1, -1, -1, 1,\n    -1, 1, -1, -1, 1, -1, -1, 1, 1, 1, 1, 1, -1, -1, 1, 1,\n    -1, -1, 1, -1, 1, -1, 1, 1, -1, -1, -1, 1, 1, -1, -1, -1,\n    -1, 1, -1, -1, 1, -1, 1, 1, 1, 1, -1, 1, -1, 1, -1, 1,\n    -1, -1, -1, -1, -1, 1, -1, 1, 1, -1, 1, -1, 1, 1, 1, -1,\n    -1, 1, -1, -1, -1, 1, 1, 1, -1, -1, -1, -1, -1, -1, -1,\n)\n\n\nclass xy_collector(gr.basic_block):\n\
+      \    def __init__(self, output_path='data/xy_usrp', report_interval=25,\n  \
+      \               center_frequency=2.417e9, sample_rate=20e6, gain=None):\n  \
+      \      gr.basic_block.__init__(self, name='xy_collector', in_sig=[], out_sig=[])\n\
+      \        self.output_base = Path(output_path)\n        self.data_path = None\n\
+      \        self.meta_path = None\n        self.data_file = None\n        self.report_interval\
+      \ = max(1, int(report_interval))\n        self.frames = 0\n        self.sample_count\
+      \ = 0\n        self.metadata = {\n            'global': {\n                'core:datatype':\
+      \ 'cf32_le',\n                'core:num_channels': 2,\n                'core:version':\
+      \ '1.2.6',\n                'core:recorder': 'wifi_rx_usrp xy_collector',\n\
+      \                'core:hw': 'USRP B210 (UHD)',\n                'core:description':\
+      \ (\n                    'CRC-valid Wi-Fi payload symbols; channel 0 unequalized received,\
+      \ '\n                    'channel 1 transmitted ground truth; 52 occupied subcarriers\
+      \ per OFDM symbol.\\n'\n                    'RF center frequency: {} Hz\\nADC\
+      \ sample rate: {} samples/s\\n'\n                    'RX antenna: TX/RX\\nRequested\
+      \ RX gain: {} dB'.format(\n                        center_frequency, sample_rate,\
+      \ gain)),\n            },\n            'captures': [],\n            'annotations':\
+      \ [],\n        }\n        self.center_frequency = float(center_frequency)\n\
+      \        self.gain = float(gain) if gain is not None else None\n        self.radio\
+      \ = None\n        self.lock = threading.Lock()\n        self.drop_until = 0.0\n\
+      \        self.message_port_register_in(pmt.intern('diag'))\n        self.set_msg_handler(pmt.intern('diag'),\
+      \ self._collect)\n\n    def mute_for(self, seconds):\n        with self.lock:\n\
+      \            self.drop_until = max(self.drop_until, time.monotonic() + seconds)\n\
+      \n    def _open_recording(self):\n        self.output_base.parent.mkdir(parents=True,\
+      \ exist_ok=True)\n        stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')\n\
+      \        base = self.output_base.with_name(self.output_base.name + '-' + stamp)\n\
+      \        self.data_path = base.with_suffix('.sigmf-data')\n        self.meta_path\
+      \ = base.with_suffix('.sigmf-meta')\n        self.data_file = self.data_path.open('xb')\n\
+      \n    def _save_metadata(self):\n        temporary = self.meta_path.with_name(self.meta_path.name\
+      \ + '.tmp')\n        with temporary.open('w', encoding='utf-8') as output:\n\
+      \            json.dump(self.metadata, output, indent=2)\n            output.write('\\\
+      n')\n        os.replace(temporary, self.meta_path)\n\n    @staticmethod\n  \
+      \  def _field(metadata, name):\n        value = pmt.dict_ref(metadata, pmt.intern(name),\
+      \ pmt.PMT_NIL)\n        return int(pmt.to_uint64(value)) if pmt.is_uint64(value)\
+      \ else None\n\n    @staticmethod\n    def _real_field(metadata, name):\n   \
+      \     value = pmt.dict_ref(metadata, pmt.intern(name), pmt.PMT_NIL)\n      \
+      \  if pmt.is_real(value):\n            number = float(pmt.to_double(value))\n\
+      \            return number if math.isfinite(number) else None\n        return\
+      \ None\n\n    def _collect(self, message):\n        if time.monotonic() < self.drop_until\
+      \ or not pmt.is_pair(message):\n            return\n        metadata, iq = pmt.car(message),\
+      \ pmt.cdr(message)\n        if not pmt.is_dict(metadata) or not pmt.is_dict(iq):\n\
+      \            return\n        vectors = []\n        for name in ('transmitted_iq',\
+      \ 'equalized_iq', 'received_iq'):\n            value = pmt.dict_ref(iq, pmt.intern(name), pmt.PMT_NIL)\n\
+      \            if not pmt.is_c32vector(value):\n                return\n     \
+      \       vectors.append(np.asarray(pmt.c32vector_elements(value), dtype=np.complex64))\n\
+      \        x, y, unequalized = vectors\n        frame_bytes = self._field(metadata, 'frame\
+      \ bytes')\n        encoding = self._field(metadata, 'encoding')\n        if\
+      \ (frame_bytes is None or encoding is None or x.size == 0 or\n             \
+      \   x.size % 48 or x.size != y.size or unequalized.size != x.size // 48 * 52 or\n                not np.all(np.isfinite(x))\
+      \ or not np.all(np.isfinite(y)) or not np.all(np.isfinite(unequalized))):\n            return\n        expected = np.empty((x.size // 48, 52), dtype=np.complex64)\n        expected[:, [i for i in range(52) if i not in (5, 19, 32, 46)]] = x.reshape(-1, 48)\n        polarity = np.asarray([PILOT_POLARITY[(n - 2) % 127] for n in range(3, 3 + expected.shape[0])], dtype=np.float32)\n        expected[:, (5, 19, 32, 46)] = polarity[:, None] * np.array([1, 1, 1, -1], dtype=np.float32)\n        samples = np.empty((unequalized.size, 2), dtype='<c8')\n        samples[:, 0] = unequalized\n        samples[:, 1] = expected.ravel()\n \
+      \       frequency = self._real_field(metadata, 'nominal frequency')\n      \
+      \  if frequency is None or frequency <= 0:\n            frequency = self.center_frequency\n\
+      \        diagnostics = ['frame_bytes={}', 'encoding={}']\n        values = [frame_bytes,\
+      \ encoding]\n        for name, label in (('snr', 'snr_db'),\n              \
+      \              ('frequency offset', 'frequency_offset_hz'),\n              \
+      \              ('beta', 'pilot_phase_rad')):\n            value = self._real_field(metadata,\
+      \ name)\n            if value is not None:\n                diagnostics.append(label\
+      \ + '={}')\n                values.append(value)\n        error = y.astype(np.complex128)\
+      \ - x\n        error_power = float(np.vdot(error, error).real)\n        reference_power\
+      \ = float(np.vdot(x.astype(np.complex128), x).real)\n        if reference_power\
+      \ > 0:\n            diagnostics.append('evm_rms_percent={}')\n            values.append(100.0\
+      \ * math.sqrt(error_power / reference_power))\n        received_bits = pmt.dict_ref(iq,\
+      \ pmt.intern('pre_viterbi'), pmt.PMT_NIL)\n        corrected_bits = pmt.dict_ref(iq,\
+      \ pmt.intern('corrected_coded'), pmt.PMT_NIL)\n        if pmt.is_u8vector(received_bits)\
+      \ and pmt.is_u8vector(corrected_bits):\n            received = np.asarray(pmt.u8vector_elements(received_bits),\
+      \ dtype=np.uint8)\n            corrected = np.asarray(pmt.u8vector_elements(corrected_bits),\
+      \ dtype=np.uint8)\n            if (received.size and received.size == corrected.size\
+      \ and\n                    np.all(received <= 1) and np.all(corrected <= 1)):\n\
+      \                diagnostics.append('pre_fec_ber={}')\n                values.append(float(np.count_nonzero(received\
+      \ != corrected) / received.size))\n        with self.lock:\n            if time.monotonic()\
+      \ < self.drop_until:\n                return\n            gain = self.radio.get_gain(0)\
+      \ if self.radio is not None else self.gain\n            if self.data_file is\
+      \ None:\n                self._open_recording()\n            self.data_file.write(samples.tobytes())\n\
+      \            self.data_file.flush()\n            self.metadata['captures'].append({\n\
+      \                'core:sample_start': self.sample_count,\n                'core:frequency':\
+      \ frequency,\n            })\n            self.metadata['annotations'].append({\n\
+      \                'core:sample_start': self.sample_count,\n                'core:sample_count':\
+      \ int(samples.shape[0]),\n                'core:label': 'wifi-frame',\n              \
+      \  'core:comment': '; '.join(diagnostics + ['rx_gain_db={}']).format(*(values\
+      \ + [gain])),\n            })\n            self.sample_count += samples.shape[0]\n   \
+      \         self._save_metadata()\n            self.frames += 1\n            if\
+      \ self.frames == 1 or self.frames % self.report_interval == 0:\n           \
+      \     print('Collected {} CRC-valid Wi-Fi frames ({} symbols): {}'.format(\n\
+      \                    self.frames, samples.shape[0], self.data_path), flush=True)\n\n \
+      \   def stop(self):\n        with self.lock:\n            if self.data_file\
+      \ is not None:\n                self.data_file.close()\n                self.data_file\
+      \ = None\n        return True"
+    affinity: ''
+    alias: ''
+    center_frequency: freq
+    comment: ''
+    gain: gain
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    output_path: '"data/xy_usrp"'
+    report_interval: '25'
+    sample_rate: samp_rate
+  states:
+    _io_cache: ('xy_collector', 'xy_collector', [('output_path', "'data/xy_usrp'"),
+      ('report_interval', '25'), ('center_frequency', '2417000000.0'), ('sample_rate',
+      '20000000.0'), ('gain', 'None')], [('diag', 'message', 1)], [], '', ['center_frequency',
+      'gain', 'report_interval'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1336, 360.0]
+    rotation: 0
+    state: enabled
+- name: evm_build_mode_check
+  id: snippet
+  parameters:
+    alias: ''
+    code: 'from pathlib import Path
+
+
+      build = Path(''../../kernel/build'')
+
+      marker = build / ''frame_equalizer_build_mode.txt''
+
+      artifacts = [build / ''final.xclbin'', build / ''insts.bin'']
+
+      missing = [str(path) for path in [marker, *artifacts] if not path.is_file()]
+
+      if missing: raise RuntimeError(''EVM diagnostics require kernel build output(s):
+      '' + '', ''.join(missing) + ''; run `make -C kernel DFRAME_EQUALIZER_OUTPUT_SYMBOLS=1
+      compile` from stage42/'')
+
+      mode = dict((parts[0].strip(), parts[1].strip()) for parts in (line.split(''='',
+      1) for line in marker.read_text(encoding=''ascii'').splitlines()) if len(parts)
+      == 2)
+
+      if mode.get(''DFRAME_EQUALIZER_OUTPUT_SYMBOLS'') != ''1'': raise RuntimeError(''EVM
+      diagnostics require DFRAME_EQUALIZER_OUTPUT_SYMBOLS=1; rebuild with `make -C
+      kernel DFRAME_EQUALIZER_OUTPUT_SYMBOLS=1 compile`'')
+
+      if marker.stat().st_mtime_ns < max(path.stat().st_mtime_ns for path in artifacts):
+      raise RuntimeError(str(marker) + '' is older than the NPU artifacts; rebuild
+      the kernel'')'
+    comment: ''
+    priority: '0'
+    section: init_before_blocks
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [688, 16.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_decode_mac_EVM_0
+  id: ieee802_11_decode_mac_EVM
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1096, 368.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_complex64_to_cint16_0
+  id: mlir_aie_complex64_to_cint16
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '1048576'
+    safe: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [440, 376.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_mlir_aie_80211_phy_evm_0_0
+  id: mlir_aie_mlir_aie_80211_phy_evm
+  parameters:
+    N_TILES: '16'
+    VECTOR_SIZE: '16384'
+    affinity: ''
+    alias: ''
+    comment: ''
+    kernel_name: MLIR_AIE
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nominal_frequency: freq
+    num_slots: '2'
+    path_insts_bin: '"../../kernel/build/insts.bin"'
+    path_xclbin: '"../../kernel/build/final.xclbin"'
+    weights_path: ''''''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [656, 316.0]
+    rotation: 0
+    state: enabled
+- name: start_channel_sweep
+  id: snippet
+  parameters:
+    alias: ''
+    code: "import math\nimport random\nimport threading\nimport time\nself.channel_sweep_stop\
+      \ = threading.Event()\nif len(self.initial_gains) != 13:\n    raise ValueError('initial_gains must contain 13 channel values')\nself.channel_gain_lut = {channel: self.initial_gains[channel - 1]\n\
+      \                         for channel in range(1, 14)}\ngain_range = self.uhd_usrp_source_0.get_gain_range(0)\n\
+      \ndef observe(duration):\n    warmup = min(max(0.0, float(self.gain_settle_s)),\
+      \ duration / 3)\n    if self.channel_sweep_stop.wait(warmup):\n        return\
+      \ None\n    deadline = time.monotonic() + duration - warmup\n    power_sum =\
+      \ 0.0\n    near_full_sum = 0.0\n    count = 0\n    while not self.channel_sweep_stop.is_set():\n\
+      \        remaining = deadline - time.monotonic()\n        if remaining <= 0:\n\
+      \            break\n        if self.channel_sweep_stop.wait(min(0.1, remaining)):\n\
+      \            return None\n        power = self.blocks_probe_power.level() /\
+      \ 2048\n        near_full = self.blocks_probe_clip.level() / 2048\n        if\
+      \ math.isfinite(power) and power > 0 and 0 <= near_full <= 1:\n            power_sum\
+      \ += power\n            near_full_sum += near_full\n            count += 1\n\
+      \    if count == 0:\n        return None\n    return math.sqrt(power_sum / count),\
+      \ near_full_sum / count, count\n\ndef sweep():\n    while not self.channel_sweep_stop.is_set():\n\
+      \        for channel in range(1, 14):\n            if self.channel_sweep_stop.is_set():\n\
+      \                return\n            frequency = 2.412e9 + (channel - 1) * 5e6\n\
+      \            dwell = max(0.02, float(self.popular_dwell_s if channel in (1,\
+      \ 5, 9, 13)\n                                    else self.other_dwell_s))\n\
+      \            self.epy_xy_collector.mute_for(max(0.0, float(self.gain_settle_s)))\n\
+      \            if self.get_freq() != frequency:\n                self.set_freq(frequency)\n\
+      \            self.set_gain(self.channel_gain_lut[channel])\n            self.epy_xy_collector.mute_for(max(0.0,\
+      \ float(self.gain_settle_s)))\n            print('Wi-Fi channel {}: {:.0f} MHz,\
+      \ gain {:.1f} dB, dwell {} s'.format(\n                channel, frequency /\
+      \ 1e6, self.uhd_usrp_source_0.get_gain(0), dwell),\n                flush=True)\n\
+      \            level = observe(dwell / 2)\n            if level is not None:\n\
+      \                rms, near_full, count = level\n                if rms > 0 and math.isfinite(rms):\n\
+      \                    delta = 6.0 if rms < 0.14 else (-6.0 if rms > 0.28 else 0.0)\n\
+      \                    if near_full > 1e-4:\n                        delta = min(delta,\
+      \ -6.0)\n                    noise = random.gauss(0, max(0.0, float(self.gain_noise_std_db)))\n\
+      \                    candidate = max(gain_range.start(), min(gain_range.stop(),\n\
+      \                        self.channel_gain_lut[channel] + delta + noise))\n\
+      \                    self.epy_xy_collector.mute_for(max(0.0, float(self.gain_settle_s)))\n\
+      \                    self.set_gain(candidate)\n                    self.epy_xy_collector.mute_for(max(0.0,\
+      \ float(self.gain_settle_s)))\n                    self.channel_gain_lut[channel]\
+      \ = self.uhd_usrp_source_0.get_gain(0)\n                    print('Wi-Fi channel\
+      \ {}: rms {:.3f}, near full scale {:.4%} of {} polls, gain {:.1f} dB'.format(\n\
+      \                        channel, rms, near_full, count, self.channel_gain_lut[channel]),\n\
+      \                        flush=True)\n            if self.channel_sweep_stop.wait(dwell\
+      \ / 2):\n                return\n\nself.channel_sweep_thread = threading.Thread(target=sweep,\
+      \ daemon=True)\nself.channel_sweep_thread.start()"
+    comment: ''
+    priority: '0'
+    section: main_after_start
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [696, 96.0]
+    rotation: 0
+    state: enabled
+- name: stop_channel_sweep
+  id: snippet
+  parameters:
+    alias: ''
+    code: 'self.channel_sweep_stop.set()
+
+      self.channel_sweep_thread.join(timeout=1)'
+    comment: ''
+    priority: '0'
+    section: main_after_stop
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [920, 96.0]
+    rotation: 0
+    state: enabled
+- name: uhd_usrp_source_0
+  id: uhd_usrp_source
+  parameters:
+    affinity: ''
+    alias: ''
+    ant0: '"TX/RX"'
+    ant1: '"RX2"'
+    ant10: '"RX2"'
+    ant11: '"RX2"'
+    ant12: '"RX2"'
+    ant13: '"RX2"'
+    ant14: '"RX2"'
+    ant15: '"RX2"'
+    ant16: '"RX2"'
+    ant17: '"RX2"'
+    ant18: '"RX2"'
+    ant19: '"RX2"'
+    ant2: '"RX2"'
+    ant20: '"RX2"'
+    ant21: '"RX2"'
+    ant22: '"RX2"'
+    ant23: '"RX2"'
+    ant24: '"RX2"'
+    ant25: '"RX2"'
+    ant26: '"RX2"'
+    ant27: '"RX2"'
+    ant28: '"RX2"'
+    ant29: '"RX2"'
+    ant3: '"RX2"'
+    ant30: '"RX2"'
+    ant31: '"RX2"'
+    ant4: '"RX2"'
+    ant5: '"RX2"'
+    ant6: '"RX2"'
+    ant7: '"RX2"'
+    ant8: '"RX2"'
+    ant9: '"RX2"'
+    bw0: samp_rate
+    bw1: '0'
+    bw10: '0'
+    bw11: '0'
+    bw12: '0'
+    bw13: '0'
+    bw14: '0'
+    bw15: '0'
+    bw16: '0'
+    bw17: '0'
+    bw18: '0'
+    bw19: '0'
+    bw2: '0'
+    bw20: '0'
+    bw21: '0'
+    bw22: '0'
+    bw23: '0'
+    bw24: '0'
+    bw25: '0'
+    bw26: '0'
+    bw27: '0'
+    bw28: '0'
+    bw29: '0'
+    bw3: '0'
+    bw30: '0'
+    bw31: '0'
+    bw4: '0'
+    bw5: '0'
+    bw6: '0'
+    bw7: '0'
+    bw8: '0'
+    bw9: '0'
+    center_freq0: freq
+    center_freq1: '0'
+    center_freq10: '0'
+    center_freq11: '0'
+    center_freq12: '0'
+    center_freq13: '0'
+    center_freq14: '0'
+    center_freq15: '0'
+    center_freq16: '0'
+    center_freq17: '0'
+    center_freq18: '0'
+    center_freq19: '0'
+    center_freq2: '0'
+    center_freq20: '0'
+    center_freq21: '0'
+    center_freq22: '0'
+    center_freq23: '0'
+    center_freq24: '0'
+    center_freq25: '0'
+    center_freq26: '0'
+    center_freq27: '0'
+    center_freq28: '0'
+    center_freq29: '0'
+    center_freq3: '0'
+    center_freq30: '0'
+    center_freq31: '0'
+    center_freq4: '0'
+    center_freq5: '0'
+    center_freq6: '0'
+    center_freq7: '0'
+    center_freq8: '0'
+    center_freq9: '0'
+    clock_rate: 0e0
+    clock_source0: ''
+    clock_source1: ''
+    clock_source2: ''
+    clock_source3: ''
+    clock_source4: ''
+    clock_source5: ''
+    clock_source6: ''
+    clock_source7: ''
+    comment: ''
+    dc_offs0: 0+0j
+    dc_offs1: 0+0j
+    dc_offs10: 0+0j
+    dc_offs11: 0+0j
+    dc_offs12: 0+0j
+    dc_offs13: 0+0j
+    dc_offs14: 0+0j
+    dc_offs15: 0+0j
+    dc_offs16: 0+0j
+    dc_offs17: 0+0j
+    dc_offs18: 0+0j
+    dc_offs19: 0+0j
+    dc_offs2: 0+0j
+    dc_offs20: 0+0j
+    dc_offs21: 0+0j
+    dc_offs22: 0+0j
+    dc_offs23: 0+0j
+    dc_offs24: 0+0j
+    dc_offs25: 0+0j
+    dc_offs26: 0+0j
+    dc_offs27: 0+0j
+    dc_offs28: 0+0j
+    dc_offs29: 0+0j
+    dc_offs3: 0+0j
+    dc_offs30: 0+0j
+    dc_offs31: 0+0j
+    dc_offs4: 0+0j
+    dc_offs5: 0+0j
+    dc_offs6: 0+0j
+    dc_offs7: 0+0j
+    dc_offs8: 0+0j
+    dc_offs9: 0+0j
+    dc_offs_enb0: default
+    dc_offs_enb1: default
+    dc_offs_enb10: default
+    dc_offs_enb11: default
+    dc_offs_enb12: default
+    dc_offs_enb13: default
+    dc_offs_enb14: default
+    dc_offs_enb15: default
+    dc_offs_enb16: default
+    dc_offs_enb17: default
+    dc_offs_enb18: default
+    dc_offs_enb19: default
+    dc_offs_enb2: default
+    dc_offs_enb20: default
+    dc_offs_enb21: default
+    dc_offs_enb22: default
+    dc_offs_enb23: default
+    dc_offs_enb24: default
+    dc_offs_enb25: default
+    dc_offs_enb26: default
+    dc_offs_enb27: default
+    dc_offs_enb28: default
+    dc_offs_enb29: default
+    dc_offs_enb3: default
+    dc_offs_enb30: default
+    dc_offs_enb31: default
+    dc_offs_enb4: default
+    dc_offs_enb5: default
+    dc_offs_enb6: default
+    dc_offs_enb7: default
+    dc_offs_enb8: default
+    dc_offs_enb9: default
+    dev_addr: '"type=b200"'
+    dev_args: ''
+    gain0: gain
+    gain1: '0'
+    gain10: '0'
+    gain11: '0'
+    gain12: '0'
+    gain13: '0'
+    gain14: '0'
+    gain15: '0'
+    gain16: '0'
+    gain17: '0'
+    gain18: '0'
+    gain19: '0'
+    gain2: '0'
+    gain20: '0'
+    gain21: '0'
+    gain22: '0'
+    gain23: '0'
+    gain24: '0'
+    gain25: '0'
+    gain26: '0'
+    gain27: '0'
+    gain28: '0'
+    gain29: '0'
+    gain3: '0'
+    gain30: '0'
+    gain31: '0'
+    gain4: '0'
+    gain5: '0'
+    gain6: '0'
+    gain7: '0'
+    gain8: '0'
+    gain9: '0'
+    gain_type0: default
+    gain_type1: default
+    gain_type10: default
+    gain_type11: default
+    gain_type12: default
+    gain_type13: default
+    gain_type14: default
+    gain_type15: default
+    gain_type16: default
+    gain_type17: default
+    gain_type18: default
+    gain_type19: default
+    gain_type2: default
+    gain_type20: default
+    gain_type21: default
+    gain_type22: default
+    gain_type23: default
+    gain_type24: default
+    gain_type25: default
+    gain_type26: default
+    gain_type27: default
+    gain_type28: default
+    gain_type29: default
+    gain_type3: default
+    gain_type30: default
+    gain_type31: default
+    gain_type4: default
+    gain_type5: default
+    gain_type6: default
+    gain_type7: default
+    gain_type8: default
+    gain_type9: default
+    iq_imbal0: 0+0j
+    iq_imbal1: 0+0j
+    iq_imbal10: 0+0j
+    iq_imbal11: 0+0j
+    iq_imbal12: 0+0j
+    iq_imbal13: 0+0j
+    iq_imbal14: 0+0j
+    iq_imbal15: 0+0j
+    iq_imbal16: 0+0j
+    iq_imbal17: 0+0j
+    iq_imbal18: 0+0j
+    iq_imbal19: 0+0j
+    iq_imbal2: 0+0j
+    iq_imbal20: 0+0j
+    iq_imbal21: 0+0j
+    iq_imbal22: 0+0j
+    iq_imbal23: 0+0j
+    iq_imbal24: 0+0j
+    iq_imbal25: 0+0j
+    iq_imbal26: 0+0j
+    iq_imbal27: 0+0j
+    iq_imbal28: 0+0j
+    iq_imbal29: 0+0j
+    iq_imbal3: 0+0j
+    iq_imbal30: 0+0j
+    iq_imbal31: 0+0j
+    iq_imbal4: 0+0j
+    iq_imbal5: 0+0j
+    iq_imbal6: 0+0j
+    iq_imbal7: 0+0j
+    iq_imbal8: 0+0j
+    iq_imbal9: 0+0j
+    iq_imbal_enb0: default
+    iq_imbal_enb1: default
+    iq_imbal_enb10: default
+    iq_imbal_enb11: default
+    iq_imbal_enb12: default
+    iq_imbal_enb13: default
+    iq_imbal_enb14: default
+    iq_imbal_enb15: default
+    iq_imbal_enb16: default
+    iq_imbal_enb17: default
+    iq_imbal_enb18: default
+    iq_imbal_enb19: default
+    iq_imbal_enb2: default
+    iq_imbal_enb20: default
+    iq_imbal_enb21: default
+    iq_imbal_enb22: default
+    iq_imbal_enb23: default
+    iq_imbal_enb24: default
+    iq_imbal_enb25: default
+    iq_imbal_enb26: default
+    iq_imbal_enb27: default
+    iq_imbal_enb28: default
+    iq_imbal_enb29: default
+    iq_imbal_enb3: default
+    iq_imbal_enb30: default
+    iq_imbal_enb31: default
+    iq_imbal_enb4: default
+    iq_imbal_enb5: default
+    iq_imbal_enb6: default
+    iq_imbal_enb7: default
+    iq_imbal_enb8: default
+    iq_imbal_enb9: default
+    lo_export0: 'False'
+    lo_export1: 'False'
+    lo_export10: 'False'
+    lo_export11: 'False'
+    lo_export12: 'False'
+    lo_export13: 'False'
+    lo_export14: 'False'
+    lo_export15: 'False'
+    lo_export16: 'False'
+    lo_export17: 'False'
+    lo_export18: 'False'
+    lo_export19: 'False'
+    lo_export2: 'False'
+    lo_export20: 'False'
+    lo_export21: 'False'
+    lo_export22: 'False'
+    lo_export23: 'False'
+    lo_export24: 'False'
+    lo_export25: 'False'
+    lo_export26: 'False'
+    lo_export27: 'False'
+    lo_export28: 'False'
+    lo_export29: 'False'
+    lo_export3: 'False'
+    lo_export30: 'False'
+    lo_export31: 'False'
+    lo_export4: 'False'
+    lo_export5: 'False'
+    lo_export6: 'False'
+    lo_export7: 'False'
+    lo_export8: 'False'
+    lo_export9: 'False'
+    lo_source0: internal
+    lo_source1: internal
+    lo_source10: internal
+    lo_source11: internal
+    lo_source12: internal
+    lo_source13: internal
+    lo_source14: internal
+    lo_source15: internal
+    lo_source16: internal
+    lo_source17: internal
+    lo_source18: internal
+    lo_source19: internal
+    lo_source2: internal
+    lo_source20: internal
+    lo_source21: internal
+    lo_source22: internal
+    lo_source23: internal
+    lo_source24: internal
+    lo_source25: internal
+    lo_source26: internal
+    lo_source27: internal
+    lo_source28: internal
+    lo_source29: internal
+    lo_source3: internal
+    lo_source30: internal
+    lo_source31: internal
+    lo_source4: internal
+    lo_source5: internal
+    lo_source6: internal
+    lo_source7: internal
+    lo_source8: internal
+    lo_source9: internal
+    maxoutbuf: '0'
+    minoutbuf: '1048576'
+    nchan: '1'
+    num_mboards: '1'
+    otw: ''
+    rx_agc0: Disabled
+    rx_agc1: Default
+    rx_agc10: Default
+    rx_agc11: Default
+    rx_agc12: Default
+    rx_agc13: Default
+    rx_agc14: Default
+    rx_agc15: Default
+    rx_agc16: Default
+    rx_agc17: Default
+    rx_agc18: Default
+    rx_agc19: Default
+    rx_agc2: Default
+    rx_agc20: Default
+    rx_agc21: Default
+    rx_agc22: Default
+    rx_agc23: Default
+    rx_agc24: Default
+    rx_agc25: Default
+    rx_agc26: Default
+    rx_agc27: Default
+    rx_agc28: Default
+    rx_agc29: Default
+    rx_agc3: Default
+    rx_agc30: Default
+    rx_agc31: Default
+    rx_agc4: Default
+    rx_agc5: Default
+    rx_agc6: Default
+    rx_agc7: Default
+    rx_agc8: Default
+    rx_agc9: Default
+    samp_rate: samp_rate
+    sd_spec0: ''
+    sd_spec1: ''
+    sd_spec2: ''
+    sd_spec3: ''
+    sd_spec4: ''
+    sd_spec5: ''
+    sd_spec6: ''
+    sd_spec7: ''
+    show_lo_controls: 'False'
+    start_time: '-1.0'
+    stream_args: ''
+    stream_chans: '[]'
+    sync: sync
+    time_source0: ''
+    time_source1: ''
+    time_source2: ''
+    time_source3: ''
+    time_source4: ''
+    time_source5: ''
+    time_source6: ''
+    time_source7: ''
+    type: fc32
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [160, 332.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_complex_to_mag_squared_0, '0', blocks_integrate_power, '0']
+- [blocks_complex_to_mag_squared_0, '0', blocks_threshold_clip, '0']
+- [blocks_integrate_clip, '0', blocks_probe_clip, '0']
+- [blocks_integrate_power, '0', blocks_probe_power, '0']
+- [blocks_keep_one_in_n_0, '0', blocks_complex_to_mag_squared_0, '0']
+- [blocks_stream_to_vector_0, '0', ieee802_11_decode_mac_EVM_0, '0']
+- [blocks_threshold_clip, '0', blocks_integrate_clip, '0']
+- [ieee802_11_decode_mac_EVM_0, diag, epy_xy_collector, diag]
+- [mlir_aie_complex64_to_cint16_0, '0', mlir_aie_mlir_aie_80211_phy_evm_0_0, '0']
+- [mlir_aie_mlir_aie_80211_phy_evm_0_0, '0', blocks_stream_to_vector_0, '0']
+- [uhd_usrp_source_0, '0', blocks_keep_one_in_n_0, '0']
+- [uhd_usrp_source_0, '0', mlir_aie_complex64_to_cint16_0, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

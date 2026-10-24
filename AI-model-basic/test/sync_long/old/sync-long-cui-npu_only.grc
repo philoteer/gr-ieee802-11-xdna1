@@ -1,0 +1,636 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: Custom
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: sync_long_test
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: run
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Sync Long Test
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 12.0]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: chan_est
+  id: variable
+  parameters:
+    comment: ''
+    value: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [248, 8.0]
+    rotation: 0
+    state: enabled
+- name: freq
+  id: variable
+  parameters:
+    comment: ''
+    value: 2.417e9
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [160, 8.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 20e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [328, 8.0]
+    rotation: 0
+    state: enabled
+- name: sync_length
+  id: variable
+  parameters:
+    comment: ''
+    value: '320'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 148.0]
+    rotation: 0
+    state: enabled
+- name: window_size
+  id: variable
+  parameters:
+    comment: ''
+    value: '48'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 80.0]
+    rotation: 0
+    state: enabled
+- name: blocks_complex_to_mag_0
+  id: blocks_complex_to_mag
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1232, 584.0]
+    rotation: 0
+    state: enabled
+- name: blocks_complex_to_mag_squared_0
+  id: blocks_complex_to_mag_squared
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [320, 488.0]
+    rotation: 0
+    state: enabled
+- name: blocks_conjugate_cc_0
+  id: blocks_conjugate_cc
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [600, 600.0]
+    rotation: 0
+    state: enabled
+- name: blocks_delay_0_0
+  id: blocks_delay
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    delay: '16'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_ports: '1'
+    showports: 'False'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [288, 592.0]
+    rotation: 0
+    state: enabled
+- name: blocks_divide_xx_0
+  id: blocks_divide_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1448.0, 560]
+    rotation: 270
+    state: enabled
+- name: blocks_file_meta_sink_0
+  id: blocks_file_meta_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    detached: 'True'
+    extra_dict: pmt.make_dict()
+    file: __npu.iqdata
+    max_seg_size: '1000000'
+    rel_rate: '1'
+    samp_rate: samp_rate
+    type: complex
+    unbuffered: 'True'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1296, 788.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_source_0
+  id: blocks_file_source
+  parameters:
+    affinity: ''
+    alias: ''
+    begin_tag: pmt.PMT_NIL
+    comment: ''
+    file: "/home/piloteer/\uBC14\uD0D5\uD654\uBA74/wifi_iq_hackrf.bin"
+    length: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    repeat: 'False'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1128, 128.0]
+    rotation: 0
+    state: enabled
+- name: blocks_interleaved_char_to_complex_0
+  id: blocks_interleaved_char_to_complex
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale_factor: '127.0'
+    vector_input: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1344, 152.0]
+    rotation: 0
+    state: enabled
+- name: blocks_message_debug_0
+  id: blocks_message_debug
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    en_uvec: 'True'
+    log_level: info
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1600, 8.0]
+    rotation: 0
+    state: enabled
+- name: blocks_moving_average_xx_0
+  id: blocks_moving_average_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    length: window_size  + 16
+    max_iter: '4000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale: '1'
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [600, 456.0]
+    rotation: 0
+    state: enabled
+- name: blocks_moving_average_xx_1
+  id: blocks_moving_average_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    length: window_size
+    max_iter: '4000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [976, 552.0]
+    rotation: 0
+    state: enabled
+- name: blocks_multiply_xx_0
+  id: blocks_multiply_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [800, 568.0]
+    rotation: 0
+    state: enabled
+- name: blocks_probe_rate_0
+  id: blocks_probe_rate
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha: '0.15'
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    mintime: '500.0'
+    name: ''
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1344, 16.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_0
+  id: epy_block
+  parameters:
+    VECTOR_SIZE: '4096'
+    _source_code: "#!/usr/bin/env python\n# -*- coding: utf-8 -*-\n\nimport numpy\
+      \ as np\nfrom gnuradio import gr\nimport pmt\n\nimport aie.iron as iron\nfrom\
+      \ aie.utils import NPUKernel, DefaultNPURuntime\n\nDTYPE_IN = np.int32\nDTYPE_OUT\
+      \ = np.int32\n\n\nclass mlir_aie_python_int32(gr.basic_block):\n    \"\"\"\n\
+      \    GNU Radio wrapper for the standalone sync_long_cf test kernel.\n    \"\"\
+      \"\n\n    def __init__(self, path_xclbin=\"build/final.xclbin\", path_insts_bin=\"\
+      build/insts.bin\", VECTOR_SIZE=4096):\n        gr.basic_block.__init__(\n  \
+      \          self,\n            name=\"mlir_aie_python_int32\",\n            in_sig=[DTYPE_IN],\n\
+      \            out_sig=[DTYPE_OUT],\n        )\n\n        npu_kernel = NPUKernel(path_xclbin,\
+      \ path_insts_bin, kernel_name=\"MLIR_AIE\")\n        self.set_tag_propagation_policy(gr.TPP_DONT)\n\
+      \        self.kernel_handle = DefaultNPURuntime.load(npu_kernel)\n\n       \
+      \ self.MAX_TAGS_PER_TILE = 7\n        self.METADATA_WORDS_PER_TILE = 2 + 2 *\
+      \ self.MAX_TAGS_PER_TILE\n        self.VECTOR_SIZE = VECTOR_SIZE\n        self.TILE_SIZE\
+      \ = VECTOR_SIZE // 4\n        self.DELAY_SAMPLES = 320\n        self.IN_TILE_SIZE\
+      \ = self.TILE_SIZE + self.DELAY_SAMPLES\n        self.IN_VECTOR_SIZE = self.IN_TILE_SIZE\
+      \ * 4\n\n        self.out_buf = iron.zeros(self.VECTOR_SIZE, dtype=DTYPE_OUT)\n\
+      \        self.out_meta_buf = iron.zeros(4 * self.METADATA_WORDS_PER_TILE, dtype=np.int32)\n\
+      \        self.delay_history = np.zeros(self.DELAY_SAMPLES, dtype=DTYPE_IN)\n\
+      \n        self.set_output_multiple(self.VECTOR_SIZE)\n\n        self.tag_key\
+      \ = pmt.intern(\"wifi_start\")\n        self.tag_srcid = pmt.intern(\"sync_short\"\
+      )\n\n    def forecast(self, noutput_items, ninputs):\n        return [max(self.VECTOR_SIZE,\
+      \ noutput_items)]\n\n    def general_work(self, input_items, output_items):\n\
+      \        in0 = input_items[0]\n        out0 = output_items[0]\n\n        n_chunks\
+      \ = min(len(in0) // self.VECTOR_SIZE, len(out0) // self.VECTOR_SIZE)\n     \
+      \   if n_chunks == 0:\n            return 0\n\n        total_produced = 0\n\
+      \        abs_read_start = self.nitems_read(0)\n        output_abs_start = self.nitems_written(0)\n\
+      \n        for chunk_idx in range(n_chunks):\n            chunk_start = chunk_idx\
+      \ * self.VECTOR_SIZE\n            chunk_abs_start = abs_read_start + chunk_start\n\
+      \            in_np = np.zeros(self.IN_VECTOR_SIZE, dtype=DTYPE_IN)\n       \
+      \     in_meta_np = np.zeros((4, self.METADATA_WORDS_PER_TILE), dtype=np.int32)\n\
+      \n            for tile_idx in range(4):\n                src_start = chunk_start\
+      \ + tile_idx * self.TILE_SIZE\n                src_end = src_start + self.TILE_SIZE\n\
+      \                dst_start = tile_idx * self.IN_TILE_SIZE + self.DELAY_SAMPLES\n\
+      \                dst_end = dst_start + self.TILE_SIZE\n                in_np[dst_start\
+      \ - self.DELAY_SAMPLES:dst_start] = self.delay_history\n                in_np[dst_start:dst_end]\
+      \ = in0[src_start:src_end]\n                self.delay_history[:] = in0[src_end\
+      \ - self.DELAY_SAMPLES:src_end]\n\n                tile_abs_start = chunk_abs_start\
+      \ + tile_idx * self.TILE_SIZE\n                tile_abs_end = tile_abs_start\
+      \ + self.TILE_SIZE\n                tags = self.get_tags_in_range(0, tile_abs_start,\
+      \ tile_abs_end, self.tag_key)\n                tag_count = min(len(tags), self.MAX_TAGS_PER_TILE)\n\
+      \                in_meta_np[tile_idx, 0] = self.TILE_SIZE\n                in_meta_np[tile_idx,\
+      \ 1] = tag_count\n                for tag_idx, tag in enumerate(tags[:tag_count]):\n\
+      \                    tag_offset = int(tag.offset - tile_abs_start)\n       \
+      \             tag_value = pmt.to_double(tag.value)\n                    tag_value_q29\
+      \ = np.int32(np.clip(round(tag_value * (1 << 29)), -(1 << 31), (1 << 31) - 1))\n\
+      \                    in_meta_np[tile_idx, 2 + 2 * tag_idx] = tag_offset\n  \
+      \                  in_meta_np[tile_idx, 3 + 2 * tag_idx] = tag_value_q29\n\n\
+      \            current_in_tensor = iron.tensor(in_np, dtype=DTYPE_IN)\n      \
+      \      current_in_meta_tensor = iron.tensor(in_meta_np.reshape(-1), dtype=np.int32)\n\
+      \            DefaultNPURuntime.run(self.kernel_handle, [current_in_tensor, current_in_meta_tensor,\
+      \ self.out_buf, self.out_meta_buf])\n\n            out_np = self.out_buf.numpy()\n\
+      \            out_meta = self.out_meta_buf.numpy().reshape(4, self.METADATA_WORDS_PER_TILE)\n\
+      \            for tile_idx, tile_meta in enumerate(out_meta):\n             \
+      \   tile_len = max(0, min(int(tile_meta[0]), self.TILE_SIZE))\n            \
+      \    tag_count = max(0, min(int(tile_meta[1]), self.MAX_TAGS_PER_TILE))\n  \
+      \              tile_start = tile_idx * self.TILE_SIZE\n                tile_end\
+      \ = tile_start + tile_len\n                next_total_produced = total_produced\
+      \ + tile_len\n                out0[total_produced:next_total_produced] = out_np[tile_start:tile_end]\n\
+      \n                tile_abs_start = output_abs_start + total_produced\n     \
+      \           for tag_idx in range(tag_count):\n                    tag_offset\
+      \ = int(tile_meta[2 + 2 * tag_idx])\n                    tag_value = float(tile_meta[3\
+      \ + 2 * tag_idx]) / (1 << 29)\n                    if 0 <= tag_offset < tile_len:\n\
+      \                        self.add_item_tag(0, tile_abs_start + tag_offset, self.tag_key,\
+      \ pmt.from_double(tag_value), self.tag_srcid)\n\n                total_produced\
+      \ = next_total_produced\n\n        self.consume_each(n_chunks * self.VECTOR_SIZE)\n\
+      \        return total_produced\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    path_insts_bin: '"build/insts.bin"'
+    path_xclbin: '"build/final.xclbin"'
+  states:
+    _io_cache: ('mlir_aie_python_int32', 'mlir_aie_python_int32', [('path_xclbin',
+      "'build/final.xclbin'"), ('path_insts_bin', "'build/insts.bin'"), ('VECTOR_SIZE',
+      '4096')], [('0', 'int', 1)], [('0', 'int', 1)], '\n    GNU Radio wrapper for
+      the standalone sync_long_cf test kernel.\n    ', ['VECTOR_SIZE'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [840, 808.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_sync_short_0
+  id: ieee802_11_sync_short
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    log: 'False'
+    maxoutbuf: '0'
+    min_plateau: '2'
+    minoutbuf: '0'
+    threshold: '0.56'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [432, 680.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_cint16_to_complex64_0
+  id: mlir_aie_cint16_to_complex64
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1080, 832.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_complex64_to_cint16_0
+  id: mlir_aie_complex64_to_cint16
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    safe: 'True'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [616, 832.0]
+    rotation: 0
+    state: enabled
+- name: qtgui_time_sink_x_0
+  id: qtgui_time_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    axislabels: 'True'
+    color1: blue
+    color10: dark blue
+    color2: red
+    color3: green
+    color4: black
+    color5: cyan
+    color6: magenta
+    color7: yellow
+    color8: dark red
+    color9: dark green
+    comment: ''
+    ctrlpanel: 'False'
+    entags: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    legend: 'True'
+    marker1: '-1'
+    marker10: '-1'
+    marker2: '-1'
+    marker3: '-1'
+    marker4: '-1'
+    marker5: '-1'
+    marker6: '-1'
+    marker7: '-1'
+    marker8: '-1'
+    marker9: '-1'
+    name: '""'
+    nconnections: '1'
+    size: '1024'
+    srate: samp_rate
+    stemplot: 'False'
+    style1: '1'
+    style10: '1'
+    style2: '1'
+    style3: '1'
+    style4: '1'
+    style5: '1'
+    style6: '1'
+    style7: '1'
+    style8: '1'
+    style9: '1'
+    tr_chan: '0'
+    tr_delay: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_slope: qtgui.TRIG_SLOPE_POS
+    tr_tag: '""'
+    type: float
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    ylabel: Amplitude
+    ymax: '1'
+    ymin: '-1'
+    yunit: '""'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1464.0, 712]
+    rotation: 270
+    state: disabled
+- name: virtual_sink_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: iq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1664, 160.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: iq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [0, 552.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_0_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: iq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1168, 32.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_complex_to_mag_0, '0', blocks_divide_xx_0, '0']
+- [blocks_complex_to_mag_squared_0, '0', blocks_moving_average_xx_0, '0']
+- [blocks_conjugate_cc_0, '0', blocks_multiply_xx_0, '1']
+- [blocks_delay_0_0, '0', blocks_conjugate_cc_0, '0']
+- [blocks_delay_0_0, '0', ieee802_11_sync_short_0, '0']
+- [blocks_divide_xx_0, '0', ieee802_11_sync_short_0, '2']
+- [blocks_divide_xx_0, '0', qtgui_time_sink_x_0, '0']
+- [blocks_file_source_0, '0', blocks_interleaved_char_to_complex_0, '0']
+- [blocks_interleaved_char_to_complex_0, '0', virtual_sink_0, '0']
+- [blocks_moving_average_xx_0, '0', blocks_divide_xx_0, '1']
+- [blocks_moving_average_xx_1, '0', blocks_complex_to_mag_0, '0']
+- [blocks_moving_average_xx_1, '0', ieee802_11_sync_short_0, '1']
+- [blocks_multiply_xx_0, '0', blocks_moving_average_xx_1, '0']
+- [blocks_probe_rate_0, rate, blocks_message_debug_0, print]
+- [epy_block_0, '0', mlir_aie_cint16_to_complex64_0, '0']
+- [ieee802_11_sync_short_0, '0', mlir_aie_complex64_to_cint16_0, '0']
+- [mlir_aie_cint16_to_complex64_0, '0', blocks_file_meta_sink_0, '0']
+- [mlir_aie_complex64_to_cint16_0, '0', epy_block_0, '0']
+- [virtual_source_0, '0', blocks_complex_to_mag_squared_0, '0']
+- [virtual_source_0, '0', blocks_delay_0_0, '0']
+- [virtual_source_0, '0', blocks_multiply_xx_0, '0']
+- [virtual_source_0_0, '0', blocks_probe_rate_0, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

@@ -1,0 +1,430 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: Custom
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: until_fft_test
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: run
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: ''
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 12.0]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: chan_est
+  id: variable
+  parameters:
+    comment: ''
+    value: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [160, 16.0]
+    rotation: 0
+    state: enabled
+- name: data_dir
+  id: variable
+  parameters:
+    comment: Dataset paths are relative to the generated script in base/test/until_fft.
+    value: str(__import__("pathlib").Path(globals().get("__file__", "base/test/until_fft/wifi_rx.py")).resolve().parents[3]
+      / "AI-model-CNN-Channel-est" / "data")
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [960, 16.0]
+    rotation: 0
+    state: enabled
+- name: dump_file
+  id: variable
+  parameters:
+    comment: ''
+    value: dump_path or str(__import__("pathlib").Path(globals().get("__file__", "base/test/frame_equalizer_preproc/until_fft_test.py")).resolve().parent
+      / "tmp_data" / "fft.iqdata")
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [400, 80.0]
+    rotation: 0
+    state: enabled
+- name: file_path
+  id: variable
+  parameters:
+    comment: ''
+    value: data_dir + "/raw_capture/stress_test.sigmf"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [960, 208.0]
+    rotation: 0
+    state: disabled
+- name: file_path
+  id: variable
+  parameters:
+    comment: ''
+    value: data_dir + "/raw_capture/room_20260927.sigmf"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1200, 208.0]
+    rotation: 0
+    state: disabled
+- name: file_path
+  id: variable
+  parameters:
+    comment: ''
+    value: data_dir + "/raw_capture/206.sigmf"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1200, 80.0]
+    rotation: 0
+    state: disabled
+- name: file_path
+  id: variable
+  parameters:
+    comment: ''
+    value: data_dir + "/raw_capture/stress_test_awgn_15db.sigmf"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [960, 80.0]
+    rotation: 0
+    state: enabled
+- name: gain_BB
+  id: variable
+  parameters:
+    comment: ''
+    value: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [536, 16.0]
+    rotation: 0
+    state: enabled
+- name: gain_IF
+  id: variable
+  parameters:
+    comment: ''
+    value: '32'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [432, 16.0]
+    rotation: 0
+    state: enabled
+- name: gain_RF
+  id: variable
+  parameters:
+    comment: ''
+    value: '14'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [320, 16.0]
+    rotation: 0
+    state: enabled
+- name: kernel_dir
+  id: variable
+  parameters:
+    comment: Pipeline kernel built by kernel/Makefile.
+    value: str(__import__("pathlib").Path(globals().get("__file__", "base/test/until_fft/wifi_rx.py")).resolve().parent
+      / "kernel" / "build")
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [960, 144.0]
+    rotation: 0
+    state: enabled
+- name: pcap_file
+  id: variable
+  parameters:
+    comment: ''
+    value: pcap_path or str(__import__("pathlib").Path(globals().get("__file__", "base/test/frame_equalizer_preproc/until_fft_test.py")).resolve().parent
+      / "tmp_data" / "until_fft.pcap")
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [560, 80.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 20e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [808, 16.0]
+    rotation: 0
+    state: enabled
+- name: sync_length
+  id: variable
+  parameters:
+    comment: ''
+    value: '320'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 148.0]
+    rotation: 0
+    state: enabled
+- name: window_size
+  id: variable
+  parameters:
+    comment: ''
+    value: '48'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 80.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_meta_source_0
+  id: blocks_file_meta_source
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    detached: 'True'
+    file: dump_file
+    hdr_file: dump_file + ".hdr"
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    repeat: 'False'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [136, 268.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_sink_0
+  id: blocks_file_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    append: 'False'
+    comment: ''
+    file: pcap_file
+    type: byte
+    unbuffered: 'True'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [264, 680.0]
+    rotation: 180
+    state: enabled
+- name: blocks_stream_to_vector_0
+  id: blocks_stream_to_vector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '64'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [784, 288.0]
+    rotation: 0
+    state: enabled
+- name: blocks_tag_gate_0
+  id: blocks_tag_gate
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    propagate_tags: 'True'
+    single_key: '"wifi_start"'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [368, 292.0]
+    rotation: 0
+    state: enabled
+- name: dump_path
+  id: parameter
+  parameters:
+    alias: ''
+    comment: FFT input for the native GNU Radio reference decoder.
+    hide: none
+    label: Dump path
+    short_id: ''
+    type: str
+    value: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [400, 8.0]
+    rotation: 0
+    state: enabled
+- name: foo_wireshark_connector_0
+  id: foo_wireshark_connector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    tech: '127'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [600, 696.0]
+    rotation: 180
+    state: enabled
+- name: freq
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: eng_float
+    value: '2417000000.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [640, 16.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_decode_mac_0
+  id: ieee802_11_decode_mac
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [456, 376.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_frame_equalizer_0
+  id: ieee802_11_frame_equalizer
+  parameters:
+    affinity: ''
+    algo: ieee802_11.Equalizer(chan_est)
+    alias: ''
+    bw: samp_rate
+    comment: ''
+    debug: 'False'
+    freq: freq
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [944, 340.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_parse_mac_0
+  id: ieee802_11_parse_mac
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [576, 512.0]
+    rotation: 180
+    state: enabled
+- name: pcap_path
+  id: parameter
+  parameters:
+    alias: ''
+    comment: Output PCAP path.
+    hide: none
+    label: PCAP path
+    short_id: ''
+    type: str
+    value: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [560, 8.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_file_meta_source_0, '0', blocks_tag_gate_0, '0']
+- [blocks_stream_to_vector_0, '0', ieee802_11_frame_equalizer_0, '0']
+- [blocks_tag_gate_0, '0', blocks_stream_to_vector_0, '0']
+- [foo_wireshark_connector_0, '0', blocks_file_sink_0, '0']
+- [ieee802_11_decode_mac_0, out, foo_wireshark_connector_0, in]
+- [ieee802_11_decode_mac_0, out, ieee802_11_parse_mac_0, in]
+- [ieee802_11_frame_equalizer_0, '0', ieee802_11_decode_mac_0, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

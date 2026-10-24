@@ -1,0 +1,748 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: Custom
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: EVM and frame diagnostics from the AIE PHY receiver.
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: wifi_rx
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: run
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: AIE EVM Diagnostics
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 12.0]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: diagnostic_label_init
+  id: snippet
+  parameters:
+    code: self.set_diagnostic_estimator(self.diagnostic_estimator)
+    priority: '0'
+    section: main_after_init
+  states:
+    state: enabled
+- name: diagnostic_estimator
+  id: variable
+  parameters:
+    comment: Loaded from kernel/build/frame_equalizer_build_mode.txt before block construction.
+    value: 'None'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [376, 16.0]
+    rotation: 0
+    state: enabled
+- name: diagnostic_evm_output
+  id: variable
+  parameters:
+    comment: Bounded EVM measurement export.
+    value: '"data/tmp_out/evm_measurement.jsonl"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [800, 112.0]
+    rotation: 0
+    state: enabled
+- name: diagnostic_max_records
+  id: variable
+  parameters:
+    comment: Maximum number of frame and CRC event records written to JSONL.
+    value: '10000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [368, 112.0]
+    rotation: 0
+    state: enabled
+- name: diagnostic_output
+  id: variable
+  parameters:
+    comment: Bounded receiver-frame diagnostic export.
+    value: '"data/tmp_out/frame_diagnostic-evm_mode.jsonl"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [696, 16.0]
+    rotation: 0
+    state: enabled
+- name: file_path
+  id: variable
+  parameters:
+    comment: ''
+    value: '"data/raw_capture/206.sigmf"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [904, 12.0]
+    rotation: 0
+    state: enabled
+- name: freq
+  id: variable
+  parameters:
+    comment: ''
+    value: 2.417e9
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [176, 16.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 20e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [272, 16.0]
+    rotation: 0
+    state: enabled
+- name: sync_length
+  id: variable
+  parameters:
+    comment: ''
+    value: '320'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 120.0]
+    rotation: 0
+    state: enabled
+- name: window_size
+  id: variable
+  parameters:
+    comment: ''
+    value: '48'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [120, 120.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_sink_0
+  id: blocks_file_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    append: 'False'
+    comment: ''
+    file: data/tmp_out/replaced.pcap
+    type: byte
+    unbuffered: 'True'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [568, 392.0]
+    rotation: 180
+    state: enabled
+- name: blocks_file_source_0
+  id: blocks_file_source
+  parameters:
+    affinity: ''
+    alias: ''
+    begin_tag: pmt.PMT_NIL
+    comment: ''
+    file: file_path+"-data"
+    length: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    repeat: 'False'
+    type: short
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1176, 116.0]
+    rotation: 0
+    state: enabled
+- name: blocks_interleaved_short_to_complex_0
+  id: blocks_interleaved_short_to_complex
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale_factor: '32768'
+    swap: 'False'
+    vector_input: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1400, 140.0]
+    rotation: 0
+    state: enabled
+- name: blocks_message_debug_0
+  id: blocks_message_debug
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    en_uvec: 'True'
+    log_level: info
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1600, 8.0]
+    rotation: 0
+    state: enabled
+- name: blocks_probe_rate_0
+  id: blocks_probe_rate
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha: '0.15'
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    mintime: '500.0'
+    name: ''
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1344, 16.0]
+    rotation: 0
+    state: enabled
+- name: blocks_stream_to_vector_0
+  id: blocks_stream_to_vector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '48'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [640, 288.0]
+    rotation: 0
+    state: enabled
+- name: epy_evm_diagnostic
+  id: epy_block
+  parameters:
+    _source_code: "import json\nimport os\nimport threading\n\nimport numpy as np\n\
+      import pmt\nfrom gnuradio import gr\n\n\nclass evm_diagnostic(gr.basic_block):\n\
+      \    def __init__(self, output_path='data/tmp_out/evm_measurement.jsonl',\n\
+      \                 max_records=10000, report_interval=25, estimator_label='LS'):\n\
+      \        gr.basic_block.__init__(\n            self,\n            name='evm_diagnostic',\n\
+      \            in_sig=[np.int8],\n            out_sig=[],\n        )\n       \
+      \ self.set_tag_propagation_policy(gr.TPP_DONT)\n        self.output_file = None\n\
+      \        self.max_records = max(0, int(max_records))\n        self.report_interval\
+      \ = max(1, int(report_interval))\n        self.estimator_label = str(estimator_label)\n\
+      \        self.record_count = 0\n        self.evm_samples = 0\n        self.error_power_sum\
+      \ = 0.0\n        self.reference_power_sum = 0.0\n        self.aligned_evm_sum\
+      \ = 0.0\n        self.output_lock = threading.Lock()\n        self.message_port_register_in(pmt.intern('diag'))\n\
+      \        self.set_msg_handler(pmt.intern('diag'), self._handle_iq_data)\n\n\
+      \        directory = os.path.dirname(output_path)\n        if directory:\n \
+      \           os.makedirs(directory, exist_ok=True)\n        if output_path:\n\
+      \            self.output_file = open(output_path, 'w', encoding='ascii')\n\n\
+      \    def forecast(self, noutput_items, ninputs):\n        return [1] * ninputs\n\
+      \n    def general_work(self, input_items, output_items):\n        if len(input_items[0]):\n\
+      \            self.consume(0, len(input_items[0]))\n        return 0\n\n    def\
+      \ _write_record(self, record):\n        with self.output_lock:\n           \
+      \ if self.output_file is None or self.record_count >= self.max_records:\n  \
+      \              return\n            self.output_file.write(\n               \
+      \ json.dumps(record, separators=(',', ':'), allow_nan=False) + '\\n'\n     \
+      \       )\n            self.output_file.flush()\n            self.record_count\
+      \ += 1\n\n    @staticmethod\n    def _metadata_uint64(metadata, key):\n    \
+      \    if not pmt.is_dict(metadata):\n            return None\n        value =\
+      \ pmt.dict_ref(metadata, pmt.intern(key), pmt.PMT_NIL)\n        return int(pmt.to_uint64(value))\
+      \ if pmt.is_uint64(value) else None\n\n    def _handle_iq_data(self, message):\n\
+      \        if not pmt.is_pair(message) or not pmt.is_dict(pmt.cdr(message)):\n\
+      \            self._write_record({\n                'event': 'invalid_evm_message',\n\
+      \                'reason': 'expected_metadata_and_iq_dictionary',\n        \
+      \    })\n            return\n\n        metadata = pmt.car(message)\n       \
+      \ iq_data = pmt.cdr(message)\n        vectors = {}\n        for key in ('transmitted_iq',\
+      \ 'equalized_iq'):\n            value = pmt.dict_ref(iq_data, pmt.intern(key),\
+      \ pmt.PMT_NIL)\n            if not pmt.is_c32vector(value):\n              \
+      \  self._write_record({\n                    'event': 'invalid_evm_message',\n\
+      \                    'reason': 'missing_complex_vector',\n                 \
+      \   'vector': key,\n                })\n                return\n           \
+      \ vectors[key] = np.asarray(\n                pmt.c32vector_elements(value),\
+      \ dtype=np.complex128\n            )\n\n        transmitted = vectors['transmitted_iq']\n\
+      \        equalized = vectors['equalized_iq']\n        if (transmitted.size ==\
+      \ 0 or transmitted.size % 48 != 0 or\n                      equalized.size !=\
+      \ transmitted.size or\n                not np.all(np.isfinite(transmitted))\
+      \ or\n                not np.all(np.isfinite(equalized))):\n            self._write_record({\n\
+      \                'event': 'invalid_evm_message',\n                'reason':\
+      \ 'invalid_vector_size_or_nonfinite_values',\n                'transmitted_iq_size':\
+      \ int(transmitted.size),\n                'received_iq_size': None,\n      \
+      \          'equalized_iq_size': int(equalized.size),\n            })\n     \
+      \       return\n\n        reference_power = float(np.vdot(transmitted, transmitted).real)\n\
+      \        if reference_power <= np.finfo(np.float64).tiny:\n            self._write_record({\n\
+      \                'event': 'invalid_evm_message',\n                'reason':\
+      \ 'zero_reference_power',\n            })\n            return\n\n        error\
+      \ = equalized - transmitted\n        error_power = float(np.vdot(error, error).real)\n\
+      \        evm_ratio = float(np.sqrt(error_power / reference_power))\n       \
+      \ gain = np.vdot(transmitted, equalized) / reference_power\n        aligned_error\
+      \ = equalized / gain - transmitted if abs(gain) else error\n        aligned_evm_ratio\
+      \ = float(np.sqrt(\n            np.vdot(aligned_error, aligned_error).real /\
+      \ reference_power\n        ))\n        evm_percent = 100.0 * evm_ratio\n   \
+      \     aligned_evm_percent = 100.0 * aligned_evm_ratio\n        evm_db = float(20.0\
+      \ * np.log10(max(evm_ratio, 1e-15)))\n        frame_bytes = self._metadata_uint64(metadata,\
+      \ 'frame bytes')\n        encoding = self._metadata_uint64(metadata, 'encoding')\n\
+      \n        self.evm_samples += 1\n        self.error_power_sum += error_power\n\
+      \        self.reference_power_sum += reference_power\n        self.aligned_evm_sum\
+      \ += aligned_evm_percent\n        cumulative_evm_percent = float(100.0 * np.sqrt(\n\
+      \            self.error_power_sum / self.reference_power_sum\n        ))\n \
+      \       mean_aligned_evm_percent = self.aligned_evm_sum / self.evm_samples\n\
+      \        self._write_record({\n            'event': 'evm',\n            'sample_index':\
+      \ self.evm_samples,\n            'frame_bytes': frame_bytes,\n            'encoding':\
+      \ encoding,\n            'payload_symbols_compared': int(transmitted.size //\
+      \ 48),\n            'complex_symbols_compared': int(transmitted.size),\n   \
+      \         'evm_rms_percent': evm_percent,\n            'evm_rms_db': evm_db,\n\
+      \            'mer_db': -evm_db,\n            'gain_magnitude_db': 20.0 * np.log10(max(abs(gain),\
+      \ 1e-15)),\n            'gain_phase_deg': float(np.degrees(np.angle(gain))),\n\
+      \            'gain_aligned_evm_rms_percent': aligned_evm_percent,\n        \
+      \    'cumulative_evm_rms_percent': cumulative_evm_percent,\n            'mean_gain_aligned_evm_percent':\
+      \ mean_aligned_evm_percent,\n            'region': 'CRC-valid equalized payload\
+      \ symbols, excluding final OFDM symbol',\n            'estimator': self.estimator_label,\n\
+      \        })\n        if self.evm_samples == 1 or self.evm_samples % self.report_interval\
+      \ == 0:\n            print(\n                'EVM: sample={} encoding={} symbols={}\
+      \ raw={:.4f}% aligned={:.4f}% cumulative={:.4f}%'.format(\n                \
+      \    self.evm_samples, encoding, transmitted.size // 48,\n                 \
+      \   evm_percent, aligned_evm_percent, cumulative_evm_percent\n             \
+      \   )\n            )\n\n    def stop(self):\n        if self.output_file is\
+      \ not None:\n            self.output_file.close()\n            self.output_file\
+      \ = None\n        return True"
+    affinity: ''
+    alias: ''
+    comment: ''
+    estimator_label: diagnostic_estimator
+    max_records: diagnostic_max_records
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    output_path: diagnostic_evm_output
+    report_interval: '25'
+  states:
+    _io_cache: ('evm_diagnostic', 'evm_diagnostic', [('output_path', "'data/tmp_out/evm_measurement.jsonl'"),
+      ('max_records', '10000'), ('report_interval', '25'), ('estimator_label', "'LS'")],
+      [('0', 'byte', 1), ('diag', 'message', 1)], [], '', ['estimator_label', 'max_records',
+      'report_interval'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [488, 824.0]
+    rotation: 0
+    state: enabled
+- name: epy_frame_diagnostic
+  id: epy_block
+  parameters:
+    _source_code: "import json\nimport os\nimport threading\nimport time\n\nimport\
+      \ numpy as np\nimport pmt\nfrom gnuradio import gr\n\n\nclass frame_diagnostic(gr.basic_block):\n\
+      \    def __init__(self, output_path='data/tmp_out/frame_diagnostic.jsonl',\n\
+      \                 max_records=10000, report_interval=25,\n                 headless_idle_seconds=10.0,\
+      \ estimator_label='LS'):\n        gr.basic_block.__init__(\n            self,\n\
+      \            name='frame_diagnostic',\n            in_sig=[np.int8],\n     \
+      \       out_sig=[],\n        )\n        self.set_tag_propagation_policy(gr.TPP_DONT)\n\
+      \        self.output_path = output_path\n        self.max_records = max(0, int(max_records))\n\
+      \        self.report_interval = max(1, int(report_interval))\n        self.estimator_label\
+      \ = str(estimator_label)\n        self.record_count = 0\n        self.crc_valid_count\
+      \ = 0\n        self.pre_fec_bit_errors = 0\n        self.pre_fec_bits_compared\
+      \ = 0\n        self.pre_fec_ber_samples = 0\n        self.output_lock = threading.Lock()\n\
+      \        self.last_work = time.monotonic()\n        self.seen_input = False\n\
+      \        self.stopping = False\n        self.message_port_register_in(pmt.intern('crc_ok'))\n\
+      \        self.set_msg_handler(pmt.intern('crc_ok'), self._handle_crc_ok)\n \
+      \       self.message_port_register_in(pmt.intern('diag'))\n        self.set_msg_handler(pmt.intern('diag'),\
+      \ self._handle_diag)\n\n        directory = os.path.dirname(output_path)\n \
+      \       if directory:\n            os.makedirs(directory, exist_ok=True)\n \
+      \       self.output_file = open(output_path, 'w', encoding='ascii') if output_path\
+      \ else None\n\n        if os.environ.get('WIFI_DIAGNOSTIC_HEADLESS') == '1':\n\
+      \            self.headless_thread = threading.Thread(\n                target=self._headless_watchdog,\n\
+      \                args=(max(1.0, float(headless_idle_seconds)),),\n         \
+      \       daemon=True,\n            )\n            self.headless_thread.start()\n\
+      \n    def forecast(self, noutput_items, ninputs):\n        return [1] * ninputs\n\
+      \n    def general_work(self, input_items, output_items):\n        if len(input_items[0]):\n\
+      \            self.seen_input = True\n            self.last_work = time.monotonic()\n\
+      \            self.consume(0, len(input_items[0]))\n        return 0\n\n    def\
+      \ _write_record(self, record):\n        with self.output_lock:\n           \
+      \ if self.output_file is None or self.record_count >= self.max_records:\n  \
+      \              return\n            self.output_file.write(\n               \
+      \ json.dumps(record, separators=(',', ':'), allow_nan=False) + '\\n'\n     \
+      \       )\n            self.output_file.flush()\n            self.record_count\
+      \ += 1\n\n    def _handle_crc_ok(self, _message):\n        self.crc_valid_count\
+      \ += 1\n        self._write_record({\n            'event': 'crc_ok',\n     \
+      \       'crc_valid_count': self.crc_valid_count,\n            'estimator': self.estimator_label,\n\
+      \        })\n\n    @staticmethod\n    def _metadata_uint64(metadata, key):\n\
+      \        if not pmt.is_dict(metadata):\n            return None\n        value\
+      \ = pmt.dict_ref(metadata, pmt.intern(key), pmt.PMT_NIL)\n        return int(pmt.to_uint64(value))\
+      \ if pmt.is_uint64(value) else None\n\n    def _handle_diag(self, message):\n\
+      \        if not pmt.is_pair(message) or not pmt.is_dict(pmt.cdr(message)):\n\
+      \            return\n        metadata = pmt.car(message)\n        diagnostic\
+      \ = pmt.cdr(message)\n        received = pmt.dict_ref(diagnostic, pmt.intern('pre_viterbi'),\
+      \ pmt.PMT_NIL)\n        corrected = pmt.dict_ref(diagnostic, pmt.intern('corrected_coded'),\
+      \ pmt.PMT_NIL)\n        if not pmt.is_u8vector(received) or not pmt.is_u8vector(corrected):\n\
+      \            return\n        rx_bits = np.asarray(pmt.u8vector_elements(received),\
+      \ dtype=np.uint8)\n        reference_bits = np.asarray(pmt.u8vector_elements(corrected),\
+      \ dtype=np.uint8)\n        if (rx_bits.size == 0 or rx_bits.size != reference_bits.size\
+      \ or\n                np.any(rx_bits > 1) or np.any(reference_bits > 1)):\n\
+      \            return\n\n        bit_errors = int(np.count_nonzero(rx_bits !=\
+      \ reference_bits))\n        bits_compared = int(rx_bits.size)\n        sample_ber\
+      \ = bit_errors / bits_compared\n        self.pre_fec_ber_samples += 1\n    \
+      \    self.pre_fec_bit_errors += bit_errors\n        self.pre_fec_bits_compared\
+      \ += bits_compared\n        cumulative_ber = self.pre_fec_bit_errors / self.pre_fec_bits_compared\n\
+      \        self._write_record({\n            'event': 'pre_fec_coded_ber',\n \
+      \           'sample_index': self.pre_fec_ber_samples,\n            'frame_bytes':\
+      \ self._metadata_uint64(metadata, 'frame bytes'),\n            'encoding': self._metadata_uint64(metadata,\
+      \ 'encoding'),\n            'bit_errors': bit_errors,\n            'bits_compared':\
+      \ bits_compared,\n            'ber': sample_ber,\n            'cumulative_bit_errors':\
+      \ self.pre_fec_bit_errors,\n            'cumulative_bits_compared': self.pre_fec_bits_compared,\n\
+      \            'cumulative_ber': cumulative_ber,\n            'region': 'deinterleaved\
+      \ coded bits, excluding final OFDM symbol',\n            'estimator': self.estimator_label,\n\
+      \        })\n        if self.pre_fec_ber_samples == 1 or self.pre_fec_ber_samples\
+      \ % self.report_interval == 0:\n            print('pre-FEC coded BER sample\
+      \ {}: {}/{} ({:.6g}); cumulative {:.6g}'.format(\n                self.pre_fec_ber_samples,\
+      \ bit_errors, bits_compared,\n                sample_ber, cumulative_ber\n \
+      \           ))\n\n    def _headless_watchdog(self, idle_seconds):\n        while\
+      \ not self.stopping:\n            time.sleep(0.25)\n            if self.seen_input\
+      \ and time.monotonic() - self.last_work >= idle_seconds:\n                try:\n\
+      \                    from PyQt5 import QtWidgets\n                    app =\
+      \ QtWidgets.QApplication.instance()\n                    if app is not None:\n\
+      \                        app.quit()\n                except ImportError:\n \
+      \                   pass\n                return\n\n    def stop(self):\n  \
+      \      self.stopping = True\n        if self.output_file is not None:\n    \
+      \        self.output_file.close()\n            self.output_file = None\n   \
+      \     return True\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    estimator_label: diagnostic_estimator
+    headless_idle_seconds: '10.0'
+    max_records: diagnostic_max_records
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    output_path: diagnostic_output
+    report_interval: '25'
+  states:
+    _io_cache: ('frame_diagnostic', 'frame_diagnostic', [('output_path', "'data/tmp_out/frame_diagnostic.jsonl'"),
+      ('max_records', '10000'), ('report_interval', '25'), ('headless_idle_seconds',
+      '10.0'), ('estimator_label', "'LS'")], [('0', 'byte', 1), ('diag', 'message',
+      1), ('crc_ok', 'message', 1)], [], '', ['estimator_label', 'max_records', 'output_path',
+      'report_interval'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [488, 1048.0]
+    rotation: 0
+    state: enabled
+- name: evm_build_mode_check
+  id: snippet
+  parameters:
+    alias: ''
+    code: 'from pathlib import Path
+
+
+      build = Path(''kernel/build'')
+
+      marker = build / ''frame_equalizer_build_mode.txt''
+
+      artifacts = [build / ''final.xclbin'', build / ''insts.bin'']
+
+      missing = [str(path) for path in [marker, *artifacts] if not path.is_file()]
+
+      if missing: raise RuntimeError(''EVM diagnostics require kernel build output(s):
+      '' + '', ''.join(missing) + ''; run `make -C kernel DFRAME_EQUALIZER_OUTPUT_SYMBOLS=1
+      compile` from stage42/'')
+
+      mode = dict((parts[0].strip(), parts[1].strip()) for parts in (line.split(''='',
+      1) for line in marker.read_text(encoding=''ascii'').splitlines()) if len(parts)
+      == 2)
+
+      if mode.get(''DFRAME_EQUALIZER_OUTPUT_SYMBOLS'') != ''1'': raise RuntimeError(''EVM
+      diagnostics require DFRAME_EQUALIZER_OUTPUT_SYMBOLS=1; rebuild with `make -C
+      kernel DFRAME_EQUALIZER_OUTPUT_SYMBOLS=1 compile`'')
+
+      if marker.stat().st_mtime_ns < max(path.stat().st_mtime_ns for path in artifacts):
+      raise RuntimeError(str(marker) + '' is older than the NPU artifacts; rebuild
+      the kernel'')
+
+      if not mode.get(''EQUALIZER_ALGORITHM''): raise RuntimeError(str(marker) + '' is missing EQUALIZER_ALGORITHM; rebuild the kernel'')
+
+      self.diagnostic_estimator = mode[''EQUALIZER_ALGORITHM'']'
+    comment: ''
+    priority: '0'
+    section: init_before_blocks
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 200.0]
+    rotation: 0
+    state: enabled
+- name: foo_wireshark_connector_0
+  id: foo_wireshark_connector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    tech: '127'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [832, 400.0]
+    rotation: 180
+    state: enabled
+- name: ieee802_11_decode_mac_EVM_0
+  id: ieee802_11_decode_mac_EVM
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [816, 272.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_complex64_to_cint16_0
+  id: mlir_aie_complex64_to_cint16
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    safe: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [168, 280.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_mlir_aie_80211_phy_evm_0
+  id: mlir_aie_mlir_aie_80211_phy_evm
+  parameters:
+    N_TILES: '16'
+    VECTOR_SIZE: '16384'
+    affinity: ''
+    alias: ''
+    comment: ''
+    kernel_name: MLIR_AIE
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nominal_frequency: freq
+    num_slots: '2'
+    path_insts_bin: '"kernel/build/insts.bin"'
+    path_xclbin: '"kernel/build/final.xclbin"'
+    weights_path: ''''''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [360, 220.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_sigmf_tag_injector_0
+  id: mlir_aie_sigmf_tag_injector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    metadata_file: file_path+"-meta"
+    minoutbuf: '0'
+    start_sample: '0'
+    tag_key: rx_freq
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1584, 140.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: iq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1816, 164.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_1
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: diag1
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [648, 224.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_1_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: out
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1136, 264.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_1_0_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: diag
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1128, 320.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: iq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 280.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_0_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: iq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1168, 32.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: diag1
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [104, 992.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: out
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [104, 1168.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1_0_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: diag
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [96, 1048.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_file_source_0, '0', blocks_interleaved_short_to_complex_0, '0']
+- [blocks_interleaved_short_to_complex_0, '0', mlir_aie_sigmf_tag_injector_0, '0']
+- [blocks_probe_rate_0, rate, blocks_message_debug_0, print]
+- [blocks_stream_to_vector_0, '0', ieee802_11_decode_mac_EVM_0, '0']
+- [foo_wireshark_connector_0, '0', blocks_file_sink_0, '0']
+- [ieee802_11_decode_mac_EVM_0, diag, virtual_sink_1_0_0, '0']
+- [ieee802_11_decode_mac_EVM_0, out, foo_wireshark_connector_0, in]
+- [ieee802_11_decode_mac_EVM_0, out, virtual_sink_1_0, '0']
+- [mlir_aie_complex64_to_cint16_0, '0', mlir_aie_mlir_aie_80211_phy_evm_0, '0']
+- [mlir_aie_mlir_aie_80211_phy_evm_0, '0', blocks_stream_to_vector_0, '0']
+- [mlir_aie_mlir_aie_80211_phy_evm_0, '0', virtual_sink_1, '0']
+- [mlir_aie_sigmf_tag_injector_0, '0', virtual_sink_0, '0']
+- [virtual_source_0, '0', mlir_aie_complex64_to_cint16_0, '0']
+- [virtual_source_0_0, '0', blocks_probe_rate_0, '0']
+- [virtual_source_1, '0', epy_evm_diagnostic, '0']
+- [virtual_source_1, '0', epy_frame_diagnostic, '0']
+- [virtual_source_1_0, '0', epy_frame_diagnostic, crc_ok]
+- [virtual_source_1_0_0, '0', epy_evm_diagnostic, diag]
+- [virtual_source_1_0_0, '0', epy_frame_diagnostic, diag]
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

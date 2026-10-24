@@ -1,0 +1,264 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: Custom
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: Benchmark only frame_equalizer_preprocess on recorded FFT output.
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: preprocess_speedtest
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: run
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Frame Equalizer Preprocess Speed Test
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8.0]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: dump_file
+  id: variable
+  parameters:
+    comment: ''
+    value: dump_path or str(__import__("pathlib").Path(globals().get("__file__", "base/test/frame_equalizer_preproc/preprocess_speedtest.py")).resolve().parent
+      / "tmp_data" / "fft.iqdata")
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [600, 8.0]
+    rotation: 0
+    state: enabled
+- name: kernel_dir
+  id: variable
+  parameters:
+    comment: Standalone frame-equalizer kernel built by the local Makefile.
+    value: str(__import__("pathlib").Path(globals().get("__file__", "base/test/frame_equalizer_preproc/preprocess_speedtest.py")).resolve().parent
+      / "preprocess" / "build")
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [760, 8.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 20e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [200, 8.0]
+    rotation: 0
+    state: enabled
+- name: vector_size
+  id: variable
+  parameters:
+    comment: VECTOR_SIZE uses fixed 1024-sample AIE tiles.
+    value: '16384'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1072, 12.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_meta_source_0
+  id: blocks_file_meta_source
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Recorded, scalarized complex output of the FFT block
+    detached: 'True'
+    file: dump_file
+    hdr_file: dump_file + ".hdr"
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    repeat: 'False'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [48, 172.0]
+    rotation: 0
+    state: enabled
+- name: blocks_message_debug_0
+  id: blocks_message_debug
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    en_uvec: 'True'
+    log_level: info
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [808, 456.0]
+    rotation: 0
+    state: enabled
+- name: blocks_null_sink_0
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [976, 296.0]
+    rotation: 0
+    state: enabled
+- name: blocks_probe_rate_0
+  id: blocks_probe_rate
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha: '0.15'
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    mintime: '500.0'
+    name: ''
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [352, 476.0]
+    rotation: 0
+    state: enabled
+- name: dump_path
+  id: parameter
+  parameters:
+    alias: ''
+    comment: Complex64 FFT output from dump.grc, with detached .hdr metadata.
+    hide: none
+    label: Dump path
+    short_id: ''
+    type: str
+    value: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1056, 124.0]
+    rotation: 0
+    state: enabled
+- name: freq
+  id: parameter
+  parameters:
+    alias: ''
+    comment: Nominal center frequency from the dataset's SigMF capture metadata.
+    hide: none
+    label: Frequency
+    short_id: ''
+    type: eng_float
+    value: 2.417e9
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [296, 8.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_cint32_to_complex64_0_0
+  id: mlir_aie_cint32_to_complex64
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    fractional_bits: '15'
+    integer_bits: '16'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [760, 244.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_complex64_to_cint32_0
+  id: mlir_aie_complex64_to_cint32
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    fractional_bits: '15'
+    integer_bits: '16'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    safe: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [264, 168.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_mlir_aie_cpp_tagged_int64_to_int64_0
+  id: mlir_aie_mlir_aie_cpp_tagged_int64_to_int64
+  parameters:
+    N_TILES: '16'
+    VECTOR_SIZE: '16384'
+    affinity: ''
+    alias: ''
+    comment: ''
+    kernel_name: MLIR_AIE
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nominal_frequency: freq
+    num_slots: '2'
+    path_insts_bin: kernel_dir + "/insts.bin"
+    path_xclbin: kernel_dir + "/final.xclbin"
+    preprocess: 'True'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [488, 164.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_file_meta_source_0, '0', blocks_probe_rate_0, '0']
+- [blocks_file_meta_source_0, '0', mlir_aie_complex64_to_cint32_0, '0']
+- [blocks_probe_rate_0, rate, blocks_message_debug_0, print]
+- [mlir_aie_cint32_to_complex64_0_0, '0', blocks_null_sink_0, '0']
+- [mlir_aie_complex64_to_cint32_0, '0', mlir_aie_mlir_aie_cpp_tagged_int64_to_int64_0,
+  '0']
+- [mlir_aie_mlir_aie_cpp_tagged_int64_to_int64_0, '0', mlir_aie_cint32_to_complex64_0_0,
+  '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

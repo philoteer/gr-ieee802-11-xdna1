@@ -1,0 +1,390 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: Per-frame SNR and pre-FEC coded BER on CRC-valid frames, excluding
+      the final OFDM symbol.
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: wifi_rx
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: run
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: NPU SNR and BER CSV
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [32, 20.0]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: data_dir
+  id: variable
+  parameters:
+    comment: ''
+    value: '"data/"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [528, 52.0]
+    rotation: 0
+    state: enabled
+- name: diagnostic_output
+  id: variable
+  parameters:
+    comment: ''
+    value: '"data/tmp_out/snr_ber.csv"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [832, 28.0]
+    rotation: 0
+    state: enabled
+- name: file_path
+  id: variable
+  parameters:
+    comment: ''
+    value: data_dir + "/raw_capture/stress_test_awgn_15db.sigmf"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [960, 236.0]
+    rotation: 0
+    state: enabled
+- name: file_path
+  id: variable
+  parameters:
+    comment: ''
+    value: data_dir + "/raw_capture/206.sigmf"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [800, 236.0]
+    rotation: 0
+    state: disabled
+- name: file_path
+  id: variable
+  parameters:
+    comment: ''
+    value: data_dir + "/raw_capture/stress_test.sigmf"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [800, 140.0]
+    rotation: 0
+    state: disabled
+- name: file_path
+  id: variable
+  parameters:
+    comment: ''
+    value: data_dir + "/raw_capture/room_20260927.sigmf"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [960, 140.0]
+    rotation: 0
+    state: disabled
+- name: freq
+  id: variable
+  parameters:
+    comment: ''
+    value: 2.417e9
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [720, 16]
+    rotation: 0
+    state: enabled
+- name: kernel_build_dir
+  id: variable
+  parameters:
+    comment: LS
+    value: '"/home/piloteer/xdna_phy/gr-ieee802-11-aie/Experiments/xclbin_default/LS_EVM/"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1192, 28.0]
+    rotation: 0
+    state: enabled
+- name: kernel_build_dir
+  id: variable
+  parameters:
+    comment: CNN_EVM_BY_CHANNEL/
+    value: '"/home/piloteer/xdna_phy/gr-ieee802-11-aie/Experiments/xclbin_default/CNN_EVM_BY_CHANNEL/"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1192, 116.0]
+    rotation: 0
+    state: disabled
+- name: kernel_build_dir
+  id: variable
+  parameters:
+    comment: MLP_EVM_BY_CHANNEL
+    value: '"/home/piloteer/xdna_phy/gr-ieee802-11-aie/Experiments/xclbin_default/MLP_EVM_BY_CHANNEL"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1192, 204.0]
+    rotation: 0
+    state: disabled
+- name: blocks_file_source_0
+  id: blocks_file_source
+  parameters:
+    affinity: ''
+    alias: ''
+    begin_tag: pmt.PMT_NIL
+    comment: ''
+    file: file_path+"-data"
+    length: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    repeat: 'False'
+    type: short
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 220.0]
+    rotation: 0
+    state: enabled
+- name: blocks_interleaved_short_to_complex_0
+  id: blocks_interleaved_short_to_complex
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale_factor: '32768'
+    swap: 'False'
+    vector_input: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [224, 212.0]
+    rotation: 0
+    state: enabled
+- name: blocks_stream_to_vector_0
+  id: blocks_stream_to_vector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '48'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [912, 400.0]
+    rotation: 0
+    state: enabled
+- name: epy_snr_csv
+  id: epy_block
+  parameters:
+    _source_code: "import csv\nimport threading\nfrom pathlib import Path\n\nimport\
+      \ numpy as np\nimport pmt\nfrom gnuradio import gr\n\n\nclass snr_csv(gr.basic_block):\n\
+      \    \"\"\"One unbinned row per CRC-valid diagnostic PDU; no cross-frame joins.\"\
+      \"\"\n\n    def __init__(self, output_path='data/tmp_out/snr_ber.csv',\n   \
+      \              build_dir='kernel/build', output_symbols=False):\n        gr.basic_block.__init__(self,\
+      \ name='SNR BER EVM CSV', in_sig=None, out_sig=None)\n        self.output_path\
+      \ = output_path\n        self.build_dir = build_dir\n        self.output_symbols\
+      \ = bool(output_symbols)\n        self.output_file = None\n        self.writer\
+      \ = None\n        self.frame_index = 0\n        self.lock = threading.Lock()\n\
+      \        self.message_port_register_in(pmt.intern('diag'))\n        self.set_msg_handler(pmt.intern('diag'),\
+      \ self._handle_diag)\n\n    def start(self):\n        build = Path(self.build_dir)\n\
+      \        marker = build / 'frame_equalizer_build_mode.txt'\n        artifacts\
+      \ = [build / 'final.xclbin', build / 'insts.bin']\n        for path in [marker,\
+      \ *artifacts]:\n            if not path.is_file():\n                raise RuntimeError('Missing\
+      \ kernel build output: ' + str(path))\n        mode = dict(line.split('=', 1)\
+      \ for line in marker.read_text().splitlines() if '=' in line)\n        mode\
+      \ = {key.strip(): value.strip() for key, value in mode.items()}\n        if\
+      \ mode.get('DFRAME_EQUALIZER_OUTPUT_SYMBOLS') != str(int(self.output_symbols)):\n\
+      \            raise RuntimeError('CSV diagnostics require DFRAME_EQUALIZER_OUTPUT_SYMBOLS='\
+      \ + str(int(self.output_symbols)))\n        if marker.stat().st_mtime_ns < max(path.stat().st_mtime_ns\
+      \ for path in artifacts):\n            raise RuntimeError('Kernel build marker\
+      \ is stale; rebuild the kernel')\n        self.estimator = mode.get('EQUALIZER_ALGORITHM',\
+      \ '')\n        if not self.estimator:\n            raise RuntimeError('Kernel\
+      \ build marker is missing EQUALIZER_ALGORITHM')\n        output = Path(self.output_path)\n\
+      \        output.parent.mkdir(parents=True, exist_ok=True)\n        self.output_file\
+      \ = output.open('w', newline='', encoding='utf-8')\n        self.writer = csv.writer(self.output_file)\n\
+      \        self.frame_index = 0\n        self.writer.writerow([\n            'frame_index',\
+      \ 'estimator', 'frame_bytes', 'encoding', 'snr_db',\n            'bit_errors',\
+      \ 'bits_compared', 'ber', 'evm_rms_percent', 'evm_rms_db',\n            'evm_error_power',\
+      \ 'evm_reference_power',\n        ])\n        self.output_file.flush()\n   \
+      \     return True\n\n    @staticmethod\n    def _metadata(metadata, key):\n\
+      \        value = pmt.dict_ref(metadata, pmt.intern(key), pmt.PMT_NIL)\n    \
+      \    if pmt.is_uint64(value):\n            return int(pmt.to_uint64(value))\n\
+      \        if pmt.is_real(value):\n            return float(pmt.to_double(value))\n\
+      \        return ''\n\n    def _handle_diag(self, message):\n        if not pmt.is_pair(message):\n\
+      \            return\n        metadata, diagnostic = pmt.car(message), pmt.cdr(message)\n\
+      \        if not pmt.is_dict(metadata) or not pmt.is_dict(diagnostic):\n    \
+      \        return\n        bits = []\n        for key in ('pre_viterbi', 'corrected_coded'):\n\
+      \            value = pmt.dict_ref(diagnostic, pmt.intern(key), pmt.PMT_NIL)\n\
+      \            if not pmt.is_u8vector(value):\n                return\n      \
+      \      bits.append(np.asarray(pmt.u8vector_elements(value), dtype=np.uint8))\n\
+      \        received, reference = bits\n        if (not received.size or received.size\
+      \ != reference.size or\n                np.any(received > 1) or np.any(reference\
+      \ > 1)):\n            return\n        errors = int(np.count_nonzero(received\
+      \ != reference))\n        evm_percent = evm_db = error_power = reference_power\
+      \ = ''\n        tx = pmt.dict_ref(diagnostic, pmt.intern('transmitted_iq'),\
+      \ pmt.PMT_NIL)\n        eq = pmt.dict_ref(diagnostic, pmt.intern('equalized_iq'),\
+      \ pmt.PMT_NIL)\n        if pmt.is_c32vector(tx) and pmt.is_c32vector(eq):\n\
+      \            tx = np.asarray(pmt.c32vector_elements(tx), dtype=np.complex128)\n\
+      \            eq = np.asarray(pmt.c32vector_elements(eq), dtype=np.complex128)\n\
+      \            if (tx.size and tx.size % 48 == 0 and tx.size == eq.size and\n\
+      \                    np.all(np.isfinite(tx)) and np.all(np.isfinite(eq))):\n\
+      \                power = float(np.vdot(tx, tx).real)\n                if power\
+      \ > 0:\n                    reference_power = power\n                    error_power\
+      \ = float(np.vdot(eq - tx, eq - tx).real)\n                    ratio = float(np.sqrt(error_power\
+      \ / reference_power))\n                    evm_percent = 100.0 * ratio\n   \
+      \                 evm_db = float(20 * np.log10(ratio)) if ratio else float('-inf')\n\
+      \        with self.lock:\n            if self.output_file is None:\n       \
+      \         return\n            self.frame_index += 1\n            self.writer.writerow([\n\
+      \                self.frame_index, self.estimator,\n                self._metadata(metadata,\
+      \ 'frame bytes'), self._metadata(metadata, 'encoding'),\n                self._metadata(metadata,\
+      \ 'snr'), errors, int(received.size),\n                errors / received.size,\
+      \ evm_percent, evm_db, error_power, reference_power,\n            ])\n     \
+      \       self.output_file.flush()\n\n    def stop(self):\n        with self.lock:\n\
+      \            if self.output_file is not None:\n                self.output_file.close()\n\
+      \                self.output_file = None\n        return True\n"
+    affinity: ''
+    alias: ''
+    build_dir: kernel_build_dir
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    output_path: diagnostic_output
+    output_symbols: 'False'
+  states:
+    _io_cache: ('SNR BER EVM CSV', 'snr_csv', [('output_path', "'data/tmp_out/snr_ber.csv'"),
+      ('build_dir', "'kernel/build'"), ('output_symbols', 'False')], [('diag', 'message',
+      1)], [], 'One unbinned row per CRC-valid diagnostic PDU; no cross-frame joins.',
+      ['build_dir', 'output_path', 'output_symbols'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1392, 404.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_decode_mac_EVM_0
+  id: ieee802_11_decode_mac_EVM
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1120, 400.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_complex64_to_cint16_0
+  id: mlir_aie_complex64_to_cint16
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    safe: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [408, 428.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_mlir_aie_80211_phy_0
+  id: mlir_aie_mlir_aie_80211_phy
+  parameters:
+    N_TILES: '16'
+    VECTOR_SIZE: '16384'
+    affinity: ''
+    alias: ''
+    comment: ''
+    kernel_name: MLIR_AIE
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nominal_frequency: freq
+    num_slots: '2'
+    path_insts_bin: kernel_build_dir+"/insts.bin"
+    path_xclbin: kernel_build_dir+"/final.xclbin"
+    weights_path: ''''''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [624, 380.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_sigmf_tag_injector_0
+  id: mlir_aie_sigmf_tag_injector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    metadata_file: file_path+"-meta"
+    minoutbuf: '0'
+    start_sample: '0'
+    tag_key: rx_freq
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [544, 188.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_file_source_0, '0', blocks_interleaved_short_to_complex_0, '0']
+- [blocks_interleaved_short_to_complex_0, '0', mlir_aie_sigmf_tag_injector_0, '0']
+- [blocks_stream_to_vector_0, '0', ieee802_11_decode_mac_EVM_0, '0']
+- [ieee802_11_decode_mac_EVM_0, diag, epy_snr_csv, diag]
+- [mlir_aie_complex64_to_cint16_0, '0', mlir_aie_mlir_aie_80211_phy_0, '0']
+- [mlir_aie_mlir_aie_80211_phy_0, '0', blocks_stream_to_vector_0, '0']
+- [mlir_aie_sigmf_tag_injector_0, '0', mlir_aie_complex64_to_cint16_0, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

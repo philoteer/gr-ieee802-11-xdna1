@@ -1,0 +1,699 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: Custom
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: Run the standalone frame equalizer NPU kernel on recorded FFT output.
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: frame_equalizer_test
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: run
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Frame Equalizer Test
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8.0]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: diagnostic_estimator
+  id: variable
+  parameters:
+    comment: Label the XCLBIN estimator used for exported comparisons.
+    value: '"LS"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [952, 16.0]
+    rotation: 0
+    state: enabled
+- name: diagnostic_evm_output
+  id: variable
+  parameters:
+    comment: Bounded channel-estimator diagnostic export.
+    value: '"../../data/tmp_out/channel_estimator_evm_unit_test.jsonl"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1384, 112.0]
+    rotation: 0
+    state: enabled
+- name: diagnostic_max_records
+  id: variable
+  parameters:
+    comment: Maximum number of frame and CRC event records written to JSONL.
+    value: '10000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [952, 112.0]
+    rotation: 0
+    state: enabled
+- name: diagnostic_output
+  id: variable
+  parameters:
+    comment: Bounded channel-estimator diagnostic export.
+    value: '"../../data/tmp_out/channel_estimator_diagnostic_unit_test.jsonl"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1272, 16.0]
+    rotation: 0
+    state: enabled
+- name: freq
+  id: variable
+  parameters:
+    comment: ''
+    value: 2.417e9
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [296, 8.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 20e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [200, 8.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_meta_source_0
+  id: blocks_file_meta_source
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Recorded, scalarized complex output of the FFT block
+    detached: 'True'
+    file: "/home/piloteer/\uBC14\uD0D5\uD654\uBA74/fft_full.iqdata"
+    hdr_file: "/home/piloteer/\uBC14\uD0D5\uD654\uBA74/fft_full.iqdata.hdr"
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    repeat: 'False'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [64, 156.0]
+    rotation: 0
+    state: enabled
+- name: blocks_null_sink_0
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '3'
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1168, 440.0]
+    rotation: 0
+    state: enabled
+- name: blocks_stream_to_vector_0
+  id: blocks_stream_to_vector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '48'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [784, 200.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_0
+  id: epy_block
+  parameters:
+    VECTOR_SIZE: '4096'
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nimport pmt\nimport\
+      \ os\nimport tempfile\n\nimport aie.iron as iron\nfrom aie.utils import DefaultNPURuntime,\
+      \ NPUKernel\n\n\nN_TILES = 4\nFFT_MAX_TAGS = 31\nFFT_METADATA_WORDS = 2 + 2\
+      \ * FFT_MAX_TAGS\nMAX_OUTPUT_TAGS = 16\nCSI_SIZE = 64\nQ16_15_SCALE = 1 << 15\n\
+      Q29_SCALE = 1 << 29\n\nCSI_DTYPE = np.dtype([\n    (\"real\", np.int32),\n \
+      \   (\"imag\", np.int32),\n], align=True)\nTAG_METADATA_DTYPE = np.dtype([\n\
+      \    (\"offset\", np.int32),\n    (\"frame_start\", np.uint32),\n    (\"frame_bytes\"\
+      , np.uint64),\n    (\"encoding\", np.uint64),\n    (\"snr_linear\", np.uint64),\n\
+      \    (\"center_frequency_mhz\", np.uint32),\n    (\"frequency_offset\", np.int32),\n\
+      \    (\"beta\", np.int32),\n    (\"csi\", CSI_DTYPE, (CSI_SIZE,)),\n], align=True)\n\
+      TILE_METADATA_DTYPE = np.dtype([\n    (\"output_length\", np.int32),\n    (\"\
+      tag_count\", np.int32),\n    (\"tags\", TAG_METADATA_DTYPE, (MAX_OUTPUT_TAGS,)),\n\
+      ], align=True)\nOUTPUT_METADATA_WORDS = (\n    N_TILES * TILE_METADATA_DTYPE.itemsize\
+      \ // np.dtype(np.int32).itemsize\n)\n\n\nclass frame_equalizer_npu(gr.basic_block):\n\
+      \    \"\"\"Adapt GNU Radio complex samples and tags to the frame equalizer ABI.\"\
+      \"\"\n\n    def __init__(self, path_xclbin=\"build/final.xclbin\",\n       \
+      \          path_insts_bin=\"build/insts.bin\", VECTOR_SIZE=4096, nominal_frequency=2.417e9):\n\
+      \        gr.basic_block.__init__(\n            self,\n            name=\"frame_equalizer_npu\"\
+      ,\n            in_sig=[np.complex64],\n            out_sig=[np.int8],\n    \
+      \    )\n\n        if VECTOR_SIZE % N_TILES:\n            raise ValueError(\"\
+      VECTOR_SIZE must be divisible by four\")\n        if TAG_METADATA_DTYPE.itemsize\
+      \ != 560:\n            raise RuntimeError(\"frame equalizer tag metadata ABI\
+      \ mismatch\")\n        if TILE_METADATA_DTYPE.itemsize != 8968:\n          \
+      \  raise RuntimeError(\"frame equalizer tile metadata ABI mismatch\")\n\n  \
+      \      self.path_xclbin = path_xclbin\n        self.path_insts_bin = path_insts_bin\n\
+      \        self.kernel_handle = None\n        self.VECTOR_SIZE = VECTOR_SIZE\n\
+      \        self.TILE_SIZE = VECTOR_SIZE // N_TILES\n        self.nominal_frequency\
+      \ = nominal_frequency\n        self.out_buf = iron.zeros(VECTOR_SIZE, dtype=np.int8)\n\
+      \        self.out_meta_buf = iron.zeros(\n            OUTPUT_METADATA_WORDS,\
+      \ dtype=np.int32)\n\n        self.set_output_multiple(VECTOR_SIZE)\n       \
+      \ self.set_tag_propagation_policy(gr.TPP_DONT)\n        self.wifi_start_key\
+      \ = pmt.intern(\"wifi_start\")\n        self.tag_srcid = pmt.intern(\"frame_equalizer\"\
+      )\n        self.tag_keys = {\n            \"frame_bytes\": pmt.intern(\"frame\
+      \ bytes\"),\n            \"encoding\": pmt.intern(\"encoding\"),\n         \
+      \   \"snr\": pmt.intern(\"snr\"),\n            \"nominal_frequency\": pmt.intern(\"\
+      nominal frequency\"),\n            \"frequency_offset\": pmt.intern(\"frequency\
+      \ offset\"),\n            \"beta\": pmt.intern(\"beta\"),\n            \"csi\"\
+      : pmt.intern(\"csi\"),\n        }\n\n    def set_nominal_frequency(self, nominal_frequency):\n\
+      \        self.nominal_frequency = nominal_frequency\n\n    def start(self):\n\
+      \        center_frequency_mhz = round(self.nominal_frequency / 1e6)\n      \
+      \  instructions = np.fromfile(self.path_insts_bin, dtype=np.uint32).copy()\n\
+      \        for marker, value in (\n                (0x13579BDF, center_frequency_mhz),\n\
+      \                (0x2468ACE0, round(20.0 / center_frequency_mhz * (1 << 30)))):\n\
+      \            matches = np.flatnonzero(instructions == marker)\n            if\
+      \ len(matches) != 1:\n                raise RuntimeError(\"center-frequency\
+      \ RTP marker is missing or ambiguous\")\n            instructions[matches[0]]\
+      \ = np.uint32(value)\n        self.rtp_dir = tempfile.TemporaryDirectory()\n\
+      \        patched_insts = os.path.join(self.rtp_dir.name, \"insts.bin\")\n  \
+      \      instructions.tofile(patched_insts)\n        kernel = NPUKernel(\n   \
+      \         self.path_xclbin,\n            patched_insts,\n            kernel_name=\"\
+      MLIR_AIE\",\n        )\n        self.kernel_handle = DefaultNPURuntime.load(kernel)\n\
+      \        return True\n\n    def forecast(self, noutput_items, ninputs):\n  \
+      \      return [max(self.VECTOR_SIZE, noutput_items)]\n\n    def general_work(self,\
+      \ input_items, output_items):\n        in0 = input_items[0]\n        out0 =\
+      \ output_items[0]\n        n_chunks = min(\n            len(in0) // self.VECTOR_SIZE,\n\
+      \            len(out0) // self.VECTOR_SIZE,\n        )\n        if n_chunks\
+      \ == 0:\n            return 0\n\n        abs_read_start = self.nitems_read(0)\n\
+      \        abs_write_start = self.nitems_written(0)\n        total_produced =\
+      \ 0\n\n        for chunk_idx in range(n_chunks):\n            chunk_start =\
+      \ chunk_idx * self.VECTOR_SIZE\n            chunk_end = chunk_start + self.VECTOR_SIZE\n\
+      \            samples = in0[chunk_start:chunk_end]\n\n            # Embedded\
+      \ blocks cannot expose s64 ports. Convert complex64 to\n            # the kernel's\
+      \ interleaved Q16.15 cint32 representation here.\n            scaled_real =\
+      \ np.rint(samples.real * Q16_15_SCALE)\n            scaled_imag = np.rint(samples.imag\
+      \ * Q16_15_SCALE)\n            limits = np.iinfo(np.int32)\n            components\
+      \ = np.empty(self.VECTOR_SIZE * 2, dtype=np.int32)\n            components[0::2]\
+      \ = np.clip(\n                scaled_real, limits.min, limits.max).astype(np.int32)\n\
+      \            components[1::2] = np.clip(\n                scaled_imag, limits.min,\
+      \ limits.max).astype(np.int32)\n\n            input_metadata = np.zeros(\n \
+      \               (N_TILES, FFT_METADATA_WORDS), dtype=np.int32)\n           \
+      \ chunk_abs_start = abs_read_start + chunk_start\n            for tile_idx in\
+      \ range(N_TILES):\n                tile_abs_start = chunk_abs_start + tile_idx\
+      \ * self.TILE_SIZE\n                tile_abs_end = tile_abs_start + self.TILE_SIZE\n\
+      \                tags = self.get_tags_in_range(\n                    0, tile_abs_start,\
+      \ tile_abs_end, self.wifi_start_key)\n                tags = tags[:FFT_MAX_TAGS]\n\
+      \                input_metadata[tile_idx, 0] = self.TILE_SIZE\n            \
+      \    input_metadata[tile_idx, 1] = len(tags)\n                for tag_idx, tag\
+      \ in enumerate(tags):\n                    input_metadata[tile_idx, 2 + 2 *\
+      \ tag_idx] = (\n                        int(tag.offset) - tile_abs_start)\n\
+      \                    value = pmt.to_double(tag.value)\n                    input_metadata[tile_idx,\
+      \ 3 + 2 * tag_idx] = np.int32(\n                        np.clip(round(value\
+      \ * Q29_SCALE),\n                                limits.min, limits.max))\n\n\
+      \            DefaultNPURuntime.run(\n                self.kernel_handle,\n \
+      \               [\n                    iron.tensor(components, dtype=np.int32),\n\
+      \                    iron.tensor(input_metadata.reshape(-1), dtype=np.int32),\n\
+      \                    self.out_buf,\n                    self.out_meta_buf,\n\
+      \                ],\n            )\n\n            npu_output = self.out_buf.numpy()\n\
+      \            metadata = self.out_meta_buf.numpy().view(\n                TILE_METADATA_DTYPE).reshape(N_TILES)\n\
+      \            for tile_idx, tile_meta in enumerate(metadata):\n             \
+      \   tile_len = max(\n                    0, min(int(tile_meta[\"output_length\"\
+      ]), self.TILE_SIZE))\n                tile_start = tile_idx * self.TILE_SIZE\n\
+      \                output_start = total_produced\n                output_end =\
+      \ output_start + tile_len\n                out0[output_start:output_end] = npu_output[\n\
+      \                    tile_start:tile_start + tile_len]\n\n                tile_abs_start\
+      \ = abs_write_start + output_start\n                tag_count = max(\n     \
+      \               0, min(int(tile_meta[\"tag_count\"]), MAX_OUTPUT_TAGS))\n  \
+      \              for tag in tile_meta[\"tags\"][:tag_count]:\n               \
+      \     tag_offset = int(tag[\"offset\"])\n                    if 0 <= tag_offset\
+      \ < tile_len:\n                        self._add_frame_tags(tile_abs_start +\
+      \ tag_offset, tag)\n                total_produced = output_end\n\n        self.consume_each(n_chunks\
+      \ * self.VECTOR_SIZE)\n        return total_produced\n\n    def _add_frame_tags(self,\
+      \ offset, tag):\n        csi = np.empty(CSI_SIZE, dtype=np.complex64)\n    \
+      \    csi.real = tag[\"csi\"][\"real\"] / Q16_15_SCALE\n        csi.imag = tag[\"\
+      csi\"][\"imag\"] / Q16_15_SCALE\n        values = {\n            \"frame_bytes\"\
+      : pmt.from_uint64(int(tag[\"frame_bytes\"])),\n            \"encoding\": pmt.from_uint64(int(tag[\"\
+      encoding\"])),\n            \"snr\": pmt.from_double(10.0 * np.log10(int(tag[\"\
+      snr_linear\"]) / 32.0)),\n            \"nominal_frequency\": pmt.from_double(int(tag[\"\
+      center_frequency_mhz\"]) * 1e6),\n            \"frequency_offset\": pmt.from_double(\n\
+      \                int(tag[\"frequency_offset\"]) / Q29_SCALE * 20e6 / (2.0 *\
+      \ np.pi)),\n            \"beta\": pmt.from_double(int(tag[\"beta\"]) / Q29_SCALE),\n\
+      \            \"csi\": pmt.init_c32vector(52, csi[:52].tolist()),\n        }\n\
+      \        for name, value in values.items():\n            self.add_item_tag(\n\
+      \                0, offset, self.tag_keys[name], value, self.tag_srcid)\n"
+    affinity: ''
+    alias: ''
+    comment: Converts complex64 to cint32 internally because Embedded Python blocks
+      do not support s64 ports.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nominal_frequency: freq
+    path_insts_bin: '"build/insts.bin"'
+    path_xclbin: '"build/final.xclbin"'
+  states:
+    _io_cache: ('frame_equalizer_npu', 'frame_equalizer_npu', [('path_xclbin', "'build/final.xclbin'"),
+      ('path_insts_bin', "'build/insts.bin'"), ('VECTOR_SIZE', '4096'), ('nominal_frequency',
+      '2417000000.0')], [('0', 'complex', 1)], [('0', 'byte', 1)], 'Adapt GNU Radio
+      complex samples and tags to the frame equalizer ABI.', ['VECTOR_SIZE', 'nominal_frequency',
+      'path_insts_bin', 'path_xclbin'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [512, 264.0]
+    rotation: 0
+    state: disabled
+- name: epy_evm_diagnostic
+  id: epy_block
+  parameters:
+    _source_code: "import json\nimport os\nimport threading\n\nimport numpy as np\n\
+      import pmt\nfrom gnuradio import gr\n\n\nclass evm_diagnostic(gr.basic_block):\n\
+      \    def __init__(self, output_path='../../data/tmp_out/channel_estimator_evm.jsonl',\n\
+      \                 max_records=10000, report_interval=25, estimator_label='LS'):\n\
+      \        gr.basic_block.__init__(\n            self,\n            name='evm_diagnostic',\n\
+      \            in_sig=[np.int8],\n            out_sig=[],\n        )\n       \
+      \ self.set_tag_propagation_policy(gr.TPP_DONT)\n        self.output_file = None\n\
+      \        self.max_records = max(0, int(max_records))\n        self.report_interval\
+      \ = max(1, int(report_interval))\n        self.estimator_label = str(estimator_label)\n\
+      \        self.record_count = 0\n        self.evm_samples = 0\n        self.error_power_sum\
+      \ = 0.0\n        self.reference_power_sum = 0.0\n        self.aligned_evm_sum\
+      \ = 0.0\n        self.output_lock = threading.Lock()\n        self.message_port_register_in(pmt.intern('diag'))\n\
+      \        self.set_msg_handler(pmt.intern('diag'), self._handle_iq_data)\n\n\
+      \        directory = os.path.dirname(output_path)\n        if directory:\n \
+      \           os.makedirs(directory, exist_ok=True)\n        if output_path:\n\
+      \            self.output_file = open(output_path, 'w', encoding='ascii')\n\n\
+      \    def forecast(self, noutput_items, ninputs):\n        return [1] * ninputs\n\
+      \n    def general_work(self, input_items, output_items):\n        if len(input_items[0]):\n\
+      \            self.consume(0, len(input_items[0]))\n        return 0\n\n    def\
+      \ _write_record(self, record):\n        with self.output_lock:\n           \
+      \ if self.output_file is None or self.record_count >= self.max_records:\n  \
+      \              return\n            self.output_file.write(\n               \
+      \ json.dumps(record, separators=(',', ':'), allow_nan=False) + '\\n'\n     \
+      \       )\n            self.output_file.flush()\n            self.record_count\
+      \ += 1\n\n    @staticmethod\n    def _metadata_uint64(metadata, key):\n    \
+      \    if not pmt.is_dict(metadata):\n            return None\n        value =\
+      \ pmt.dict_ref(metadata, pmt.intern(key), pmt.PMT_NIL)\n        return int(pmt.to_uint64(value))\
+      \ if pmt.is_uint64(value) else None\n\n    def _handle_iq_data(self, message):\n\
+      \        if not pmt.is_pair(message) or not pmt.is_dict(pmt.cdr(message)):\n\
+      \            self._write_record({\n                'event': 'invalid_evm_message',\n\
+      \                'reason': 'expected_metadata_and_iq_dictionary',\n        \
+      \    })\n            return\n\n        metadata = pmt.car(message)\n       \
+      \ iq_data = pmt.cdr(message)\n        vectors = {}\n        for key in ('transmitted_iq',\
+      \ 'equalized_iq'):\n            value = pmt.dict_ref(iq_data, pmt.intern(key),\
+      \ pmt.PMT_NIL)\n            if not pmt.is_c32vector(value):\n              \
+      \  self._write_record({\n                    'event': 'invalid_evm_message',\n\
+      \                    'reason': 'missing_complex_vector',\n                 \
+      \   'vector': key,\n                })\n                return\n           \
+      \ vectors[key] = np.asarray(\n                pmt.c32vector_elements(value),\
+      \ dtype=np.complex128\n            )\n\n        transmitted = vectors['transmitted_iq']\n\
+      \        equalized = vectors['equalized_iq']\n        if (transmitted.size ==\
+      \ 0 or transmitted.size % 48 != 0 or\n                      equalized.size !=\
+      \ transmitted.size or\n                not np.all(np.isfinite(transmitted))\
+      \ or\n                not np.all(np.isfinite(equalized))):\n            self._write_record({\n\
+      \                'event': 'invalid_evm_message',\n                'reason':\
+      \ 'invalid_vector_size_or_nonfinite_values',\n                'transmitted_iq_size':\
+      \ int(transmitted.size),\n                'received_iq_size': None,\n      \
+      \          'equalized_iq_size': int(equalized.size),\n            })\n     \
+      \       return\n\n        reference_power = float(np.vdot(transmitted, transmitted).real)\n\
+      \        if reference_power <= np.finfo(np.float64).tiny:\n            self._write_record({\n\
+      \                'event': 'invalid_evm_message',\n                'reason':\
+      \ 'zero_reference_power',\n            })\n            return\n\n        error\
+      \ = equalized - transmitted\n        error_power = float(np.vdot(error, error).real)\n\
+      \        evm_ratio = float(np.sqrt(error_power / reference_power))\n       \
+      \ gain = np.vdot(transmitted, equalized) / reference_power\n        aligned_error\
+      \ = equalized / gain - transmitted if abs(gain) else error\n        aligned_evm_ratio\
+      \ = float(np.sqrt(\n            np.vdot(aligned_error, aligned_error).real /\
+      \ reference_power\n        ))\n        evm_percent = 100.0 * evm_ratio\n   \
+      \     aligned_evm_percent = 100.0 * aligned_evm_ratio\n        evm_db = float(20.0\
+      \ * np.log10(max(evm_ratio, 1e-15)))\n        frame_bytes = self._metadata_uint64(metadata,\
+      \ 'frame bytes')\n        encoding = self._metadata_uint64(metadata, 'encoding')\n\
+      \n        self.evm_samples += 1\n        self.error_power_sum += error_power\n\
+      \        self.reference_power_sum += reference_power\n        self.aligned_evm_sum\
+      \ += aligned_evm_percent\n        cumulative_evm_percent = float(100.0 * np.sqrt(\n\
+      \            self.error_power_sum / self.reference_power_sum\n        ))\n \
+      \       mean_aligned_evm_percent = self.aligned_evm_sum / self.evm_samples\n\
+      \        self._write_record({\n            'event': 'evm',\n            'sample_index':\
+      \ self.evm_samples,\n            'frame_bytes': frame_bytes,\n            'encoding':\
+      \ encoding,\n            'payload_symbols_compared': int(transmitted.size //\
+      \ 48),\n            'complex_symbols_compared': int(transmitted.size),\n   \
+      \         'evm_rms_percent': evm_percent,\n            'evm_rms_db': evm_db,\n\
+      \            'mer_db': -evm_db,\n            'gain_magnitude_db': 20.0 * np.log10(max(abs(gain),\
+      \ 1e-15)),\n            'gain_phase_deg': float(np.degrees(np.angle(gain))),\n\
+      \            'gain_aligned_evm_rms_percent': aligned_evm_percent,\n        \
+      \    'cumulative_evm_rms_percent': cumulative_evm_percent,\n            'mean_gain_aligned_evm_percent':\
+      \ mean_aligned_evm_percent,\n            'region': 'CRC-valid equalized payload\
+      \ symbols, excluding final OFDM symbol',\n            'estimator': self.estimator_label,\n\
+      \        })\n        if self.evm_samples == 1 or self.evm_samples % self.report_interval\
+      \ == 0:\n            print(\n                'EVM: sample={} encoding={} symbols={}\
+      \ raw={:.4f}% aligned={:.4f}% cumulative={:.4f}%'.format(\n                \
+      \    self.evm_samples, encoding, transmitted.size // 48,\n                 \
+      \   evm_percent, aligned_evm_percent, cumulative_evm_percent\n             \
+      \   )\n            )\n\n    def stop(self):\n        if self.output_file is\
+      \ not None:\n            self.output_file.close()\n            self.output_file\
+      \ = None\n        return True\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    estimator_label: diagnostic_estimator
+    max_records: diagnostic_max_records
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    output_path: diagnostic_evm_output
+    report_interval: '25'
+  states:
+    _io_cache: ('evm_diagnostic', 'evm_diagnostic', [('output_path', "'../../data/tmp_out/channel_estimator_evm.jsonl'"),
+      ('max_records', '10000'), ('report_interval', '25'), ('estimator_label', "'LS'")],
+      [('0', 'byte', 1), ('diag', 'message', 1)], [], '', ['estimator_label', 'max_records',
+      'report_interval'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [752, 344.0]
+    rotation: 0
+    state: enabled
+- name: epy_frame_diagnostic
+  id: epy_block
+  parameters:
+    _source_code: "import json\nimport os\nimport threading\nimport time\n\nimport\
+      \ numpy as np\nimport pmt\nfrom gnuradio import gr\n\n\nclass frame_diagnostic(gr.basic_block):\n\
+      \    def __init__(self, output_path='../../data/tmp_out/frame_diagnostic.jsonl',\n\
+      \                 max_records=10000, report_interval=25,\n                 headless_idle_seconds=10.0,\
+      \ estimator_label='LS'):\n        gr.basic_block.__init__(\n            self,\n\
+      \            name='frame_diagnostic',\n            in_sig=[np.int8],\n     \
+      \       out_sig=[np.float32, np.float32, np.float32],\n        )\n        self.set_tag_propagation_policy(gr.TPP_DONT)\n\
+      \        self.max_records = max(0, int(max_records))\n        self.report_interval\
+      \ = max(1, int(report_interval))\n        self.estimator_label = str(estimator_label)\n\
+      \        self.record_count = 0\n        self.crc_valid_count = 0\n        self.pre_fec_bit_errors\
+      \ = 0\n        self.pre_fec_bits_compared = 0\n        self.pre_fec_ber_samples\
+      \ = 0\n        self.latest_ber = 0.0\n        self.cumulative_ber = 0.0\n  \
+      \      self.pending = []\n        self.lock = threading.Lock()\n        self.last_work\
+      \ = time.monotonic()\n        self.seen_input = False\n        self.stopping\
+      \ = False\n        self.message_port_register_in(pmt.intern('crc_ok'))\n   \
+      \     self.set_msg_handler(pmt.intern('crc_ok'), self._handle_crc_ok)\n    \
+      \    self.message_port_register_in(pmt.intern('diag'))\n        self.set_msg_handler(pmt.intern('diag'),\
+      \ self._handle_diag)\n\n        directory = os.path.dirname(output_path)\n \
+      \       if directory:\n            os.makedirs(directory, exist_ok=True)\n \
+      \       self.output_file = open(output_path, 'w', encoding='ascii') if output_path\
+      \ else None\n\n        if os.environ.get('WIFI_DIAGNOSTIC_HEADLESS') == '1':\n\
+      \            self.headless_thread = threading.Thread(\n                target=self._headless_watchdog,\n\
+      \                args=(max(1.0, float(headless_idle_seconds)),),\n         \
+      \       daemon=True,\n            )\n            self.headless_thread.start()\n\
+      \n    def forecast(self, noutput_items, ninputs):\n        return [1] * ninputs\n\
+      \n    def general_work(self, input_items, output_items):\n        if len(input_items[0]):\n\
+      \            self.seen_input = True\n            self.last_work = time.monotonic()\n\
+      \            self.consume(0, len(input_items[0]))\n        with self.lock:\n\
+      \            produced = min(len(self.pending), *(len(items) for items in output_items))\n\
+      \            for index in range(produced):\n                values = self.pending.pop(0)\n\
+      \                for port, value in enumerate(values):\n                   \
+      \ output_items[port][index] = value\n        return produced\n\n    def _write_record(self,\
+      \ record):\n        with self.lock:\n            if self.output_file is None\
+      \ or self.record_count >= self.max_records:\n                return\n      \
+      \      self.output_file.write(\n                json.dumps(record, separators=(',',\
+      \ ':'), allow_nan=False) + '\\n'\n            )\n            self.output_file.flush()\n\
+      \            self.record_count += 1\n\n    def _queue_metrics(self):\n     \
+      \   with self.lock:\n            self.pending.append((\n                float(self.crc_valid_count),\n\
+      \                self.latest_ber,\n                self.cumulative_ber,\n  \
+      \          ))\n\n    def _handle_crc_ok(self, _message):\n        with self.lock:\n\
+      \            self.crc_valid_count += 1\n            crc_valid_count = self.crc_valid_count\n\
+      \        self._write_record({\n            'event': 'crc_ok',\n            'crc_valid_count':\
+      \ crc_valid_count,\n            'estimator': self.estimator_label,\n       \
+      \ })\n        self._queue_metrics()\n\n    @staticmethod\n    def _metadata_uint64(metadata,\
+      \ key):\n        if not pmt.is_dict(metadata):\n            return None\n  \
+      \      value = pmt.dict_ref(metadata, pmt.intern(key), pmt.PMT_NIL)\n      \
+      \  return int(pmt.to_uint64(value)) if pmt.is_uint64(value) else None\n\n  \
+      \  def _handle_diag(self, message):\n        if not pmt.is_pair(message) or\
+      \ not pmt.is_dict(pmt.cdr(message)):\n            return\n        metadata =\
+      \ pmt.car(message)\n        diagnostic = pmt.cdr(message)\n        received\
+      \ = pmt.dict_ref(diagnostic, pmt.intern('pre_viterbi'), pmt.PMT_NIL)\n     \
+      \   corrected = pmt.dict_ref(diagnostic, pmt.intern('corrected_coded'), pmt.PMT_NIL)\n\
+      \        if not pmt.is_u8vector(received) or not pmt.is_u8vector(corrected):\n\
+      \            return\n        rx_bits = np.asarray(pmt.u8vector_elements(received),\
+      \ dtype=np.uint8)\n        reference_bits = np.asarray(pmt.u8vector_elements(corrected),\
+      \ dtype=np.uint8)\n        if (rx_bits.size == 0 or rx_bits.size != reference_bits.size\
+      \ or\n                np.any(rx_bits > 1) or np.any(reference_bits > 1)):\n\
+      \            return\n\n        bit_errors = int(np.count_nonzero(rx_bits !=\
+      \ reference_bits))\n        bits_compared = int(rx_bits.size)\n        sample_ber\
+      \ = bit_errors / bits_compared\n        with self.lock:\n            self.pre_fec_ber_samples\
+      \ += 1\n            self.pre_fec_bit_errors += bit_errors\n            self.pre_fec_bits_compared\
+      \ += bits_compared\n            self.latest_ber = sample_ber\n            self.cumulative_ber\
+      \ = self.pre_fec_bit_errors / self.pre_fec_bits_compared\n            sample_index\
+      \ = self.pre_fec_ber_samples\n            cumulative_ber = self.cumulative_ber\n\
+      \        self._write_record({\n            'event': 'pre_fec_coded_ber',\n \
+      \           'sample_index': sample_index,\n            'frame_bytes': self._metadata_uint64(metadata,\
+      \ 'frame bytes'),\n            'encoding': self._metadata_uint64(metadata, 'encoding'),\n\
+      \            'bit_errors': bit_errors,\n            'bits_compared': bits_compared,\n\
+      \            'ber': sample_ber,\n            'cumulative_bit_errors': self.pre_fec_bit_errors,\n\
+      \            'cumulative_bits_compared': self.pre_fec_bits_compared,\n     \
+      \       'cumulative_ber': cumulative_ber,\n            'region': 'deinterleaved\
+      \ coded bits, excluding final OFDM symbol',\n            'estimator': self.estimator_label,\n\
+      \        })\n        self._queue_metrics()\n        if sample_index == 1 or\
+      \ sample_index % self.report_interval == 0:\n            print('pre-FEC coded\
+      \ BER sample {}: {}/{} ({:.6g}); cumulative {:.6g}'.format(\n              \
+      \  sample_index, bit_errors, bits_compared, sample_ber, cumulative_ber\n   \
+      \         ))\n\n    def _headless_watchdog(self, idle_seconds):\n        while\
+      \ not self.stopping:\n            time.sleep(0.25)\n            if self.seen_input\
+      \ and time.monotonic() - self.last_work >= idle_seconds:\n                try:\n\
+      \                    from PyQt5 import QtWidgets\n                    app =\
+      \ QtWidgets.QApplication.instance()\n                    if app is not None:\n\
+      \                        app.quit()\n                except ImportError:\n \
+      \                   pass\n                return\n\n    def stop(self):\n  \
+      \      self.stopping = True\n        if self.output_file is not None:\n    \
+      \        self.output_file.close()\n            self.output_file = None\n   \
+      \     return True\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    estimator_label: diagnostic_estimator
+    headless_idle_seconds: '10.0'
+    max_records: diagnostic_max_records
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    output_path: diagnostic_output
+    report_interval: '25'
+  states:
+    _io_cache: ('frame_diagnostic', 'frame_diagnostic', [('output_path', "'../../data/tmp_out/frame_diagnostic.jsonl'"),
+      ('max_records', '10000'), ('report_interval', '25'), ('headless_idle_seconds',
+      '10.0'), ('estimator_label', "'LS'")], [('0', 'byte', 1), ('crc_ok', 'message',
+      1), ('diag', 'message', 1)], [('0', 'float', 1), ('1', 'float', 1), ('2', 'float',
+      1)], '', ['estimator_label', 'max_records', 'report_interval'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [760, 472.0]
+    rotation: 0
+    state: enabled
+- name: evm_build_mode_check
+  id: snippet
+  parameters:
+    alias: ''
+    code: 'from pathlib import Path
+
+
+      build = Path(''build'')
+
+      marker = build / ''frame_equalizer_build_mode.txt''
+
+      artifacts = [build / ''final.xclbin'', build / ''insts.bin'']
+
+      missing = [str(path) for path in [marker, *artifacts] if not path.is_file()]
+
+      if missing: raise RuntimeError(''EVM diagnostics require kernel build output(s):
+      '' + '', ''.join(missing) + ''; run `make DFRAME_EQUALIZER_OUTPUT_SYMBOLS=1
+      compile` from stage42/test/frame_equalizer/'')
+
+      mode = dict((parts[0].strip(), parts[1].strip()) for parts in (line.split(''='',
+      1) for line in marker.read_text(encoding=''ascii'').splitlines()) if len(parts)
+      == 2)
+
+      if mode.get(''DFRAME_EQUALIZER_OUTPUT_SYMBOLS'') != ''1'': raise RuntimeError(''EVM
+      diagnostics require DFRAME_EQUALIZER_OUTPUT_SYMBOLS=1; rebuild with `make
+      DFRAME_EQUALIZER_OUTPUT_SYMBOLS=1 compile` from stage42/test/frame_equalizer/'')
+
+      if marker.stat().st_mtime_ns < max(path.stat().st_mtime_ns for path in artifacts):
+      raise RuntimeError(str(marker) + '' is older than the NPU artifacts; rebuild
+      the kernel'')'
+    comment: ''
+    priority: '0'
+    section: init_before_blocks
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [120, 336.0]
+    rotation: 0
+    state: enabled
+- name: ieee802_11_decode_mac_EVM_0
+  id: ieee802_11_decode_mac_EVM
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [992, 208.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_mlir_aie_cpp_equalizer_test_evm_0
+  id: mlir_aie_mlir_aie_cpp_equalizer_test_evm
+  parameters:
+    N_TILES: '16'
+    VECTOR_SIZE: '16384'
+    affinity: ''
+    alias: ''
+    comment: ''
+    kernel_name: MLIR_AIE
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nominal_frequency: freq
+    num_slots: '1'
+    path_insts_bin: build/insts.bin
+    path_xclbin: build/final.xclbin
+    weights_path: ''''''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [480, 52.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_1
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: diag1
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [800, 112.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_1_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: out
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1200, 200.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_1_0_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: diag
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1200, 256.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: diag1
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [488, 400.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: out
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [496, 584.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1_0_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: diag
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [496, 456.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_file_meta_source_0, '0', epy_block_0, '0']
+- [blocks_file_meta_source_0, '0', mlir_aie_mlir_aie_cpp_equalizer_test_evm_0, '0']
+- [blocks_stream_to_vector_0, '0', ieee802_11_decode_mac_EVM_0, '0']
+- [epy_frame_diagnostic, '0', blocks_null_sink_0, '0']
+- [epy_frame_diagnostic, '1', blocks_null_sink_0, '1']
+- [epy_frame_diagnostic, '2', blocks_null_sink_0, '2']
+- [ieee802_11_decode_mac_EVM_0, diag, virtual_sink_1_0_0, '0']
+- [ieee802_11_decode_mac_EVM_0, out, virtual_sink_1_0, '0']
+- [mlir_aie_mlir_aie_cpp_equalizer_test_evm_0, '0', blocks_stream_to_vector_0, '0']
+- [mlir_aie_mlir_aie_cpp_equalizer_test_evm_0, '0', virtual_sink_1, '0']
+- [virtual_source_1, '0', epy_evm_diagnostic, '0']
+- [virtual_source_1, '0', epy_frame_diagnostic, '0']
+- [virtual_source_1_0, '0', epy_frame_diagnostic, crc_ok]
+- [virtual_source_1_0_0, '0', epy_evm_diagnostic, diag]
+- [virtual_source_1_0_0, '0', epy_frame_diagnostic, diag]
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

@@ -1,0 +1,522 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: Custom
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: Compare GNU Radio and AIE frame-equalizer decision streams from recorded
+      FFT output. The x-axis is decision index, not RF sample time.
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: frame_equalizer_realtime_test
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: run
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Frame Equalizer Decision Comparison
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 12.0]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: freq
+  id: variable
+  parameters:
+    comment: ''
+    value: 2.417e9
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [152, 112.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 20e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [64, 112.0]
+    rotation: 0
+    state: enabled
+- name: blocks_char_to_float_0
+  id: blocks_char_to_float
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale: '1'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1000, 192.0]
+    rotation: 0
+    state: enabled
+- name: blocks_char_to_float_0_0
+  id: blocks_char_to_float
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale: '1'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1008, 312.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_meta_source_0
+  id: blocks_file_meta_source
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    detached: 'True'
+    file: "/home/piloteer/\uBC14\uD0D5\uD654\uBA74/phy_full.iqdata"
+    hdr_file: "/home/piloteer/\uBC14\uD0D5\uD654\uBA74/phy_full.iqdata.hdr"
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    repeat: 'False'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [768, 564.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_meta_source_1
+  id: blocks_file_meta_source
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    detached: 'True'
+    file: "/home/piloteer/\uBC14\uD0D5\uD654\uBA74/fft_full.iqdata"
+    hdr_file: "/home/piloteer/\uBC14\uD0D5\uD654\uBA74/fft_full.iqdata.hdr"
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    repeat: 'False'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [96, 228.0]
+    rotation: 0
+    state: enabled
+- name: blocks_message_debug_0
+  id: blocks_message_debug
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    en_uvec: 'True'
+    log_level: info
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [872, 32.0]
+    rotation: 0
+    state: enabled
+- name: blocks_probe_rate_0
+  id: blocks_probe_rate
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha: '0.15'
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    mintime: '500.0'
+    name: ''
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [248, 24.0]
+    rotation: 0
+    state: enabled
+- name: blocks_stream_to_vector_0
+  id: blocks_stream_to_vector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '64'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [496, 424.0]
+    rotation: 0
+    state: disabled
+- name: blocks_tag_gate_0
+  id: blocks_tag_gate
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    propagate_tags: 'True'
+    single_key: '"wifi_start"'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [432, 288.0]
+    rotation: 0
+    state: enabled
+- name: blocks_vector_to_stream_0
+  id: blocks_vector_to_stream
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '48'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [976, 456.0]
+    rotation: 0
+    state: disabled
+- name: epy_block_0
+  id: epy_block
+  parameters:
+    VECTOR_SIZE: '4096'
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nimport pmt\nimport\
+      \ os\nimport tempfile\n\nimport aie.iron as iron\nfrom aie.utils import DefaultNPURuntime,\
+      \ NPUKernel\n\n\nN_TILES = 4\nFFT_MAX_TAGS = 31\nFFT_METADATA_WORDS = 2 + 2\
+      \ * FFT_MAX_TAGS\nMAX_OUTPUT_TAGS = 16\nCSI_SIZE = 64\nQ16_15_SCALE = 1 << 15\n\
+      Q29_SCALE = 1 << 29\n\nCSI_DTYPE = np.dtype([\n    (\"real\", np.int32),\n \
+      \   (\"imag\", np.int32),\n], align=True)\nTAG_METADATA_DTYPE = np.dtype([\n\
+      \    (\"offset\", np.int32),\n    (\"frame_start\", np.uint32),\n    (\"frame_bytes\"\
+      , np.uint64),\n    (\"encoding\", np.uint64),\n    (\"snr_linear\", np.uint64),\n\
+      \    (\"center_frequency_mhz\", np.uint32),\n    (\"frequency_offset\", np.int32),\n\
+      \    (\"beta\", np.int32),\n    (\"csi\", CSI_DTYPE, (CSI_SIZE,)),\n], align=True)\n\
+      TILE_METADATA_DTYPE = np.dtype([\n    (\"output_length\", np.int32),\n    (\"\
+      tag_count\", np.int32),\n    (\"tags\", TAG_METADATA_DTYPE, (MAX_OUTPUT_TAGS,)),\n\
+      ], align=True)\nOUTPUT_METADATA_WORDS = (\n    N_TILES * TILE_METADATA_DTYPE.itemsize\
+      \ // np.dtype(np.int32).itemsize\n)\n\n\nclass frame_equalizer_npu(gr.basic_block):\n\
+      \    \"\"\"Adapt GNU Radio complex samples and tags to the frame equalizer ABI.\"\
+      \"\"\n\n    def __init__(self, path_xclbin=\"build/final.xclbin\",\n       \
+      \          path_insts_bin=\"build/insts.bin\", VECTOR_SIZE=4096, nominal_frequency=2.417e9):\n\
+      \        gr.basic_block.__init__(\n            self,\n            name=\"frame_equalizer_npu\"\
+      ,\n            in_sig=[np.complex64],\n            out_sig=[np.int8],\n    \
+      \    )\n\n        if VECTOR_SIZE % N_TILES:\n            raise ValueError(\"\
+      VECTOR_SIZE must be divisible by four\")\n        if TAG_METADATA_DTYPE.itemsize\
+      \ != 560:\n            raise RuntimeError(\"frame equalizer tag metadata ABI\
+      \ mismatch\")\n        if TILE_METADATA_DTYPE.itemsize != 8968:\n          \
+      \  raise RuntimeError(\"frame equalizer tile metadata ABI mismatch\")\n\n  \
+      \      self.path_xclbin = path_xclbin\n        self.path_insts_bin = path_insts_bin\n\
+      \        self.kernel_handle = None\n        self.VECTOR_SIZE = VECTOR_SIZE\n\
+      \        self.TILE_SIZE = VECTOR_SIZE // N_TILES\n        self.nominal_frequency\
+      \ = nominal_frequency\n        self.out_buf = iron.zeros(VECTOR_SIZE, dtype=np.int8)\n\
+      \        self.out_meta_buf = iron.zeros(\n            OUTPUT_METADATA_WORDS,\
+      \ dtype=np.int32)\n\n        self.set_output_multiple(VECTOR_SIZE)\n       \
+      \ self.set_tag_propagation_policy(gr.TPP_DONT)\n        self.wifi_start_key\
+      \ = pmt.intern(\"wifi_start\")\n        self.tag_srcid = pmt.intern(\"frame_equalizer\"\
+      )\n        self.tag_keys = {\n            \"frame_bytes\": pmt.intern(\"frame\
+      \ bytes\"),\n            \"encoding\": pmt.intern(\"encoding\"),\n         \
+      \   \"snr\": pmt.intern(\"snr\"),\n            \"nominal_frequency\": pmt.intern(\"\
+      nominal frequency\"),\n            \"frequency_offset\": pmt.intern(\"frequency\
+      \ offset\"),\n            \"beta\": pmt.intern(\"beta\"),\n            \"csi\"\
+      : pmt.intern(\"csi\"),\n        }\n\n    def set_nominal_frequency(self, nominal_frequency):\n\
+      \        self.nominal_frequency = nominal_frequency\n\n    def start(self):\n\
+      \        center_frequency_mhz = round(self.nominal_frequency / 1e6)\n      \
+      \  instructions = np.fromfile(self.path_insts_bin, dtype=np.uint32).copy()\n\
+      \        for marker, value in (\n                (0x13579BDF, center_frequency_mhz),\n\
+      \                (0x2468ACE0, round(20.0 / center_frequency_mhz * (1 << 30)))):\n\
+      \            matches = np.flatnonzero(instructions == marker)\n            if\
+      \ len(matches) != 1:\n                raise RuntimeError(\"center-frequency\
+      \ RTP marker is missing or ambiguous\")\n            instructions[matches[0]]\
+      \ = np.uint32(value)\n        self.rtp_dir = tempfile.TemporaryDirectory()\n\
+      \        patched_insts = os.path.join(self.rtp_dir.name, \"insts.bin\")\n  \
+      \      instructions.tofile(patched_insts)\n        kernel = NPUKernel(\n   \
+      \         self.path_xclbin,\n            patched_insts,\n            kernel_name=\"\
+      MLIR_AIE\",\n        )\n        self.kernel_handle = DefaultNPURuntime.load(kernel)\n\
+      \        return True\n\n    def forecast(self, noutput_items, ninputs):\n  \
+      \      return [max(self.VECTOR_SIZE, noutput_items)]\n\n    def general_work(self,\
+      \ input_items, output_items):\n        in0 = input_items[0]\n        out0 =\
+      \ output_items[0]\n        n_chunks = min(\n            len(in0) // self.VECTOR_SIZE,\n\
+      \            len(out0) // self.VECTOR_SIZE,\n        )\n        if n_chunks\
+      \ == 0:\n            return 0\n\n        abs_read_start = self.nitems_read(0)\n\
+      \        abs_write_start = self.nitems_written(0)\n        total_produced =\
+      \ 0\n\n        for chunk_idx in range(n_chunks):\n            chunk_start =\
+      \ chunk_idx * self.VECTOR_SIZE\n            chunk_end = chunk_start + self.VECTOR_SIZE\n\
+      \            samples = in0[chunk_start:chunk_end]\n\n            # Embedded\
+      \ blocks cannot expose s64 ports. Convert complex64 to\n            # the kernel's\
+      \ interleaved Q16.15 cint32 representation here.\n            scaled_real =\
+      \ np.rint(samples.real * Q16_15_SCALE)\n            scaled_imag = np.rint(samples.imag\
+      \ * Q16_15_SCALE)\n            limits = np.iinfo(np.int32)\n            components\
+      \ = np.empty(self.VECTOR_SIZE * 2, dtype=np.int32)\n            components[0::2]\
+      \ = np.clip(\n                scaled_real, limits.min, limits.max).astype(np.int32)\n\
+      \            components[1::2] = np.clip(\n                scaled_imag, limits.min,\
+      \ limits.max).astype(np.int32)\n\n            input_metadata = np.zeros(\n \
+      \               (N_TILES, FFT_METADATA_WORDS), dtype=np.int32)\n           \
+      \ chunk_abs_start = abs_read_start + chunk_start\n            for tile_idx in\
+      \ range(N_TILES):\n                tile_abs_start = chunk_abs_start + tile_idx\
+      \ * self.TILE_SIZE\n                tile_abs_end = tile_abs_start + self.TILE_SIZE\n\
+      \                tags = self.get_tags_in_range(\n                    0, tile_abs_start,\
+      \ tile_abs_end, self.wifi_start_key)\n                tags = tags[:FFT_MAX_TAGS]\n\
+      \                input_metadata[tile_idx, 0] = self.TILE_SIZE\n            \
+      \    input_metadata[tile_idx, 1] = len(tags)\n                for tag_idx, tag\
+      \ in enumerate(tags):\n                    input_metadata[tile_idx, 2 + 2 *\
+      \ tag_idx] = (\n                        int(tag.offset) - tile_abs_start)\n\
+      \                    value = pmt.to_double(tag.value)\n                    input_metadata[tile_idx,\
+      \ 3 + 2 * tag_idx] = np.int32(\n                        np.clip(round(value\
+      \ * Q29_SCALE),\n                                limits.min, limits.max))\n\n\
+      \            DefaultNPURuntime.run(\n                self.kernel_handle,\n \
+      \               [\n                    iron.tensor(components, dtype=np.int32),\n\
+      \                    iron.tensor(input_metadata.reshape(-1), dtype=np.int32),\n\
+      \                    self.out_buf,\n                    self.out_meta_buf,\n\
+      \                ],\n            )\n\n            npu_output = self.out_buf.numpy()\n\
+      \            metadata = self.out_meta_buf.numpy().view(\n                TILE_METADATA_DTYPE).reshape(N_TILES)\n\
+      \            for tile_idx, tile_meta in enumerate(metadata):\n             \
+      \   tile_len = max(\n                    0, min(int(tile_meta[\"output_length\"\
+      ]), self.TILE_SIZE))\n                tile_start = tile_idx * self.TILE_SIZE\n\
+      \                output_start = total_produced\n                output_end =\
+      \ output_start + tile_len\n                out0[output_start:output_end] = npu_output[\n\
+      \                    tile_start:tile_start + tile_len]\n\n                tile_abs_start\
+      \ = abs_write_start + output_start\n                tag_count = max(\n     \
+      \               0, min(int(tile_meta[\"tag_count\"]), MAX_OUTPUT_TAGS))\n  \
+      \              for tag in tile_meta[\"tags\"][:tag_count]:\n               \
+      \     tag_offset = int(tag[\"offset\"])\n                    if 0 <= tag_offset\
+      \ < tile_len:\n                        self._add_frame_tags(tile_abs_start +\
+      \ tag_offset, tag)\n                total_produced = output_end\n\n        self.consume_each(n_chunks\
+      \ * self.VECTOR_SIZE)\n        return total_produced\n\n    def _add_frame_tags(self,\
+      \ offset, tag):\n        csi = np.empty(CSI_SIZE, dtype=np.complex64)\n    \
+      \    csi.real = tag[\"csi\"][\"real\"] / Q16_15_SCALE\n        csi.imag = tag[\"\
+      csi\"][\"imag\"] / Q16_15_SCALE\n        values = {\n            \"frame_bytes\"\
+      : pmt.from_uint64(int(tag[\"frame_bytes\"])),\n            \"encoding\": pmt.from_uint64(int(tag[\"\
+      encoding\"])),\n            \"snr\": pmt.from_double(10.0 * np.log10(int(tag[\"\
+      snr_linear\"]) / 32.0)),\n            \"nominal_frequency\": pmt.from_double(int(tag[\"\
+      center_frequency_mhz\"]) * 1e6),\n            \"frequency_offset\": pmt.from_double(\n\
+      \                int(tag[\"frequency_offset\"]) / Q29_SCALE * 20e6 / (2.0 *\
+      \ np.pi)),\n            \"beta\": pmt.from_double(int(tag[\"beta\"]) / Q29_SCALE),\n\
+      \            \"csi\": pmt.init_c32vector(52, csi[:52].tolist()),\n        }\n\
+      \        for name, value in values.items():\n            self.add_item_tag(\n\
+      \                0, offset, self.tag_keys[name], value, self.tag_srcid)\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nominal_frequency: freq
+    path_insts_bin: '"build/insts.bin"'
+    path_xclbin: '"build/final.xclbin"'
+  states:
+    _io_cache: ('frame_equalizer_npu', 'frame_equalizer_npu', [('path_xclbin', "'build/final.xclbin'"),
+      ('path_insts_bin', "'build/insts.bin'"), ('VECTOR_SIZE', '4096'), ('nominal_frequency',
+      '2417000000.0')], [('0', 'complex', 1)], [('0', 'byte', 1)], 'Adapt GNU Radio
+      complex samples and tags to the frame equalizer ABI.', ['VECTOR_SIZE', 'nominal_frequency',
+      'path_insts_bin', 'path_xclbin'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [704, 296.0]
+    rotation: 0
+    state: disabled
+- name: ieee802_11_frame_equalizer_0
+  id: ieee802_11_frame_equalizer
+  parameters:
+    affinity: ''
+    algo: ieee802_11.LS
+    alias: ''
+    bw: 20e6
+    comment: ''
+    debug: 'False'
+    freq: freq
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [728, 424.0]
+    rotation: 0
+    state: disabled
+- name: mlir_aie_mlir_aie_cpp_equalizer_test_0
+  id: mlir_aie_mlir_aie_cpp_equalizer_test
+  parameters:
+    N_TILES: '16'
+    VECTOR_SIZE: '16384'
+    affinity: ''
+    alias: ''
+    comment: ''
+    kernel_name: MLIR_AIE
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nominal_frequency: freq
+    num_slots: '2'
+    path_insts_bin: '"build/insts.bin"'
+    path_xclbin: '"build/final.xclbin"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [616, 140.0]
+    rotation: 0
+    state: enabled
+- name: qtgui_time_sink_x_0
+  id: qtgui_time_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'True'
+    axislabels: 'True'
+    color1: blue
+    color10: dark blue
+    color2: red
+    color3: green
+    color4: black
+    color5: cyan
+    color6: magenta
+    color7: yellow
+    color8: dark red
+    color9: dark green
+    comment: ''
+    ctrlpanel: 'True'
+    entags: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label1: AIE decisions
+    label10: Signal 10
+    label2: GNU Radio LS decisions
+    label3: Signal 3
+    label4: Signal 4
+    label5: Signal 5
+    label6: Signal 6
+    label7: Signal 7
+    label8: Signal 8
+    label9: Signal 9
+    legend: 'True'
+    marker1: '-1'
+    marker10: '-1'
+    marker2: '-1'
+    marker3: '-1'
+    marker4: '-1'
+    marker5: '-1'
+    marker6: '-1'
+    marker7: '-1'
+    marker8: '-1'
+    marker9: '-1'
+    name: '""'
+    nconnections: '2'
+    size: '1024'
+    srate: '1'
+    stemplot: 'False'
+    style1: '1'
+    style10: '1'
+    style2: '1'
+    style3: '1'
+    style4: '1'
+    style5: '1'
+    style6: '1'
+    style7: '1'
+    style8: '1'
+    style9: '1'
+    tr_chan: '0'
+    tr_delay: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_slope: qtgui.TRIG_SLOPE_POS
+    tr_tag: '""'
+    type: float
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    ylabel: Decision index
+    ymax: '63'
+    ymin: '0'
+    yunit: '""'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1240, 296.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_char_to_float_0, '0', qtgui_time_sink_x_0, '0']
+- [blocks_char_to_float_0_0, '0', qtgui_time_sink_x_0, '1']
+- [blocks_file_meta_source_0, '0', blocks_char_to_float_0_0, '0']
+- [blocks_file_meta_source_1, '0', blocks_probe_rate_0, '0']
+- [blocks_file_meta_source_1, '0', blocks_tag_gate_0, '0']
+- [blocks_probe_rate_0, rate, blocks_message_debug_0, log]
+- [blocks_stream_to_vector_0, '0', ieee802_11_frame_equalizer_0, '0']
+- [blocks_tag_gate_0, '0', blocks_stream_to_vector_0, '0']
+- [blocks_tag_gate_0, '0', epy_block_0, '0']
+- [blocks_tag_gate_0, '0', mlir_aie_mlir_aie_cpp_equalizer_test_0, '0']
+- [blocks_vector_to_stream_0, '0', blocks_char_to_float_0_0, '0']
+- [epy_block_0, '0', blocks_char_to_float_0, '0']
+- [ieee802_11_frame_equalizer_0, '0', blocks_vector_to_stream_0, '0']
+- [mlir_aie_mlir_aie_cpp_equalizer_test_0, '0', blocks_char_to_float_0, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

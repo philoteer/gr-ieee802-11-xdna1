@@ -1,0 +1,502 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: Custom
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: wifi_rx
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: bash -c 'export LD_LIBRARY_PATH="$(dirname "$2")/../../../../gr-foo-fixed/build/lib${{LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}}";
+      exec "$1" -u "$2"' -- {python} {filename}
+    run_options: run
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: ''
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 12.0]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: dataset
+  id: parameter
+  parameters:
+    comment: Optional SigMF prefix override, without the -data or -meta suffix.
+    hide: none
+    label: Dataset
+    short_id: ''
+    type: str
+    value: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1136, 16.0]
+    rotation: 0
+    state: enabled
+- name: input_path
+  id: variable
+  parameters:
+    comment: Use the command-line dataset when supplied, otherwise the enabled file_path.
+    value: dataset or file_path
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1136, 80.0]
+    rotation: 0
+    state: enabled
+- name: chan_est
+  id: variable
+  parameters:
+    comment: ''
+    value: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [160, 16.0]
+    rotation: 0
+    state: enabled
+- name: data_dir
+  id: variable
+  parameters:
+    comment: Dataset paths are relative to the generated script in base/test/autocorr_cf.
+    value: str(__import__("pathlib").Path(globals().get("__file__", "base/test/autocorr_cf/wifi_rx.py")).resolve().parents[3]
+      / "AI-model-CNN-Channel-est" / "data")
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [960, 16.0]
+    rotation: 0
+    state: enabled
+- name: file_path
+  id: variable
+  parameters:
+    comment: ''
+    value: data_dir + "/raw_capture/stress_test.sigmf"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [960, 208.0]
+    rotation: 0
+    state: disabled
+- name: file_path
+  id: variable
+  parameters:
+    comment: ''
+    value: data_dir + "/raw_capture/room_20260927.sigmf"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1096, 468.0]
+    rotation: 0
+    state: disabled
+- name: file_path
+  id: variable
+  parameters:
+    comment: ''
+    value: data_dir + "/raw_capture/206.sigmf"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1096, 356.0]
+    rotation: 0
+    state: disabled
+- name: file_path
+  id: variable
+  parameters:
+    comment: ''
+    value: data_dir + "/raw_capture/stress_test_awgn_15db.sigmf"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [960, 80.0]
+    rotation: 0
+    state: enabled
+- name: freq
+  id: variable
+  parameters:
+    comment: ''
+    value: '2417000000.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [640, 16.0]
+    rotation: 0
+    state: enabled
+- name: gain_BB
+  id: variable
+  parameters:
+    comment: ''
+    value: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [536, 16.0]
+    rotation: 0
+    state: enabled
+- name: gain_IF
+  id: variable
+  parameters:
+    comment: ''
+    value: '32'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [432, 16.0]
+    rotation: 0
+    state: enabled
+- name: gain_RF
+  id: variable
+  parameters:
+    comment: ''
+    value: '14'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [320, 16.0]
+    rotation: 0
+    state: enabled
+- name: kernel_dir
+  id: variable
+  parameters:
+    comment: Standalone autocorrelation kernel built by the local Makefile.
+    value: str(__import__("pathlib").Path(globals().get("__file__", "base/test/autocorr_cf/wifi_rx.py")).resolve().parent
+      / "build")
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [960, 144.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 20e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [808, 16.0]
+    rotation: 0
+    state: enabled
+- name: sync_length
+  id: variable
+  parameters:
+    comment: ''
+    value: '320'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 148.0]
+    rotation: 0
+    state: enabled
+- name: vector_size
+  id: variable
+  parameters:
+    comment: VECTOR_SIZE uses fixed 1024-sample AIE tiles.
+    value: '16384'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 80.0]
+    rotation: 0
+    state: enabled
+- name: window_size
+  id: variable
+  parameters:
+    comment: ''
+    value: '48'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 80.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_source_0
+  id: blocks_file_source
+  parameters:
+    affinity: ''
+    alias: ''
+    begin_tag: pmt.PMT_NIL
+    comment: ''
+    file: input_path+"-data"
+    length: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    repeat: 'False'
+    type: short
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1280, 196.0]
+    rotation: 0
+    state: enabled
+- name: blocks_interleaved_short_to_complex_0
+  id: blocks_interleaved_short_to_complex
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale_factor: '32768'
+    swap: 'False'
+    vector_input: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1480, 152.0]
+    rotation: 0
+    state: enabled
+- name: blocks_message_debug_0
+  id: blocks_message_debug
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    en_uvec: 'True'
+    log_level: info
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1600, 8.0]
+    rotation: 0
+    state: enabled
+- name: blocks_null_sink_0
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [984, 312.0]
+    rotation: 0
+    state: enabled
+- name: blocks_probe_rate_0
+  id: blocks_probe_rate
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha: '0.15'
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    mintime: '500.0'
+    name: ''
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1344, 16.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_cbfloat_to_complex64_0
+  id: mlir_aie_cbfloat_to_complex64
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [752, 256.0]
+    rotation: 0
+    state: disabled
+- name: mlir_aie_cint32_to_complex64_0
+  id: mlir_aie_cint32_to_complex64
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    fractional_bits: '24'
+    integer_bits: '7'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [728, 408.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_complex64_to_cint16_0
+  id: mlir_aie_complex64_to_cint16
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    safe: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [264, 256.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_mlir_aie_cpp_int32_0
+  id: mlir_aie_mlir_aie_cpp_int32
+  parameters:
+    VECTOR_SIZE: vector_size
+    affinity: ''
+    alias: ''
+    comment: ''
+    kernel_name: MLIR_AIE
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_slots: '1'
+    path_insts_bin: kernel_dir + "/insts.bin"
+    path_xclbin: kernel_dir + "/final.xclbin"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [504, 224.0]
+    rotation: 0
+    state: disabled
+- name: mlir_aie_mlir_aie_cpp_int32_to_int64_0
+  id: mlir_aie_mlir_aie_cpp_int32_to_int64
+  parameters:
+    VECTOR_SIZE: vector_size
+    affinity: ''
+    alias: ''
+    comment: ''
+    kernel_name: MLIR_AIE
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_slots: '2'
+    path_insts_bin: kernel_dir + "/insts.bin"
+    path_xclbin: kernel_dir + "/final.xclbin"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [496, 392.0]
+    rotation: 0
+    state: enabled
+- name: mlir_aie_sigmf_tag_injector_0
+  id: mlir_aie_sigmf_tag_injector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    metadata_file: input_path+"-meta"
+    minoutbuf: '0'
+    start_sample: '0'
+    tag_key: rx_freq
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1664, 152.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: iq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1904, 160.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: iq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [64, 552.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_0_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: iq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1168, 32.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_file_source_0, '0', blocks_interleaved_short_to_complex_0, '0']
+- [blocks_interleaved_short_to_complex_0, '0', mlir_aie_sigmf_tag_injector_0, '0']
+- [blocks_probe_rate_0, rate, blocks_message_debug_0, print]
+- [mlir_aie_cbfloat_to_complex64_0, '0', blocks_null_sink_0, '0']
+- [mlir_aie_cint32_to_complex64_0, '0', blocks_null_sink_0, '0']
+- [mlir_aie_complex64_to_cint16_0, '0', mlir_aie_mlir_aie_cpp_int32_0, '0']
+- [mlir_aie_complex64_to_cint16_0, '0', mlir_aie_mlir_aie_cpp_int32_to_int64_0, '0']
+- [mlir_aie_mlir_aie_cpp_int32_0, '0', mlir_aie_cbfloat_to_complex64_0, '0']
+- [mlir_aie_mlir_aie_cpp_int32_to_int64_0, '0', mlir_aie_cint32_to_complex64_0, '0']
+- [mlir_aie_sigmf_tag_injector_0, '0', virtual_sink_0, '0']
+- [virtual_source_0, '0', mlir_aie_complex64_to_cint16_0, '0']
+- [virtual_source_0_0, '0', blocks_probe_rate_0, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2
