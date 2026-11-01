@@ -1,6 +1,4 @@
-//===- sync_long_cf.cc ------------------------------------------*- C++ -*-===//
-// IEEE 802.11 long preamble synchronizer kernel.
-//===----------------------------------------------------------------------===//
+/** @file @brief Long-preamble timing, residual CFO correction, and CP removal. */
 
 #include <stdint.h>
 #include <algorithm>
@@ -22,8 +20,7 @@ static constexpr int state_wait = 0;
 static constexpr int state_sync = 1;
 static constexpr int state_copy = 2;
 
-// GNU Radio's fir_filter reverses LONG in set_taps(). Store that effective
-// order directly, quantized as signed Q2.14.
+/// Reversed long-training FIR taps in signed Q2.14.
 alignas(32) static constexpr cint16 long_taps[long_length] = {
     { 22721,      0 }, {  -745,  17496 }, {  5780,  16163 }, { 14080, -12039 },
     {  3070,  -4055 }, {  8698,  12753 }, {-16741,   8023 }, { -5572,  15439 },
@@ -47,31 +44,32 @@ alignas(32) static constexpr uint32_t phase_lane_indices[vec_factor] = {
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
 };
 
-// Persistent state: one AIE tile processes a continuous stream across calls.
+/// Synchronizer state retained across tiles.
 static int d_state = state_wait;
-// Number of current-stream samples accumulated while searching for the preamble.
+/// Current-stream samples accumulated during synchronization.
 static int d_available = 0;
-// Next candidate offset at which to correlate the 64-sample LONG sequence.
+/// Next 64-sample correlation window offset.
 static int d_next_correlation = 0;
-// Position in the delayed input used by COPY; unlike `produced`, this includes skipped samples.
+/// Delayed-stream copy position, including skipped samples.
 static int d_copy_offset = 0;
-// First long-preamble correlation peak, hence the start of the useful frame data.
+/// First detected long-training peak.
 static int d_frame_start = 0;
-// Number of samples copied for this frame, used to pad a frame boundary to 64 samples.
+/// Frame output count used for 64-sample boundary padding.
 static int d_count = 0;
-// CFO supplied by sync_short and the refined CFO measured from the long preamble.
+/// Coarse and residual CFO estimates in Q3.29 radians per sample.
 static int32_t d_freq_offset_short_q29 = 0;
 static int32_t d_freq_offset_q29 = 0;
-// A refined-CFO tag is emitted with the first output sample of each frame.
+/// Whether the first output still needs its refined-CFO tag.
 static bool d_tag_pending = false;
-// Correlations are buffered during SYNC and ranked together in finish_sync().
+/// Buffered correlations and shifted powers for peak selection.
 alignas(32) static cint32 d_correlations[sync_length] = {};
 alignas(32) static int32_t d_power_hi[sync_length] = {};
-// The four strongest correlation results are retained to locate two peaks one LONG apart.
+/// Four strongest peaks used to find a repeated long-training pair.
 static int32_t d_top_real[4] = {};
 static int32_t d_top_imag[4] = {};
 static int d_top_offset[4] = {};
 
+/// @brief Reset the preamble search with a coarse CFO estimate.
 static inline void start_sync(int32_t freq_offset_short_q29) {
     d_state = state_sync;
     d_available = 0;
@@ -85,9 +83,8 @@ static inline void start_sync(int32_t freq_offset_short_q29) {
     }
 }
 
+/// @brief Compute 16 adjacent long-training correlations from 79 input samples.
 static inline void correlate_16(const cint16 *__restrict in, int offset) {
-    // Each lane computes one adjacent 64-sample correlation. A 16-tap block
-    // needs 16 output samples plus 15 samples of overlap from the input.
     auto correlations = aie::sliding_mul<vec_factor, vec_factor, 1, 1, 1, cacc64>(
         aie::load_v<vec_factor>(long_taps), 0,
         aie::load_unaligned_v<2 * vec_factor>(in), 0);
@@ -104,12 +101,9 @@ static inline void correlate_16(const cint16 *__restrict in, int offset) {
                  correlations.template to_vector<cint32>(correlation_shift));
 }
 
+/// @brief Rank four peaks using shifted power and exact-power tie breaking.
 static inline void select_top_correlations() {
-    // REAL-DATA PROFILE (2026-08-03): 63.4% of SYNC and 48.8% of total core
-    // cycles. Within this function, power generation was 5.0%.
-    // Q0.15 input, Q2.14 taps, 64 terms, and correlation_shift give a power
-    // below 2^55. Shift 24 is the smallest value that cannot saturate int32.
-    // Exact power resolves the remaining equal buckets.
+    // A 24-bit shift keeps correlation powers within int32 range.
     for (int i = 0; i < sync_length; i+= vec_factor) {
         const auto correlations = aie::load_unaligned_v<vec_factor> (d_correlations + i);
         aie::store_v(d_power_hi + i,
@@ -117,8 +111,6 @@ static inline void select_top_correlations() {
     }
 
     for (int rank = 0; rank < 4; rank++) {
-        // HOTTEST PART OF PEAK SELECTION: the four full reduce_max scans and
-        // candidate bookkeeping consumed 59.2% of select_top_correlations().
         int32_t max_power_hi = -1;
         int candidate_vectors[sync_length / vec_factor];
         int candidate_count = 0;
@@ -134,8 +126,7 @@ static inline void select_top_correlations() {
             }
         }
 
-        // Exact-power tie resolution consumed another 32.2% of peak selection.
-        // Its cost varies with the number of equal shifted-power buckets.
+        // Resolve equal shifted powers with the original 64-bit power.
         int max_offset = 0;
         int64_t max_power = -1;
         for (int candidate = 0; candidate < candidate_count; candidate++) {
@@ -160,10 +151,10 @@ static inline void select_top_correlations() {
     }
 }
 
+/// @brief Select timing and residual CFO from peaks separated by 63--65 samples.
 static inline void finish_sync() {
     select_top_correlations();
-    // A valid long preamble gives two large correlation peaks 64 samples apart.
-    // Nearby (63/65) pairs tolerate a one-sample timing discrepancy.
+    // Prefer exact 64-sample spacing over one-sample timing discrepancies.
     d_frame_start = sync_length;
     bool adjacent_match = false;
 
@@ -176,8 +167,7 @@ static inline void finish_sync() {
 
             const int first_idx = d_top_offset[i] < d_top_offset[k] ? i : k;
             const int second_idx = first_idx == i ? k : i;
-            // Downscale both peaks together before forming their product, preventing
-            // the 32-bit atan2 input from overflowing without changing their phase.
+            // Scale both peaks equally to keep the phase product within int32.
             int32_t max_component = std::max(
                 std::max(std::abs(d_top_real[first_idx]), std::abs(d_top_imag[first_idx])),
                 std::max(std::abs(d_top_real[second_idx]), std::abs(d_top_imag[second_idx])));
@@ -194,7 +184,7 @@ static inline void finish_sync() {
                 (int64_t)first_imag * second_real - (int64_t)first_real * second_imag;
 
             d_frame_start = std::min(d_top_offset[i], d_top_offset[k]);
-            // The phase change over the peak separation is the residual CFO.
+            // Divide inter-peak phase by spacing to obtain radians per sample.
             d_freq_offset_q29 = atan2_estimate_CORDIC_q29(
                 (int32_t)product_imag, (int32_t)product_real) / diff;
             if (diff == 64) {
@@ -204,14 +194,14 @@ static inline void finish_sync() {
         }
     }
 
-    // GNU Radio enters COPY after consuming SYNC_LENGTH current-stream
-    // samples. Its delayed input therefore starts at offset zero here.
+    // Copy offsets start at the beginning of the delayed stream.
     d_copy_offset = 0;
     d_count = 0;
     d_tag_pending = true;
     d_state = state_copy;
 }
 
+/// @brief Multiply complex Q0.15 vectors with rounding and saturation.
 static inline aie::vector<cint16, vec_factor> multiply_q15_v(
     aie::vector<cint16, vec_factor> a,
     aie::vector<cint16, vec_factor> b) {
@@ -220,6 +210,7 @@ static inline aie::vector<cint16, vec_factor> multiply_q15_v(
     return aie::mul(a, b).template to_vector<cint16>(q_shift);
 }
 
+/// @brief Advance oscillator phases across copied or discarded samples.
 static inline void advance_oscillators(
     aie::vector<cint16, vec_factor>& oscillators,
     aie::vector<cint16, vec_factor> rotate_factor_v,
@@ -236,51 +227,28 @@ static inline void advance_oscillators(
 
 extern "C" {
 
+/**
+ * @brief Align frames, correct residual CFO, and remove cyclic prefixes.
+ * @param _in Complex Q0.15 samples with a 320-sample history prefix.
+ * @param in_meta Valid count and ordered (offset, Q3.29 coarse CFO) tags.
+ * @param out Corrected training and payload samples, without cyclic prefixes.
+ * @param out_meta Produced count and refined frame-start CFO tags.
+ * @param N Current-stream buffer capacity in samples.
+ * @param meta_N Input metadata capacity in words.
+ * @pre Metadata counts and offsets fit their buffers; output includes SIMD padding.
+ */
 void sync_long_cf(cint16 *__restrict _in, int32_t *__restrict in_meta,
                   cint16 *__restrict out, int32_t *__restrict out_meta,
                   int32_t N, int32_t meta_N) {
-    // The first 320 input samples are the delayed history; indexes in stream
-    // metadata are relative to the current stream immediately after that prefix.
+    // Tag offsets exclude the history prefix.
     cint16 *__restrict in_current = _in + delay_samples;
-    // Metadata format: [valid samples, tag count, tag offset, short CFO, ...].
     const int input_count = in_meta[0];
     const int input_tag_count = in_meta[1];
     int produced = 0;
     int output_tag_count = 0;
     int cursor = 0;
 
-    // REAL-DATA PROFILE (2026-08-03): hardware cycle counters over 188,000 tile
-    // calls from sync_short_out_short.iqdata, including its recorded wifi_start
-    // tags. Average total was 17.6k core cycles/tile: WAIT <0.001%, SYNC 77.0%,
-    // COPY 20.2%, and tag/state-loop overhead 2.9%. Compared with the immediately
-    // preceding profile, total cycles fell 35.0% and COPY fell 73.0%; oscillator
-    // setup fell 80.7% and output/tail work fell 45.6% at the matched checkpoint.
-    //
-    // Reproduction method:
-    // 1. Generate test/sync_long/sync-long-cui-npu_only_from_file.grc, then
-    //    temporarily route generated sync_long_test.py through
-    //    sync_long_test_epy_block_0.py instead of mlir_aie_cpp_sync_long_test.
-    //    Set its file-meta source to /home/piloteer/xdna_phy/test_data/
-    //    sync_short_out_short.iqdata and the matching .hdr file. This runs only
-    //    sync_long on the NPU and matches the previous profile's input.
-    // 2. Temporarily bracket the function, each state, and the annotated inner
-    //    sections with aie::tile::current().cycles(); accumulate uint64_t deltas.
-    // 3. At each kernel return, write total/state/section deltas as int32 values
-    //    into the last 16 packed-int32 words of each 1024-sample output tile.
-    //    Layout: [magic, total, wait, sync, copy, correlation, select, power,
-    //    rank_scan, tie, finish_other, copy_setup, copy_skip, copy_output,
-    //    input_tag_count, produced]. The magic value used was 0x53594e43.
-    // 4. In sync_long_test_epy_block_0.py, read those 16 words from each of the
-    //    four tiles after DefaultNPURuntime.run(), validate a magic word, and sum
-    //    counters in int64 arrays. The percentages here use the 188,000-tile sum.
-    // 5. Build serially with `make JOBS=1 all`; generate with `grcc
-    //    sync-long-cui-npu_only_from_file.grc`; apply the temporary Python routing
-    //    above; then collect for 30 seconds with
-    //    `timeout --signal=INT --kill-after=5s 30s python3 -u sync_long_test.py`.
-    // Remove the counters and output-tail writes before the production rebuild.
-
-    // Tags divide this tile into segments. A tag marks the start of a new frame,
-    // so process preceding samples before resetting the synchronizer for it.
+    // Process each tagged segment before resetting for the next frame.
     for (int tag_idx = 0; tag_idx <= input_tag_count; tag_idx++) {
         int segment_end = input_count;
         int32_t next_short_freq_q29 = 0;
@@ -293,23 +261,15 @@ void sync_long_cf(cint16 *__restrict _in, int32_t *__restrict in_meta,
 
         while (cursor < segment_end) {
             if (d_state == state_wait) {
-                // WAIT was effectively 0% on this recording. Its only work is
-                // discarding the segment; this result depends on tag density.
-                // Ignore samples until sync_short supplies a candidate frame tag.
+                // Discard input until a coarse frame-start tag arrives.
                 cursor = segment_end;
                 break;
             }
 
             if (d_state == state_sync) {
-                // HOTTEST STATE: SYNC consumed 77.0% of total core time,
-                // averaging 13.5k
-                // cycles/tile on the recorded stream.
                 const int old_available = d_available;
                 const int new_available = old_available + segment_end - cursor;
-                // A 16-window batch is usable only after all 79 samples have arrived.
-                // Batched correlation consumed 31.0% of SYNC (23.8% total,
-                // 4.2k cycles/tile). HOTTEST PART OF SYNC is peak selection at
-                // 63.4% of SYNC; the remainder of finish_sync() was 4.4%.
+                // Correlate only complete 79-sample SIMD batches.
                 const int available_correlations = std::min(
                     sync_length, new_available - long_length + 1);
                 while (d_next_correlation + vec_factor <= available_correlations) {
@@ -321,26 +281,17 @@ void sync_long_cf(cint16 *__restrict _in, int32_t *__restrict in_meta,
                 cursor = segment_end;
                 if (d_next_correlation == sync_length) {
                     finish_sync();
-                    // COPY may consume samples retained in the 320-sample prefix.
                     cursor = segment_end;
                 }
             }
 
             if (d_state == state_copy) {
-                // COPY consumed 20.2% of total core time, averaging 3.5k
-                // cycles/tile on the recorded stream.
-                // The delayed prefix makes the 320 synchronization samples precede
-                // copy offset zero, so no source sample is available until then.
+                // Translate received samples into delayed-stream availability.
                 const int new_received = d_available + segment_end - cursor;
                 const int source_available = std::max(new_received - sync_length, 0);
-                // HOTTEST PART OF COPY: phase and oscillator-lane setup
-                // through the rounding-mode setup below consumed 62.5% of COPY
-                // (12.6% total, 2.2k cycles/tile).
                 const uint32_t phase_step = radians_q29_to_phase_q(d_freq_offset_q29);
 
-                // Keep the oscillators for 16 consecutive samples in SIMD lanes.
-                // A full output block rotates all samples and advances all phases
-                // by rotate_factor^16 with one vector multiply each.
+                // Each lane holds the oscillator for one consecutive sample.
                 aie::vector<uint32_t, vec_factor> phase_v;
                 {
                     aie::scoped_mode sat_mode{aie::saturation_mode::none};
@@ -371,8 +322,7 @@ void sync_long_cf(cint16 *__restrict _in, int32_t *__restrict in_meta,
                 aie::scoped_mode sat_mode{aie::saturation_mode::saturate};
                 while (d_copy_offset < source_available) {
                     if (d_copy_offset < d_frame_start) {
-                        // Discard samples before the detected long-preamble peak,
-                        // but advance the oscillator to preserve absolute phase.
+                        // Preserve phase while skipping samples before the first peak.
                         const int skip = std::min(d_frame_start - d_copy_offset,
                                                   source_available - d_copy_offset);
                         advance_oscillators(oscillators, rotate_factor_v,
@@ -383,8 +333,7 @@ void sync_long_cf(cint16 *__restrict _in, int32_t *__restrict in_meta,
 
                     const int relative = d_copy_offset - d_frame_start;
                     if (relative >= 128) {
-                        // After the two 64-sample LONG symbols, each OFDM symbol is
-                        // 16-sample GI plus 64 useful samples. Drop only the GI.
+                        // Keep both training symbols; drop later 16-sample prefixes.
                         const int symbol_position = (relative - 128) % 80;
                         if (symbol_position < 16) {
                             const int skip = std::min(16 - symbol_position,
@@ -403,8 +352,7 @@ void sync_long_cf(cint16 *__restrict _in, int32_t *__restrict in_meta,
                         run = std::min(run, 80 - ((relative - 128) % 80));
                     }
                     if (d_tag_pending && run > 0) {
-                        // Downstream uses the difference between short and refined
-                        // CFO estimates to correct the frequency estimate.
+                        // Publish the coarse CFO minus the residual correction.
                         out_meta[2 + 2 * output_tag_count] = produced;
                         out_meta[3 + 2 * output_tag_count] =
                             d_freq_offset_short_q29 - d_freq_offset_q29;
@@ -412,12 +360,9 @@ void sync_long_cf(cint16 *__restrict _in, int32_t *__restrict in_meta,
                         d_tag_pending = false;
                     }
 
-                    // Convert a stream-relative delayed-buffer offset to this tile's
-                    // input pointer. `cursor - d_available` is the segment origin.
+                    // Convert the delayed-stream position to a tile-local index.
                     const int local_start = cursor - d_available + d_copy_offset;
                     int processed = 0;
-                    // Output rotation/copy consumed 11.1% of COPY; oscillator
-                    // advancement while skipping samples consumed another 9.8%.
                     while (processed + vec_factor <= run) {
                         rotate_16(in_current + local_start + processed,
                                   out + produced + processed, oscillators);
@@ -451,18 +396,17 @@ void sync_long_cf(cint16 *__restrict _in, int32_t *__restrict in_meta,
 
         if (has_tag) {
             if (d_state == state_copy) {
-                // Preserve GNU Radio's 64-sample output alignment between frames.
+                // Pad the preceding frame to a complete FFT block.
                 const int padding = (64 - (d_count & 63)) & 63;
                 const aie::vector<cint16, vec_factor> zeros =
                     aie::zeros<cint16, vec_factor>();
                 for (int i = 0; i < padding; i += vec_factor) {
                     aie::store_unaligned_v(out + produced + i, zeros);
                 }
-                // Stores round padding up to 16 samples; retain the exact logical
-                // count so subsequent output overwrites any excess zero samples.
+                // Count only logical padding; later output overwrites SIMD excess.
                 produced += padding;
             }
-            // This tag begins the next frame; retain its coarse CFO for output metadata.
+            // Begin the next frame with its coarse CFO estimate.
             start_sync(next_short_freq_q29);
         }
     }

@@ -16,7 +16,7 @@
 // subcarriers are on its left, and positive subcarriers are on its right.
 //
 // kLong is the frequency-domain BPSK pattern of the long training symbol
-// (base::LONG), used by the LTS-based estimators (LS now, LMS and STA later) to
+// (base::LONG), used by the LTS-based estimators (LS, LMS, and STA) to
 // remove the transmitted sign from the two repeated training symbols.
 alignas(aie::vector_decl_align) const int16_t kLong[FFT_SIZE] = {
     0, 0, 0, 0, 0, 0, 1, 1, -1, -1, 1, 1, -1, 1, -1, 1,
@@ -25,8 +25,8 @@ alignas(aie::vector_decl_align) const int16_t kLong[FFT_SIZE] = {
     1, -1, -1, 1, -1, 1, -1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
 };
 // The 52 occupied bins comprise 48 data carriers and four pilots. Guards and
-// DC are zero, so the LTS-based SNR loops (ls.cc/lms.cc/sta.cc) and STA's
-// spatial smoothing all skip them with the same test.
+// DC are zero in this mask, so the shared LTS-based SNR loop skips them.
+// STA's spatial smoothing also excludes guard bins and DC.
 alignas(aie::vector_decl_align) const int8_t kOccupied[FFT_SIZE] = {
     0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -34,9 +34,9 @@ alignas(aie::vector_decl_align) const int8_t kOccupied[FFT_SIZE] = {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
 };
 // Standard 127-symbol pilot-polarity sequence for data OFDM symbols
-// (base::POLARITY). Index zero belongs to SIGNAL. Needed wherever the known
-// pilot signs are removed: comb now, STA later, and the preprocess kernel's
-// beta estimate.
+// (base::POLARITY). Index zero belongs to SIGNAL. Used to remove the known
+// pilot signs in comb and STA. The preprocess kernel keeps its own
+// copy for the beta estimate.
 const int8_t kPolarity[127] = {
     1, 1, 1, 1, -1, -1, -1, 1, -1, -1, -1, -1, 1, 1, -1, 1,
     -1, -1, 1, 1, -1, 1, 1, -1, 1, 1, 1, 1, 1, 1, -1, 1,
@@ -50,14 +50,14 @@ const int8_t kPolarity[127] = {
 
 // Frame-persistent first long training symbol. It is held aside until the
 // second LTS arrives so signal and noise power can be measured from their sum
-// and difference before the combined channel estimate replaces it. LS uses it
-// now; LMS and STA perform the identical LTS capture (ls.cc/lms.cc/sta.cc n==0).
+// and difference to initialize the channel estimate. LS, LMS, and STA all use
+// this shared LTS capture.
 alignas(aie::vector_decl_align) static cint32 d_first_long[FFT_SIZE];
 
 // Shared long-training-symbol initialization. Symbols 0 and 1 are the repeated
-// LTS; every LTS-based estimator (ls.cc, lms.cc, sta.cc) contains this exact
-// capture, sum/difference power measurement, and Q4.4 SNR. Later symbols are a
-// no-op because the estimate has already been formed.
+// LTS; LS, LMS, and STA call this helper for capture, sum/difference power
+// measurement, and Q4.4 SNR. This helper is a no-op for later symbols; LMS and
+// STA track them separately after hard decisions.
 static NOINLINE void init_channel_estimate_from_lts(const cint32 *symbol,
                                                     int number,
                                                     cint32 channel[FFT_SIZE],

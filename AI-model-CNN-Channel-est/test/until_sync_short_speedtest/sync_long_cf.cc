@@ -1,5 +1,6 @@
 //===- sync_long_cf.cc ------------------------------------------*- C++ -*-===//
-// Long preamble synchronizer placeholder; currently passes sync_short_cf outputs through unchanged.
+// Test-only pass-through adapter: drop sync_short_cf's 320-sample history prefix
+// and copy the current-stream buffer and metadata without long synchronization.
 //===----------------------------------------------------------------------===//
 
 #include <stdint.h>

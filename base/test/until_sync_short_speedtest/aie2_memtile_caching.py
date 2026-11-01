@@ -1,6 +1,6 @@
 # -*- Python -*-
 #
-# GNU Radio - Complex to Magnitude Squared via IRON
+# Wi-Fi pipeline through sync_short_cf with a pass-through sync_long_cf adapter.
 # Target: XDNA1 / XDNA2 (npu1 / npu2)
 
 import numpy as np

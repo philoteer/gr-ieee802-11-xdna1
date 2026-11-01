@@ -145,12 +145,11 @@ static inline int32_t mul_q29_q30(int32_t a_q29, int32_t b_q30) {
     return (int32_t)(((int64_t)a_q29 * b_q30) >> 30);
 }
 
-/** @brief Debug-quality atan2 using 24 CORDIC vectoring iterations.
+/** @brief Fixed-point atan2 using 24 CORDIC vectoring iterations.
  *
- *  This avoids the former fast estimator's degree-5 residual polynomial while
- *  retaining fixed-point inputs and Q3.29 output. The input pair is roughly
- *  normalized below so arithmetic shifts retain useful angle information even
- *  for small vectors.
+ *  Used for short- and long-preamble CFO estimation, with Q3.29 radians as
+ *  output. The input pair is roughly normalized below so arithmetic shifts
+ *  retain useful angle information even for small vectors.
  *
  *  @param y Imaginary component.
  *  @param x Real component.

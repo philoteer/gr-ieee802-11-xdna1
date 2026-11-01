@@ -21,7 +21,7 @@ static inline void equalize_symbol(
     update_channel_estimate(symbol, number, d_channel, d_snr_linear);
     if (number >= 2) {
         // SIGNAL is always BPSK. Later symbols use the modulation selected
-        // by SIGNAL; pilots, guards, and DC never enter decisions.
+        // by SIGNAL; only the first 48 packed data-carrier decisions are used.
         {
             // Equalization plus QAM channel-power generation measured about
             // 1.51k cycles/tile (6.72% of equalize) in the full CSI profile.

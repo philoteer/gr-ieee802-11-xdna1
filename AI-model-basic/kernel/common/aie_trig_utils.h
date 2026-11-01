@@ -112,10 +112,10 @@ static inline int32_t mul_q29_q30(int32_t a_q29, int32_t b_q30) {
     return (int32_t)(((int64_t)a_q29 * b_q30) >> 30);
 }
 
-// Debug-quality atan2 using 24 CORDIC vectoring iterations.  This avoids the
-// fast estimator's degree-5 residual polynomial while retaining fixed-point
-// inputs and Q3.29 output.  The input pair is roughly normalized below so
-// arithmetic shifts retain useful angle information even for small vectors.
+// Fixed-point atan2 using 24 CORDIC vectoring iterations, used for short- and
+// long-preamble CFO estimation. The output is Q3.29 radians. The input pair is
+// roughly normalized below so arithmetic shifts retain useful angle information
+// even for small vectors.
 static AIE_TRIG_ATAN2_FUNCTION_QUALIFIER int32_t atan2_estimate_CORDIC_q29(int32_t y, int32_t x) {
     constexpr int32_t pi_q29 = 1686629713;
     constexpr int32_t cordic_atan_q29[] = {

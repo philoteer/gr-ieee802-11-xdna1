@@ -1,3 +1,4 @@
+/** @file @brief Pilot-based phase and sampling-error correction for FFT symbols. */
 #include <stdint.h>
 
 #include <aie_api/aie.hpp>
@@ -19,7 +20,7 @@ alignas(aie::vector_decl_align) static constexpr uint32_t kPhaseLaneIndices[16] 
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
 };
 
-// Standard 127-symbol pilot-polarity sequence. Index zero belongs to SIGNAL.
+/// IEEE 802.11 pilot polarity; index zero corresponds to SIGNAL.
 const int8_t kPolarity[127] = {
     1, 1, 1, 1, -1, -1, -1, 1, -1, -1, -1, -1, 1, 1, -1, 1,
     -1, -1, 1, 1, -1, 1, 1, -1, 1, 1, 1, 1, 1, 1, -1, 1,
@@ -40,10 +41,6 @@ static cint32 d_pilot_sum;
 alignas(aie::vector_decl_align) static cint32 d_pilots[4];
 alignas(aie::vector_decl_align) static cint32 d_prev_pilots[4];
 
-// Re-profile (LUT, full production graph, 50-run four-tile 130-byte 16-QAM
-// workload): this region averages 2.4k cycles/tile (10.5% of preprocess), down
-// from 13.6k with CORDIC; the scalar pilot extraction/polarity step is about
-// 0.2k and the interpolated-LUT atan2 is about 0.3k.
 /** @brief Extracts the four pilot bins and returns their common phase.
  *
  *  Removes the known pilot polarity for data symbols; the two LTS symbols use
@@ -92,10 +89,6 @@ static inline int32_t phase_of_sum(int64_t real, int64_t imag) {
         (int32_t)(imag >> shift), (int32_t)(real >> shift));
 }
 
-// Re-profile (LUT, full production graph): this region averages 3.6k
-// cycles/tile (15.9% of preprocess), down from 12.4k with CORDIC. Correlation
-// and extraction remain about 0.7k; the rest is the LUT phase estimate plus the
-// Q29 sampling-rate scaling.
 /** @brief Correlates the current pilots against the previous symbol's pilots.
  *
  *  The correlation phase is scaled by the sample-rate/center-frequency ratio
@@ -122,15 +115,9 @@ static inline int32_t update_sampling_error() {
     return (int32_t)(scaled_phase >> 30) / SAMPLES_WITH_CP;
 }
 
-// Remove the subcarrier-dependent sampling-error phase ramp. The phase is
-// zero at FFT bin 32, so the oscillator phase for each lane is (bin - 32)*step.
-// Build bins 32..47 with one trigonometric evaluation, then advance or rewind
-// that oscillator by 16 bins with Q15 complex multiplies. Recurrence error is
-// bounded to two block advances because the oscillator is rebuilt every symbol.
-// Re-profile (full production graph, linear sine LUT): 6.8k cycles/tile (29.8%
-// of preprocess), down from 9.3k with minimax sine/cosine and 30.5k before the
-// 16-bin recurrence optimization.
 /** @brief Removes the subcarrier-dependent sampling-error phase ramp.
+ *
+ *  The Q3.29 phase ramp is centered on DC bin 32.
  *
  *  @param symbol 64-bin symbol, rotated in place.
  *  @param step_q29 Per-bin phase step in Q3.29 radians.
@@ -154,7 +141,7 @@ static NOINLINE void rotate_sampling_ramp(cint32 *symbol, int32_t step_q29,
     const auto oscillator_32 = aie::vector_cast<cint16>(
         aie::concat(oscillator.first, oscillator.second));
 
-    // Lane 8 is exp(j*8*step); squaring it estimates the 16-bin block factor.
+    // Square the eight-bin phasor to obtain the block recurrence factor.
     const cint16 rotation_8 = oscillator_32[8];
     const auto rotation_8_v = aie::broadcast<cint16, 16>(rotation_8);
     const auto rotation_16_v = aie::mul<cacc48>(rotation_8_v, rotation_8_v)
@@ -196,15 +183,11 @@ static NOINLINE void rotate_sampling_ramp(cint32 *symbol, int32_t step_q29,
             .to_vector<cint32>(15));
 }
 
-// Remove the common pilot phase. All 64 bins use the same oscillator, so it
-// is constructed once and reused for every vector in the symbol. Re-profile
-// (full production graph, linear sine LUT): 5.8k cycles/tile (25.6% of
-// preprocess), down from 8.4k with minimax sine/cosine.
 /** @brief Removes the common pilot phase from every bin of a symbol.
  *
  *  @param symbol Symbol bins, rotated in place.
  *  @param beta_q29 Common phase in Q3.29 radians; the rotation uses -beta.
- *  @param count Number of bins to rotate.
+ *  @param count Number of aligned bins to rotate; must be a multiple of 16.
  *  @param sincos_lut Reused linear-approximation sine/cosine evaluator.
  */
 static NOINLINE void rotate_common_phase(cint32 *symbol, int32_t beta_q29,
@@ -242,14 +225,14 @@ static inline void reset_preprocessing(int32_t cfo_q29) {
 } // namespace
 
 /** @brief Tracks sampling and common pilot phase and prepares one FFT tile for
- *  equalization.
+ *  channel estimation and equalization.
  *
- *  Copies the FFT metadata unchanged for the equalization kernel, writes one
+ *  Copies the FFT metadata unchanged for downstream kernels, writes one
  *  beta per 64-bin symbol slot, and snapshots the center frequency for output
  *  tags. Symbols before the first frame tag pass through unrotated.
  *
- *  @param in FFT bins for this tile, cint32.
- *  @param in_meta FFT metadata: [valid samples, tag count, (offset, CFO), ...].
+ *  @param in FFT-shifted bins for this tile, cint32.
+ *  @param in_meta Valid count, tag count, then (offset, Q3.29 CFO) pairs.
  *  @param prepared Phase-corrected FFT bins.
  *  @param prepared_meta frame_equalizer_prepared_tile_metadata words.
  *  @param center_frequency [center frequency in MHz, sample-rate/center ratio in Q30].
@@ -266,8 +249,7 @@ extern "C" void frame_equalizer_preprocess(
     d_sample_rate_over_center_q30 = center_frequency[1];
     metadata->center_frequency_mhz = center_frequency[0];
 
-    // Preserve the FFT metadata for the second kernel. Its frame state is
-    // independent because the kernels run on different AIE tiles.
+    // Forward tags so downstream kernels can maintain their own frame state.
     for (int i = 0; i < FRAME_EQUALIZER_INPUT_METADATA_WORDS; i += 16)
         aie::store_v(metadata->input + i, aie::load_v<16>(in_meta + i));
 
@@ -292,7 +274,7 @@ extern "C" void frame_equalizer_preprocess(
         for (int bin = 0; bin < FFT_SIZE; bin += 16)
             aie::store_v(d_symbol + bin, aie::load_v<16>(in + offset + bin));
 
-        //here be dragons
+        // Accumulate the per-symbol sampling ramp, including the cyclic prefix.
         const int32_t sampling_step = (int32_t)(
             (int64_t)(d_sampling_angle_q29 + d_residual_sampling_angle_q29) *
             d_current_symbol * 80 / 64);
@@ -306,8 +288,7 @@ extern "C" void frame_equalizer_preprocess(
 
         for (int bin = 0; bin < FFT_SIZE; bin += 16)
             aie::store_v(prepared + offset + bin, aie::load_v<16>(d_symbol + bin));
-        // Beta is indexed by the symbol's position within this tile. The
-        // equalization kernel consumes it alongside the corrected symbol.
+        // Store beta by tile position rather than frame-relative symbol number.
         metadata->beta[slot] = beta;
         ++d_current_symbol;
     }

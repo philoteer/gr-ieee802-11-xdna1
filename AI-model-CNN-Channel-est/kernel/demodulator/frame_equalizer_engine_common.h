@@ -16,8 +16,8 @@
 // emission helpers. The replaceable control flow lives in
 // frame_equalizer_engine_classic.h / frame_equalizer_engine_ai.h.
 
-// Test builds can replace the CSI metadata with one LS-equalized vector for
-// every payload symbol. Production builds retain one CSI vector per frame.
+// Test builds can replace the CSI metadata with one normalized equalized vector
+// for every payload symbol. Production builds retain one CSI vector per frame.
 #ifndef FRAME_EQUALIZER_OUTPUT_SYMBOLS
 #define FRAME_EQUALIZER_OUTPUT_SYMBOLS 0
 #endif
@@ -138,8 +138,8 @@ static inline void decode_signal(const int8_t hard[48], int8_t decoded[24]) {
                 aie::select(uint8_t(0), uint8_t(1), aie::neq(parity_a_hi, coded_a)),
                 aie::select(uint8_t(0), uint8_t(1), aie::neq(parity_b_hi, coded_b)));
             const auto candidate_lo = aie::add(metric_lo, distance_lo);
-            const auto candidate_hi = aie::add(metric_hi, distance_hi); //states 32 to 63
-            const auto choose_hi = aie::lt(candidate_hi, candidate_lo); //reduce to 64 (ya know, the viterbi decoder thing.)
+            const auto candidate_hi = aie::add(metric_hi, distance_hi); //Upper 32 predecessor states.
+            const auto choose_hi = aie::lt(candidate_hi, candidate_lo); //Choose one predecessor per destination state.
             best[bit] = aie::select(candidate_lo, candidate_hi, choose_hi);
             survivor[bit] = aie::select(state_lo, state_hi, choose_hi);
         }
@@ -161,7 +161,7 @@ static inline void decode_signal(const int8_t hard[48], int8_t decoded[24]) {
     }
     //Trellis diagram forward pass end.
 
-    //trace back and recover the payload.
+    // Trace back and recover the 24 SIGNAL bits.
     int state = 0;  //L-SIG's last 6 bits are 0, so we can just start from the state of 0b(000 000). (Note: this is not how the original gr-ieee802-11 behaves - that uses more generic implementation. This implementation is actually a little better, so I am not replicating that behavior.)
     AIE_LOOP_NO_UNROLL
     for (int i = 23; i >= 0; --i) {

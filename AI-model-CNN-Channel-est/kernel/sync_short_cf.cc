@@ -1,6 +1,4 @@
-//===- sync_short_cf.cc ----------------------------------------*- C++ -*-===//
-// IEEE 802.11 short preamble synchronizer kernel.
-//===----------------------------------------------------------------------===//
+/** @file @brief Short-preamble detection and coarse frequency correction. */
 
 #include <stdint.h>
 #include <algorithm>
@@ -24,6 +22,7 @@
 static constexpr int state_search = 0;
 static constexpr int state_copy = 1;
 
+/// Detection and copy state retained across input tiles.
 static int d_state = state_search;
 static int d_copied = 0;
 static int d_plateau = 0;
@@ -45,47 +44,22 @@ extern "C" {
  *  calls. Output metadata words 0/1 hold the produced sample count and tag
  *  count, followed by up to seven (offset, CFO) tag pairs.
  *
- *  @param in1 Complex input samples for this tile.
- *  @param abs_in Per-sample lag-16 autocorrelation used for CFO estimation.
+ *  @param in1 Complex Q0.15 input delayed by 16 samples.
+ *  @param abs_in Complex Q7.24 lag-16 correlations for CFO estimation.
  *  @param threshold_met_in Threshold flags marking candidate frame starts.
  *  @param out Rotated samples preceded by the 320-sample delay history.
- *  @param out_meta Produced count, tag count, then (offset, CFO) tag pairs.
+ *  @param out_meta Produced count, tag count, then (offset, Q3.29 CFO) pairs.
  *  @param N Number of input samples in this tile.
+ *  @pre Output has room for the history prefix and a padded 16-sample tail.
  */
 void sync_short_cf(cint16 *__restrict in1, cint32 *__restrict abs_in, int8_t *__restrict threshold_met_in, cint16 *__restrict out, int32_t * __restrict out_meta, int32_t N) {
-    // REAL-DATA PROFILE (2026-08-03): AIE hardware-cycle counters over 144,000
-    // 1024-sample tile calls from test/until_sync_short_speedtest/speedtest.grc
-    // and /home/piloteer/Desktop/wifi_iq_hackrf.bin. Average total was 20.1k
-    // core cycles/tile. COPY-associated work was 90.3%: state scanning 59.0%,
-    // vector rotation 19.9%, oscillator setup 10.0%, and scalar tails 1.5%.
-    // SEARCH scanning was 0.07%, delay-history copies 4.5%, and other function,
-    // metadata, and instrumentation overhead 5.1%.
-    //
-    // Reproduction method:
-    // 1. Bracket the whole function and the sections named above with
-    //    aie::tile::current().cycles(), accumulating uint64_t cycle deltas.
-    // 2. Temporarily replace the seven output metadata tags with profile tags at
-    //    offset zero. Pass 1 values were [total, search_scan, copy_scan,
-    //    delay_copy, oscillator_setup, vector_rotation, scalar_tail].
-    // 3. The speed-test sync_long_cf placeholder passes these tags through. Add
-    //    a temporary int32 GNU Radio sync block after
-    //    mlir_aie_cpp_tagged_int32_to_int32 in generated wifi_rx.py. Group tags
-    //    seven at a time and decode each cycle count with
-    //    round(pmt.to_double(tag.value) * (1 << 29)); sum in int64 arrays.
-    // 4. Pass 2 replaced the last four values with [copy_true_simd,
-    //    copy_zero_simd, search_zero_simd, frequency_estimation] to subdivide
-    //    scanning. Its denser timers were used only for within-scan percentages.
-    // 5. Build serially with `make JOBS=1 all`, generate with `grcc speedtest.grc`,
-    //    reapply the temporary monitor, then run with `QT_QPA_PLATFORM=offscreen
-    //    timeout --signal=INT --kill-after=5s 8s python3 -u wifi_rx.py`.
-    // Remove cycle counters, fake tags, and the monitor before production build.
     int32_t produced_out = 0;
     int32_t tag_count = 0;
     int32_t segment_count = 0;
     int32_t active_segment = -1;
     alignas(32) int32_t metadata[2 + 2 * max_tags_per_tile] = {};
 
-    //recover state
+    // Resume an unfinished segment from the preceding tile.
     if (d_state != state_search) {
         active_segment = 0;
         segment_start[0] = 0;
@@ -96,13 +70,11 @@ void sync_short_cf(cint16 *__restrict in1, cint32 *__restrict abs_in, int8_t *__
     }
     
     int i = 0;
-    // MAIN BOTTLENECK: COPY-state scanning consumed 59.0% of all core cycles
-    // (11.9k cycles/tile). SEARCH scanning consumed only 0.07% on this recording.
+    // Identify copy segments before rotating their samples.
     while (i < N) {
         if (threshold_met_in[i]) {
             int skip_start = i;
-            // Within COPY scanning, all-true SIMD runs were the largest measured
-            // subsection at 33.8% of COPY scan time.
+            // Skip uniform flag blocks while a new frame cannot yet begin.
             while (d_state != state_search && i + vec_factor <= N && d_copied + vec_factor <= max_samples && d_copied + vec_factor - 1 <= min_gap) {
                 aie::vector<int8_t, vec_factor> threshold_met =
                     aie::load_unaligned_v<vec_factor>(threshold_met_in + i);
@@ -120,13 +92,11 @@ void sync_short_cf(cint16 *__restrict in1, cint32 *__restrict abs_in, int8_t *__
                 continue;
             }
 
-            //main logic
             if (d_plateau < min_plateau) {
                 d_plateau++;
             } else if (d_state == state_search || d_copied > min_gap) {
                 d_copied = 0;
-                d_plateau = (d_state == state_search); //1 if state_search; 0 otherwise (probably not necessary; just preserving the old behavior)
-                // Frequency estimation consumed about 22.5% of COPY scan time.
+                d_plateau = (d_state == state_search);
                 d_freq_offset_q29 = estimate_freq_offset_q29(abs_in[i]);
                 if (tag_count < max_tags_per_tile) {
                     metadata[2 + 2 * tag_count] = produced_out;
@@ -147,8 +117,7 @@ void sync_short_cf(cint16 *__restrict in1, cint32 *__restrict abs_in, int8_t *__
             d_plateau = 0;
 
             int skip_start = i;
-            // All-zero SIMD runs consumed 15.1% of COPY scan time and were the
-            // largest SEARCH subsection at 56.4% of SEARCH scan time.
+            // Skip uniform non-detection blocks without per-sample scanning.
             while ((d_state == state_search || d_copied + vec_factor <= max_samples) && i + vec_factor <= N) {
                 aie::vector<int8_t, vec_factor> threshold_met =
                     aie::load_unaligned_v<vec_factor>(threshold_met_in + i);
@@ -179,17 +148,16 @@ void sync_short_cf(cint16 *__restrict in1, cint32 *__restrict abs_in, int8_t *__
         i++;
     }
 
-    // Reading and later updating the 320-sample delay history consumed 4.5%.
+    // Prefix output with history required by long-preamble synchronization.
     for (int j = 0; j < delay_samples; j += vec_factor) {
         copy_16(d_delay + j, out + j);
     }
 
-    produced_out = 0; //re-count
+    produced_out = 0;
     
     for (int s = 0; s < segment_count; s++) {
         int sample_idx = segment_start[s];
         int remaining = segment_len[s];
-        // Per-segment phase and vector-oscillator setup consumed 10.0% overall.
         uint32_t phase_step_q = radians_q29_to_phase_q(-segment_freq_offset_q29[s]);
 
         uint32_t phase = (uint32_t)segment_copied[s] * phase_step_q;
@@ -203,15 +171,11 @@ void sync_short_cf(cint16 *__restrict in1, cint32 *__restrict abs_in, int8_t *__
 
         uint32_t block_phase_step_q = (uint32_t)vec_factor * phase_step_q;
         aie::vector<uint32_t, vec_factor> block_phase_step_v = aie::broadcast<uint32_t, vec_factor>(block_phase_step_q);
-        // Recurrence-factor angle error accumulates once per SIMD block. Use
-        // the high-precision estimator here as well as for the one-time
-        // absolute oscillator construction above.
+        // Advance all oscillator lanes by one 16-sample block.
         aie::vector<cint16, vec_factor> rotate_factor = make_unit_q15_v(
             cos_estimate_MINIMAX_v(block_phase_step_v),
             sin_estimate_MINIMAX_v(block_phase_step_v));
 
-        // SECOND-LARGEST PART: vector rotation/output consumed 19.9% overall
-        // (4.0k cycles/tile). Scalar tails added another 1.5%.
         aie::scoped_mode rnd_mode{aie::rounding_mode::symmetric_inf};
         aie::scoped_mode sat_mode{aie::saturation_mode::saturate};
         while (remaining >= vec_factor) {
@@ -223,6 +187,7 @@ void sync_short_cf(cint16 *__restrict in1, cint32 *__restrict abs_in, int8_t *__
             remaining -= vec_factor;
         }
 
+        // Zero-pad the final SIMD load; only remaining samples are valid.
         if (remaining > 0) {
             alignas(32) cint16 tail_in_i16[vec_factor] = {};
 

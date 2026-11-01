@@ -8,8 +8,8 @@
 #include "frame_equalizer_metadata.h"
 #include "equalizer/select.h"
 
-// Test builds can replace the CSI metadata with one LS-equalized vector for
-// every payload symbol. Production builds retain one CSI vector per frame.
+// Test builds can replace the CSI metadata with one normalized equalized vector
+// for every payload symbol. Production builds retain one CSI vector per frame.
 #ifndef FRAME_EQUALIZER_OUTPUT_SYMBOLS
 #define FRAME_EQUALIZER_OUTPUT_SYMBOLS 0
 #endif
@@ -96,7 +96,7 @@ static inline void decode_signal(const int8_t hard[48], int8_t decoded[24]) {
         // two predecessor ranges separate so their metrics can be reduced in
         // parallel across 32 lanes.
         const auto state_lo = aie::load_v<32>(kViterbiStates);  //0 to 31
-        const auto state_hi = aie::add(state_lo, uint8_t(32));  //31 to 63
+        const auto state_hi = aie::add(state_lo, uint8_t(32));  //32 to 63
         const auto metric_lo = aie::load_v<32>(d_viterbi_metric);   //hamming dist
         const auto metric_hi = aie::load_v<32>(d_viterbi_metric + 32);
         aie::vector<uint8_t, 32> best[2];
@@ -128,8 +128,8 @@ static inline void decode_signal(const int8_t hard[48], int8_t decoded[24]) {
                 aie::select(uint8_t(0), uint8_t(1), aie::neq(parity_a_hi, coded_a)),
                 aie::select(uint8_t(0), uint8_t(1), aie::neq(parity_b_hi, coded_b)));
             const auto candidate_lo = aie::add(metric_lo, distance_lo);
-            const auto candidate_hi = aie::add(metric_hi, distance_hi); //128 states
-            const auto choose_hi = aie::lt(candidate_hi, candidate_lo); //reduce to 64 (ya know, the viterbi decoder thing.)
+            const auto candidate_hi = aie::add(metric_hi, distance_hi); //Upper 32 predecessor states.
+            const auto choose_hi = aie::lt(candidate_hi, candidate_lo); //Choose one predecessor per destination state.
             best[bit] = aie::select(candidate_lo, candidate_hi, choose_hi);
             survivor[bit] = aie::select(state_lo, state_hi, choose_hi);
         }
@@ -151,7 +151,7 @@ static inline void decode_signal(const int8_t hard[48], int8_t decoded[24]) {
     }
     //Trellis diagram forward pass end.
 
-    //trace back and recover the payload.
+    // Trace back and recover the 24 SIGNAL bits.
     int state = 0;  //L-SIG's last 6 bits are 0, so we can just start from the state of 0b(000 000). (Note: this is not how the original gr-ieee802-11 behaves - that uses more generic implementation. This implementation is actually a little better, so I am not replicating that behavior.)
     AIE_LOOP_NO_UNROLL
     for (int i = 23; i >= 0; --i) {
@@ -394,7 +394,7 @@ extern "C" void frame_equalizer_equalize(
     metadata->output_length = 0; 
     metadata->tag_count = 0;
     int produced = 0;
-    //const int input_count = in_meta[0] < N ? in_meta[0] : N; //we are short on memory, 'precautions' has to go.
+    // The upstream valid count must fit the prepared sample buffer.
     const int input_count = in_meta[0];
     const int input_tags = in_meta[1];
     int tag_index = 0;
@@ -426,7 +426,7 @@ extern "C" void frame_equalizer_equalize(
                                 d_channel, d_snr_linear);
         if (d_equalizer_current_symbol >= 2) {
             // SIGNAL is always BPSK. Later symbols use the modulation selected
-            // by SIGNAL; pilots, guards, and DC never enter d_decisions.
+            // by SIGNAL; only the first 48 packed data-carrier decisions are used.
             {
                 // Equalization plus QAM channel-power generation measured about
                 // 1.51k cycles/tile (6.72% of equalize) in the full CSI profile.

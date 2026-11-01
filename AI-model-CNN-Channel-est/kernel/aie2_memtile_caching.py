@@ -66,8 +66,8 @@ sync_short_metadata_words_per_tile = 2 + 2 * max_tags_per_tile
 fft_max_tags_per_tile = 31
 # FFT metadata layout: two header words plus 31 (offset, CFO) pairs.
 fft_metadata_words_per_tile = 2 + 2 * fft_max_tags_per_tile
-# Each tile contains 1024 FFT bins, or sixteen 64-bin OFDM symbols. The
-# preprocess kernel writes one beta value for each of those tile-local slots.
+# Each tile contains tile_size / 64 OFDM symbol slots (sixteen by default).
+# The preprocess kernel writes one beta value for each tile-local slot.
 frame_equalizer_symbols_per_tile = tile_size // 64
 # Handoff metadata = copied FFT metadata + one beta per symbol + one center
 # frequency word. This is separate from the much larger final output metadata.
@@ -459,8 +459,7 @@ with rt.sequence(in_tensor_ty, frame_equalizer_out_tensor_ty, frame_equalizer_ou
 # Create the program from the device type and runtime
 my_program = Program(dev, rt)
 
-# Placement is intentionally unchanged while the core count is being expanded;
-# revisit this after the new cores land because it can invalidate placement A/Bs.
+# Place the pipeline workers and resolve the data-movement graph.
 module = my_program.resolve_program(SequentialPlacer())
 
 # Print the generated MLIR

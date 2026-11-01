@@ -1,7 +1,7 @@
 # -*- Python -*-
 #
-# Speed-test IRON graph for the receiver pipeline through sync_long_cf, whose
-# local placeholder kernel passes the sync_short outputs through unchanged.
+# Wi-Fi pipeline through sync_short_cf with a pass-through sync_long_cf adapter
+# that drops the history prefix and copies current-stream samples and metadata.
 # Target: XDNA1 / XDNA2 (npu1 / npu2)
 
 """Speed-test IRON graph ending at the pass-through sync_long_cf placeholder.

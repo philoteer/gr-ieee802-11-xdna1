@@ -1,4 +1,5 @@
-// Warning: a largely unoptimized scalar implementation; only LS equalizer has been optimized at the moment.
+// Decision-directed tracking is largely unoptimized scalar code;
+// LTS initialization is shared with LS and STA.
 // (not recommended for actual use, mostly for testing purposes for now)
 
 #ifndef FRAME_EQUALIZER_EQUALIZER_LMS_H

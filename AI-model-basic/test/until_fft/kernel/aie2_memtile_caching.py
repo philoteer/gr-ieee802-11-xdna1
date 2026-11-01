@@ -1,6 +1,6 @@
 # -*- Python -*-
 #
-# GNU Radio - Complex to Magnitude Squared via IRON
+# GNU Radio Wi-Fi receive pipeline through FFT via IRON.
 # Target: XDNA1 / XDNA2 (npu1 / npu2)
 
 import numpy as np

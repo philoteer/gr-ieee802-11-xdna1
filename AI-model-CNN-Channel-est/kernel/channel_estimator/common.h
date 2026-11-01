@@ -26,8 +26,8 @@ alignas(aie::vector_decl_align) const int16_t kLong[FFT_SIZE] = {
     1, -1, -1, 1, -1, 1, -1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
 };
 // The 52 occupied bins comprise 48 data carriers and four pilots. Guards and
-// DC are zero, so the shared LTS SNR loop, STA's spatial smoothing, and the
-// CNN input/residual masking all skip them.
+// DC are zero in this mask, so the shared LTS SNR loop skips them.
+// STA's spatial smoothing and the CNN input/residual masking also exclude them.
 alignas(aie::vector_decl_align) const int8_t kOccupied[FFT_SIZE] = {
     0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -35,9 +35,9 @@ alignas(aie::vector_decl_align) const int8_t kOccupied[FFT_SIZE] = {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
 };
 // Standard 127-symbol pilot-polarity sequence for data OFDM symbols
-// (base::POLARITY). Index zero belongs to SIGNAL. Needed wherever the known
-// pilot signs are removed: comb, STA, and the preprocess kernel's beta
-// estimate.
+// (base::POLARITY). Index zero belongs to SIGNAL. Used to remove the known
+// pilot signs in comb and STA. The preprocess kernel keeps its own
+// copy for the beta estimate.
 const int8_t kPolarity[127] = {
     1, 1, 1, 1, -1, -1, -1, 1, -1, -1, -1, -1, 1, 1, -1, 1,
     -1, -1, 1, 1, -1, 1, 1, -1, 1, 1, 1, 1, 1, 1, -1, 1,
@@ -51,18 +51,18 @@ const int8_t kPolarity[127] = {
 
 // Frame-persistent first long training symbol. It is held aside until the
 // second LTS arrives so signal and noise power can be measured from their sum
-// and difference before the combined channel estimate replaces it. LS, LMS,
-// STA, and the CNN all perform the identical LTS capture (number == 0).
+// and difference to initialize the channel estimate. LS, LMS, STA, and the CNN
+// all use this shared LTS capture.
 alignas(aie::vector_decl_align) static cint32 d_first_long[FFT_SIZE];
 
 /** @brief Shared LTS capture, two-symbol channel estimate, and scaled SNR ratio.
  *
- *  Symbols 0 and 1 are the repeated LTS; every LTS-based estimator (ls.h,
- *  lms.h, sta.h, and cnn.h) calls this exact capture, sum/difference power
- *  measurement, and SNR-ratio calculation. The stored ratio is multiplied by
+ *  Symbols 0 and 1 are the repeated LTS; LS, LMS, STA, and the CNN call this
+ *  helper for capture, sum/difference power measurement, and SNR-ratio
+ *  calculation. The stored ratio is multiplied by
  *  16 to retain four fractional bits in a uint64_t; the value is not limited
- *  to an 8-bit fixed-point range. Later symbols are a no-op because the
- *  estimate has already been formed.
+ *  to an 8-bit fixed-point range. This helper is a no-op for later symbols;
+ *  decision-directed tracking is handled separately after hard decisions.
  *
  *  @param symbol Frequency-domain symbol in FFT-shifted order.
  *  @param number Frame-relative symbol index; 0 saves the first LTS, 1 forms

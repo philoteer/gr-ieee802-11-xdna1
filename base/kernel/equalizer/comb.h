@@ -15,6 +15,7 @@
 // five spans and smoothed over time. The public interface matches the other
 // algorithms:
 //   update_channel_estimate(symbol, number, channel, snr)
+//   track_channel_estimate(symbol, decisions, modulation, number, channel)
 //   reset_channel_estimate(snr)
 // kPolarity comes from common.h.
 
@@ -79,8 +80,8 @@ static NOINLINE void update_channel_estimate(const cint32 *symbol, int number,
     }
     // The FFT input is cint16 Q0.15, so every bin is bounded by
     // 64 * 2^15 = 2^21 and the four-pilot sum by 2^23. int32 arithmetic is
-    // exact here; the 64-bit path is only needed in interpolate(), where a Q15
-    // weight scales the per-bin difference. This average is just the
+    // exact here; wide accumulators handle Q15 interpolation weights and the
+    // temporal correction in update_channel_vector(). This average is just the
     // extrapolation anchor, so a 2-bit rounding shift is accurate enough.
     const cint32 average =
         (pilot[0] + pilot[1] + pilot[2] + pilot[3] + 2) >> 2;

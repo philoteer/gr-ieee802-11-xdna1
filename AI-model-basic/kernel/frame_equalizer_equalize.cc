@@ -36,7 +36,7 @@ extern "C" void frame_equalizer_equalize(
     metadata->output_length = 0; 
     metadata->tag_count = 0;
     int produced = 0;
-    //const int input_count = in_meta[0] < N ? in_meta[0] : N; //we are short on memory, 'precautions' has to go.
+    // The upstream valid count must fit the prepared sample buffer.
     const int input_count = in_meta[0];
     const int input_tags = in_meta[1];
     int tag_index = 0;
@@ -55,7 +55,7 @@ extern "C" void frame_equalizer_equalize(
         const int32_t beta = prepared_metadata->beta[offset / 64];
 
         // SIGNAL is always BPSK. Later symbols use the modulation selected
-        // by SIGNAL; pilots, guards, and DC never enter the decisions.
+        // by SIGNAL; only the first 48 packed data-carrier decisions are used.
         const int current_symbol = d_equalizer_current_symbol;
         const int modulation = current_symbol == 2 ? 2 : d_modulation;
 #if !FRAME_EQUALIZER_OUTPUT_SYMBOLS
