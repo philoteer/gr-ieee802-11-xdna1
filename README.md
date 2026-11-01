@@ -1,5 +1,7 @@
 Implementation of IEEE 802.11a/g on a AI Engine (XDNA) NPU, based on designs from https://github.com/bastibl/gr-ieee802-11 . 
 
+Use the release version ( https://github.com/philoteer/gr-ieee802-11-xdna1/releases/tag/rel-manuscript ) if you want to replicate the results demonstrated in the manuscripts; the main branch may contain further updated source codes. 
+
 # Prerequisites
 * a Linux machine with XDNA1 NPU
 * gnuradio
