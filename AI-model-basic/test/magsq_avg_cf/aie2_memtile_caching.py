@@ -4,15 +4,26 @@
 # Target: XDNA1 / XDNA2 (npu1 / npu2)
 
 import numpy as np
+import sys
 import ml_dtypes
 import os
 
 from aie.iron import Kernel, ObjectFifo, Program, Runtime, Worker
-from aie.iron.placers import SequentialPlacer
+try:
+    from aie.iron.placers import SequentialPlacer
+except ModuleNotFoundError as exc:
+    if exc.name != "aie.iron.placers":
+        raise
+    SequentialPlacer = None
 from aie.iron.controlflow import range_
 import aie.iron as iron
 
-dev = iron.get_current_device()
+if len(sys.argv) > 1:
+    from aie.iron.device import NPU1, NPU2
+
+    dev = {"npu": NPU1, "npu1": NPU1, "npu2": NPU2}[sys.argv[1]]()
+else:
+    dev = iron.get_current_device()
 
 tile_size = 1024
 divider = int(os.environ.get("AIE_TILES_PER_BATCH", "16"))
@@ -56,13 +67,26 @@ def magsq_core_fn(of_in, of_out, of_out_delay, magsq_scalar):
 
 worker = Worker(magsq_core_fn, [of_in.cons(), of_out.prod(), of_out_delay.prod(), magsq_fn])
 
-rt = Runtime()
-with rt.sequence(in_tensor_ty, out_tensor_ty, delay_out_tensor_ty) as (a_in, c_out, d_out):
-    rt.start(worker)
-    rt.fill(of_in.prod(), a_in)
-    rt.drain(of_out.cons(), c_out, wait=False)
-    rt.drain(of_out_delay.cons(), d_out, wait=True)
+if hasattr(Runtime, "sequence"):
+    rt = Runtime()
+    with rt.sequence(in_tensor_ty, out_tensor_ty, delay_out_tensor_ty) as (a_in, c_out, d_out):
+        rt.start(worker)
+        rt.fill(of_in.prod(), a_in)
+        rt.drain(of_out.cons(), c_out, wait=False)
+        rt.drain(of_out_delay.cons(), d_out, wait=True)
+    my_program = Program(dev, rt)
+else:
+    def runtime_sequence(a_in, c_out, d_out, input_fifo, output_fifo, delay_fifo):
+        input_fifo.fill(a_in)
+        output_fifo.drain(c_out, wait=False)
+        delay_fifo.drain(d_out, wait=True)
 
-my_program = Program(dev, rt)
-module = my_program.resolve_program(SequentialPlacer())
+    rt = Runtime(runtime_sequence, [
+        in_tensor_ty, out_tensor_ty, delay_out_tensor_ty,
+        of_in.prod(), of_out.cons(), of_out_delay.cons(),
+    ])
+    my_program = Program(dev, rt, workers=[worker])
+
+module = (my_program.resolve_program(SequentialPlacer())
+          if SequentialPlacer is not None else my_program.resolve_program())
 print(module)

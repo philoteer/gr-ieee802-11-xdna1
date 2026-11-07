@@ -43,7 +43,7 @@ def gen_reciprocal_seed_table(seed_bits: int) -> list[int]:
 
 
 def format_table(name: str, values: list[int], signed: bool = True) -> list[str]:
-    """Format a C array declaration with alignas(32)."""
+    """Format an array using the target's AIE vector alignment."""
     max_val = max(abs(v) for v in values)
     if signed and max_val < (1 << 31):
         c_type = "int32_t"
@@ -52,7 +52,7 @@ def format_table(name: str, values: list[int], signed: bool = True) -> list[str]
     else:
         raise ValueError(f"values out of range for {'int32_t' if signed else 'uint32_t'}")
 
-    lines = [f"alignas(32) static const {c_type} {name}[{len(values)}] = {{"]
+    lines = [f"alignas(aie::vector_decl_align) static const {c_type} {name}[{len(values)}] = {{"]
     row: list[str] = []
     formatted: list[str] = []
     for v in values:
@@ -83,6 +83,7 @@ def generate_header(atan_size: int, seed_bits: int) -> str:
         "#define AIE_ATAN_LUT_Q29_H",
         "",
         "#include <stdint.h>",
+        "#include <aie_api/aie.hpp>",
         "",
         f"// atan(i / {atan_size}) in signed Q3.29 radians for i=0..{atan_size - 1}. "
         "atan(1) is kept as",

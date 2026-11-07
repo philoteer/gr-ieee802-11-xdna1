@@ -22,7 +22,7 @@ from utils.frame_equalizer_channel_ai.common.dataset import snr_gate_candidates
 from utils.frame_equalizer_channel_ai.common.cross_domain import (
     SOURCE_TRAIN_PARTITIONS, domain_policy, source_frames, target_frames,
 )
-from utils.frame_equalizer_channel_ai.common.updater import frame_examples, load_cnn_header, load_mlp_header
+from utils.frame_equalizer_channel_ai.common.updater import frame_examples, infer, load_cnn_header, load_mlp_header
 from utils.frame_equalizer_channel_ai.dataset_generator.convert_sigmf import (
     DEFAULT_RECORDINGS,
 )
@@ -74,27 +74,6 @@ def quantize(models):
         first[index, :61] = np.clip(np.rint(model.layers[0].weight.detach().numpy().T * 128), -128, 127)
         second[index, :, :26] = np.clip(np.rint(model.layers[2].weight.detach().numpy().T * 128), -128, 127)
     return first, second
-
-
-def infer(features, weights):
-    """Runs the integer Q7 MLP reference on encoded group features.
-
-    Args:
-        features: ``int16`` input array shaped ``(N, 4, 61)``.
-        weights: Pair of padded Q7 arrays returned by :func:`quantize`.
-
-    Returns:
-        ``int16`` residual predictions shaped ``(N, 4, 26)``.
-    """
-    result = np.zeros((len(features), 4, 26), dtype=np.int16)
-    w1, w2 = weights
-    for group in range(4):
-        inputs = features[:, group].astype(np.int32)
-        hidden = np.maximum((inputs @ w1[group, :61].astype(np.int32)) >> 7, 0)
-        hidden = np.clip(hidden, 0, 32767).astype(np.int32)
-        output = (hidden @ w2[group, :, :26].astype(np.int32)) >> 7
-        result[:, group] = np.clip(output, -32768, 32767)
-    return result
 
 
 def infer_float(features, models):

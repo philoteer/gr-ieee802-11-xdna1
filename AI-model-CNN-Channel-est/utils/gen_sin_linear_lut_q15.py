@@ -21,7 +21,8 @@ Table model:
 
 Physical layout:
     AMD's four-access LUT intrinsic requires four physical copies: two
-    interleaved copies in each of the ``AB`` and ``CD`` arrays.  Thus an
+    interleaved copies in each of the ``AB`` and ``CD`` arrays, repeated at
+    128-bit (AIE2) or 256-bit (AIE2P) memory-bank boundaries. Thus an
     N-entry int16 slope/offset table occupies ``N * 16`` bytes (4 KiB for the
     default 256 entries).
 """
@@ -149,39 +150,45 @@ def optimize_coefficients(entries: int) -> list[tuple[int, int]]:
     return coefficients
 
 
-def duplicate_for_four_accesses(coefficients: list[tuple[int, int]]) -> list[int]:
-    """Flatten coefficients and replicate each 4-entry bank for the LUT copies.
+def duplicate_for_four_accesses(coefficients: list[tuple[int, int]],
+                                bank_bytes: int = 16) -> list[int]:
+    """Flatten coefficients and replicate each target-width bank for the LUT copies.
 
     The four-access intrinsic reads the table through four independent ports,
     so the hardware needs duplicate physical copies.  This function groups
-    the logical ``(slope, offset)`` pairs into banks of four, flattens each
-    bank into eight int16 values in ``(slope0, offset0, slope1, offset1, ...)``
+    the logical ``(slope, offset)`` pairs into banks of four (AIE2) or eight
+    (AIE2P), flattens each bank in ``(slope0, offset0, slope1, offset1, ...)``
     order, and emits the bank twice.  The caller therefore writes the result
     into *both* the AB and CD arrays, yielding four physical copies of every
     logical entry.
 
     Args:
         coefficients: Logical ``(slope, offset)`` pairs in segment order;
-            the length must be divisible by four.
+            the length must fill complete memory banks.
+        bank_bytes: Memory-bank width, 16 on AIE2 or 32 on AIE2P.
 
     Returns:
         The interleaved, twice-duplicated int16 value list.
 
     Raises:
-        ValueError: If the entry count is not divisible by four.
+        ValueError: If the bank width or entry count is invalid.
     """
-    if len(coefficients) % 4:
-        raise ValueError("entry count must be divisible by four")
+    if bank_bytes not in (16, 32):
+        raise ValueError("bank width must be 16 or 32 bytes")
+    entries_per_bank = bank_bytes // 4
+    if len(coefficients) % entries_per_bank:
+        raise ValueError("entry count must fill complete memory banks")
     values = []
-    for base in range(0, len(coefficients), 4):
-        bank_width = [value for pair in coefficients[base:base + 4] for value in pair]
+    for base in range(0, len(coefficients), entries_per_bank):
+        bank_width = [value for pair in coefficients[base:base + entries_per_bank]
+                      for value in pair]
         values.extend(bank_width)
         values.extend(bank_width)
     return values
 
 
 def format_array(name: str, values: list[int]) -> list[str]:
-    """Format an int16 table as an ``alignas(32)`` C array definition.
+    """Format an int16 table using the target's AIE vector alignment.
 
     Twelve values per source line matches the width used by the checked-in
     header, keeping regenerated output diffable against it.
@@ -191,10 +198,10 @@ def format_array(name: str, values: list[int]) -> list[str]:
         values: int16 values to emit, in hardware table order.
 
     Returns:
-        The C declaration as a list of lines, from ``alignas(32) ... = {``
+        The C declaration as a list of lines, from ``alignas(...) ... = {``
         through the closing ``};``.
     """
-    lines = [f"alignas(32) static const int16_t {name}[{len(values)}] = {{"]
+    lines = [f"alignas(aie::vector_decl_align) static const int16_t {name}[{len(values)}] = {{"]
     for base in range(0, len(values), 12):
         lines.append("    " + ", ".join(str(value) for value in values[base:base + 12]) + ",")
     lines.append("};")
@@ -231,9 +238,9 @@ def generate_section(entries: int) -> str:
     if step_bits < 3:
         raise ValueError("int16 linear_approx requires step_bits >= 3")
     coefficients = optimize_coefficients(entries)
-    duplicated = duplicate_for_four_accesses(coefficients)
-    # Two arrays (AB and CD), each len(duplicated) int16 values.
-    physical_bytes = 2 * len(duplicated) * 2
+    duplicated_aie2 = duplicate_for_four_accesses(coefficients, bank_bytes=16)
+    duplicated_aie2p = duplicate_for_four_accesses(coefficients, bank_bytes=32)
+    physical_bytes = 2 * len(duplicated_aie2) * 2
 
     lines = [
         f"constexpr unsigned kSinLinearLutEntries = {entries};",
@@ -242,9 +249,19 @@ def generate_section(entries: int) -> str:
         "",
         f"// Q15 sine offsets and integer segment slopes for {entries} quarter-wave",
         f"// segments. Four-access bank duplication makes the physical table {physical_bytes} bytes.",
-        *format_array("kSinLinearLutAb", duplicated),
+        "#if __AIE_ARCH__ == 21 || __AIE_ARCH__ == 22",
+        "// AIE2P: repeat eight slope/offset pairs per 256-bit memory bank.",
+        "constexpr unsigned kSinLinearLutBankBytes = 32;",
+        *format_array("kSinLinearLutAb", duplicated_aie2p),
         "",
-        *format_array("kSinLinearLutCd", duplicated),
+        *format_array("kSinLinearLutCd", duplicated_aie2p),
+        "#else",
+        "// AIE2: retain four slope/offset pairs per 128-bit memory bank.",
+        "constexpr unsigned kSinLinearLutBankBytes = 16;",
+        *format_array("kSinLinearLutAb", duplicated_aie2),
+        "",
+        *format_array("kSinLinearLutCd", duplicated_aie2),
+        "#endif",
         "",
     ]
     return "\n".join(lines)

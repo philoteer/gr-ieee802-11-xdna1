@@ -121,9 +121,12 @@ make -C test/frame_equalizer/cnn_parity -j1 updater-test CNN_WEIGHTS=BUS_TO_ROOM
 make -C test/frame_equalizer/cnn_parity -j1 updater-test CNN_WEIGHTS=ROOM_TO_BUS
 ```
 
-The `-j1` make invocations above keep CHESS object compilation serial.
-Makefile defaults remain `JOBS ?= 2`; `aiecc.py` uses its default parallelism.
-Run only one NPU make invocation at a time.
+The build defaults to `JOBS=1` and limits aiecc's internal compilation too.
+Add `NPU2=1` to select AIE2P/XDNA2 for both the graph and all kernel objects;
+the default target remains AIE2/XDNA1. Both modern `aiecc` and legacy `aiecc.py`
+are supported. Run only one NPU make invocation at a time and use the local
+memory limits described in `test/alignment/README.md`. Parity tests use the
+checked-in exported headers, without requiring training archives or PyTorch.
 
 Re-evaluate an exported updater on its entire target domain with:
 

@@ -8,14 +8,14 @@ The supplied estimator selector has no separate MLP-only algorithm.
 
 ## Build the three stages
 
-From this directory, with `xchesscc_wrapper`, `aiecc.py`, and the AIE Python
+From this directory, with `xchesscc_wrapper`, `aiecc` (or legacy `aiecc.py`), and the AIE Python
 package available:
 
 ```bash
-make -C preprocess all -j2
-make -C channel_est all -j2 CNN_DATA_UPDATER=NULL
-make -C channel_est all -j2 CNN_DATA_UPDATER=MLP
-make -C equalize all -j2
+make -C preprocess all -j1 JOBS=1 NPU2=1
+make -C channel_est all -j1 JOBS=1 NPU2=1 CNN_DATA_UPDATER=NULL
+make -C channel_est all -j1 JOBS=1 NPU2=1 CNN_DATA_UPDATER=MLP
+make -C equalize all -j1 JOBS=1 NPU2=1
 ```
 
 Each directory below contains `final.xclbin`, `insts.bin`, `aie.mlir`, the kernel
@@ -27,6 +27,9 @@ object, and a `frame_equalizer_*_build_mode.txt` recording its configuration:
 | CNN channel estimation | `channel_est/build/cnn/` |
 | CNN + MLP payload updater | `channel_est/build/mlp/` |
 | Equalization | `equalize/build/` |
+
+Omit `NPU2=1` for AIE2/XDNA1. Do not overlap builds; use the memory limits in
+[`../alignment/README.md`](../alignment/README.md) on the local machine.
 
 Channel estimation defaults to `EQUALIZER_ALGORITHM=CNN`,
 `CNN_WEIGHTS=BY_FRAME`, and `CNN_DATA_UPDATER=NULL`. Both estimator builds above

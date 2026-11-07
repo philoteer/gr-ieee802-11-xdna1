@@ -7,7 +7,12 @@
 ##===----------------------------------------------------------------------===##
 .DEFAULT_GOAL := compile
 srcdir := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-JOBS ?= 2
+JOBS ?= 1
+# Bound both make's kernel jobs and aiecc's internal compilation.
+COMPILE_JOBS := $(if $(filter 1,$(JOBS)),1,2)
+AIECC ?= $(shell command -v aiecc || command -v aiecc.py)
+# The legacy Python driver reads AIETOOLS from the environment.
+AIECC_FLAGS = $(if $(filter aiecc.py,$(notdir $(AIECC))),--aie-generate-xclbin --no-compile-host --aie-generate-npu-insts,--aietools=${AIETOOLS_DIR} --get-xclbin --get-npu-insts --xchesscc --placer=sequential_placer)
 EQUALIZER_ALGORITHM ?= LS
 SUPPORTED_EQUALIZER_ALGORITHMS := LS LMS COMB STA CNN
 ifeq ($(filter ${EQUALIZER_ALGORITHM},${SUPPORTED_EQUALIZER_ALGORITHMS}),)
@@ -30,6 +35,7 @@ export PATH := /opt/vitis_aie_essentials/tps/lnx64/target_aie_ml/bin/LNa64bin/:$
 # mlir-aie/programming_examples/makefile-common
 #AIETOOLS_DIR ?= $(shell realpath $(dir $(shell which xchesscc))/../)
 AIETOOLS_DIR = /opt/vitis_aie_essentials/
+export AIETOOLS := $(AIETOOLS_DIR)
 AIE_INCLUDE_DIR ?= ${AIETOOLS_DIR}/data/versal_prod/lib
 AIE2_INCLUDE_DIR ?= ${AIETOOLS_DIR}/data/aie_ml/lib
 MLIR_AIE_DIR ?= $(shell python3 -c "from aie.utils.config import root_path; print(root_path())")
@@ -38,11 +44,13 @@ CHESSCC1_FLAGS = -f -p me -P ${AIE_INCLUDE_DIR} -I ${AIETOOLS_DIR}/include
 CHESSCC2_FLAGS = -f -p me -P ${AIE2_INCLUDE_DIR} -I ${AIETOOLS_DIR}/include
 CHESS_FLAGS = -P ${AIE_INCLUDE_DIR}
 CHESSCCWRAP1_FLAGS = aie -I ${AIETOOLS_DIR}/include
-CHESSCCWRAP2_FLAGS = aie2 -I ${AIETOOLS_DIR}/include -I ${srcdir} -I ${srcdir}/common \
+CHESSCCWRAP_COMMON_FLAGS = -aietools ${AIETOOLS_DIR} -I ${AIETOOLS_DIR}/include -I ${srcdir} -I ${srcdir}/common \
 	-DFRAME_EQUALIZER_ALGORITHM=FRAME_EQUALIZER_ALGORITHM_${EQUALIZER_ALGORITHM} \
 	-DFRAME_EQUALIZER_ENGINE=FRAME_EQUALIZER_ENGINE_${ENGINE} \
 	-DFRAME_EQUALIZER_MODEL=FRAME_EQUALIZER_MODEL_${MODEL}
-CHESSCCWRAP2P_FLAGS = aie2p -I ${AIETOOLS_DIR}/include
+CHESSCCWRAP2_FLAGS = aie2 $(CHESSCCWRAP_COMMON_FLAGS)
+CHESSCCWRAP2P_FLAGS = aie2p $(CHESSCCWRAP_COMMON_FLAGS)
+CHESSCCWRAP_FLAGS = $(if $(filter npu2,$(devicename)),$(CHESSCCWRAP2P_FLAGS),$(CHESSCCWRAP2_FLAGS))
 PEANOWRAP2_FLAGS = -O2 -std=c++20 --target=aie2-none-unknown-elf ${WARNING_FLAGS} -DNDEBUG -I ${MLIR_AIE_DIR}/include
 PEANOWRAP2P_FLAGS = -O2 -std=c++20 --target=aie2p-none-unknown-elf ${WARNING_FLAGS} -DNDEBUG -I ${MLIR_AIE_DIR}/include
 
@@ -91,41 +99,41 @@ build/aie.mlir: ${srcdir}/aie2_memtile_caching.py
 # Compile autocorr_cf.cc to autocorr_cf.o
 build/autocorr_cf.o: ${srcdir}/autocorr_cf.cc
 	mkdir -p ${@D}
-	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP2_FLAGS} -c $< -o ${@F}
+	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
 # Compile magsq_avg_cf.cc to magsq_avg_cf.o
 build/magsq_avg_cf.o: ${srcdir}/magsq_avg_cf.cc
 	mkdir -p ${@D}
-	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP2_FLAGS} -c $< -o ${@F}
+	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
 build/threshold_cf.o: ${srcdir}/threshold_cf.cc
 	mkdir -p ${@D}
-	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP2_FLAGS} -c $< -o ${@F}
+	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
 build/sync_short_cf.o: ${srcdir}/sync_short_cf.cc ${srcdir}/common/aie_trig_utils.h ${srcdir}/common/aie_trig_luts.h
 	mkdir -p ${@D}
-	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP2_FLAGS} -c $< -o ${@F}
+	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
 build/sync_long_cf.o: ${srcdir}/sync_long_cf.cc ${srcdir}/common/aie_trig_utils.h ${srcdir}/common/aie_trig_luts.h
 	mkdir -p ${@D}
-	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP2_FLAGS} -c $< -o ${@F}
+	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
 build/fft_cf.o: ${srcdir}/fft_cf.cc ${srcdir}/common/fft64_twiddles.h ${srcdir}/common/aie_kernel_utils.h
 	mkdir -p ${@D}
-	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP2_FLAGS} -c $< -o ${@F}
+	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
 build/frame_equalizer_preprocess.o: ${srcdir}/frame_equalizer_preprocess.cc ${srcdir}/common/frame_equalizer_metadata.h ${srcdir}/common/aie_kernel_utils.h ${srcdir}/common/aie_trig_utils.h ${srcdir}/common/aie_trig_luts.h
 	mkdir -p ${@D}
-	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP2_FLAGS} -c $< -o ${@F}
+	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
 build/frame_equalizer_equalize.o: ${srcdir}/frame_equalizer_equalize.cc ${EQUALIZER_HEADERS}
 	mkdir -p ${@D}
-	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP2_FLAGS} -c $< -o ${@F}
+	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 	
 build/final.xclbin: build/aie.mlir ${KERNEL_OBJECTS}
 	mkdir -p ${@D}
-	cd ${@D} && aiecc.py --aie-generate-xclbin --no-compile-host --xclbin-name=${@F} \
-		--aie-generate-npu-insts --npu-insts-name=insts.bin $(<:%=../%)
+	cd ${@D} && $(AIECC) -j$(COMPILE_JOBS) $(AIECC_FLAGS) --xclbin-name=${@F} \
+		--npu-insts-name=insts.bin $(<:%=../%)
 
 build/insts.bin: build/final.xclbin
 	@test -f $@
@@ -135,4 +143,4 @@ clean:
 
 compile:
 	${MAKE} clean
-	${MAKE} -j${JOBS} all
+	${MAKE} -j${COMPILE_JOBS} all

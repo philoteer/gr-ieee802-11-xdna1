@@ -1,17 +1,15 @@
 .DEFAULT_GOAL := compile
 srcdir := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 kernel_srcdir := $(realpath ${srcdir}/../../../kernel)
-channel_ai_srcdir := $(realpath ${srcdir}/../../../utils/frame_equalizer_channel_ai)
-channel_ai_training := ${channel_ai_srcdir}/training
 CNN_WEIGHTS ?= BY_FRAME
 ifeq ($(filter ${CNN_WEIGHTS},BY_FRAME BY_CHANNEL BUS_TO_ROOM ROOM_TO_BUS),)
 $(error CNN_WEIGHTS must be BY_FRAME, BY_CHANNEL, BUS_TO_ROOM or ROOM_TO_BUS)
 endif
 split_mode := $(shell printf '%s' '${CNN_WEIGHTS}' | tr A-Z a-z)
-channel_ai_artifact := ${channel_ai_training}/artifacts/${split_mode}/channel_estimator_weights.npz
+channel_ai_header := ${kernel_srcdir}/channel_estimator/model/frame_equalizer_channel_ai_weights_${split_mode}.h
 UPDATER_BUILD := build_updater_${split_mode}
 CNN_BUILD := build_${split_mode}
-JOBS ?= 2
+include ${srcdir}/../../toolchain.mk
 
 ifneq ($(filter 1 2,$(JOBS)),$(JOBS))
 $(error JOBS must be 1 or 2)
@@ -46,12 +44,12 @@ ${CNN_BUILD}/aie.mlir: ${srcdir}/aie2_memtile_caching.py
 
 ${CNN_BUILD}/cnn_parity_test.o: ${srcdir}/cnn_parity_test.cc ${CNN_HEADERS}
 	mkdir -p ${@D}
-	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP2_FLAGS} -c $< -o ${@F}
+	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
 ${CNN_BUILD}/final.xclbin: ${CNN_BUILD}/aie.mlir ${CNN_BUILD}/cnn_parity_test.o
 	mkdir -p ${@D}
-	cd ${@D} && aiecc.py --aie-generate-xclbin --no-compile-host --xclbin-name=${@F} \
-		--aie-generate-npu-insts --npu-insts-name=insts.bin $(<:%=../%)
+	cd ${@D} && $(AIECC) -j$(COMPILE_JOBS) $(AIECC_FLAGS) --xclbin-name=${@F} \
+		--npu-insts-name=insts.bin $(<:%=../%)
 
 ${CNN_BUILD}/insts.bin: ${CNN_BUILD}/final.xclbin
 	@test -f $@
@@ -61,12 +59,11 @@ clean:
 
 compile:
 	${MAKE} clean
-	${MAKE} -j${JOBS} all
+	${MAKE} -j${COMPILE_JOBS} all
 
-generate-reference: ${channel_ai_artifact}
-
-${channel_ai_artifact}:
-	$(error Missing trained ${split_mode} CNN; run training/train_presplit_cnn_models.py)
+# The NumPy reference reads the exact checked-in Q7 weights compiled above;
+# no private training archive or retraining is required for a parity check.
+generate-reference: ${channel_ai_header}
 
 test: generate-reference
 	${MAKE} all
@@ -78,11 +75,11 @@ ${UPDATER_BUILD}/aie.mlir: ${srcdir}/aie2_updater.py
 
 ${UPDATER_BUILD}/updater_parity_test.o: ${srcdir}/updater_parity_test.cc ${CNN_HEADERS} ${kernel_srcdir}/channel_estimator/cnn_data_updater/mlp.h ${kernel_srcdir}/channel_estimator/model/select_updater.h ${kernel_srcdir}/channel_estimator/model/frame_equalizer_channel_updater_mlp_weights_${split_mode}.h
 	mkdir -p ${@D}
-	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP2_FLAGS} -c $< -o ${@F}
+	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
 ${UPDATER_BUILD}/final.xclbin: ${UPDATER_BUILD}/aie.mlir ${UPDATER_BUILD}/updater_parity_test.o
-	cd ${@D} && aiecc.py --aie-generate-xclbin --no-compile-host --xclbin-name=${@F} \
-		--aie-generate-npu-insts --npu-insts-name=insts.bin $(<:%=../%)
+	cd ${@D} && $(AIECC) -j$(COMPILE_JOBS) $(AIECC_FLAGS) --xclbin-name=${@F} \
+		--npu-insts-name=insts.bin $(<:%=../%)
 
 updater-test: ${UPDATER_BUILD}/final.xclbin
 	python3 ${srcdir}/test_updater.py --xclbin ${UPDATER_BUILD}/final.xclbin --insts ${UPDATER_BUILD}/insts.bin --split-mode ${split_mode}

@@ -4,13 +4,24 @@
 # Target: XDNA1 / XDNA2 (npu1 / npu2)
 
 import numpy as np
+import sys
 
 from aie.iron import Kernel, ObjectFifo, Program, Runtime, Worker
-from aie.iron.placers import SequentialPlacer
+try:
+    from aie.iron.placers import SequentialPlacer
+except ModuleNotFoundError as exc:
+    if exc.name != "aie.iron.placers":
+        raise
+    SequentialPlacer = None
 from aie.iron.controlflow import range_
 import aie.iron as iron
 
-dev = iron.get_current_device()
+if len(sys.argv) > 1:
+    from aie.iron.device import NPU1, NPU2
+
+    dev = {"npu": NPU1, "npu1": NPU1, "npu2": NPU2}[sys.argv[1]]()
+else:
+    dev = iron.get_current_device()
 
 tensor_size = 4096
 tile_size = tensor_size // 4
@@ -135,17 +146,31 @@ worker_magsq = Worker(magsq_core_fn, [of_in_mem.cons(), of_out_magsq.prod(), of_
 worker_threshold = Worker(threshold_core_fn, [of_out_autocorr.cons(), of_out_magsq.cons(), of_out_threshold.prod(), threshold_fn])
 worker_sync_short = Worker(sync_short_core_fn, [of_out_magsq_delay.cons(), of_out_autocorr.cons(), of_out_threshold.cons(), of_out_sync_short.prod(), of_out_sync_short_meta.prod(), sync_short_fn], stack_size=2048)
 
-rt = Runtime()
-with rt.sequence(in_tensor_ty, sync_short_out_tensor_ty, sync_short_out_meta_tensor_ty) as (a_in, c_out, d_out):
-    rt.start(worker_autocorr)
-    rt.start(worker_magsq)
-    rt.start(worker_threshold)
-    rt.start(worker_sync_short)
+if hasattr(Runtime, "sequence"):
+    rt = Runtime()
+    with rt.sequence(in_tensor_ty, sync_short_out_tensor_ty, sync_short_out_meta_tensor_ty) as (a_in, c_out, d_out):
+        rt.start(worker_autocorr)
+        rt.start(worker_magsq)
+        rt.start(worker_threshold)
+        rt.start(worker_sync_short)
+        rt.fill(of_in.prod(), a_in)
+        rt.drain(of_out_sync_short.cons(), c_out, wait=False)
+        rt.drain(of_out_sync_short_meta.cons(), d_out, wait=True)
+    my_program = Program(dev, rt)
+else:
+    def runtime_sequence(a_in, c_out, d_out, input_fifo, output_fifo, metadata_fifo):
+        input_fifo.fill(a_in)
+        output_fifo.drain(c_out, wait=False)
+        metadata_fifo.drain(d_out, wait=True)
 
-    rt.fill(of_in.prod(), a_in)
-    rt.drain(of_out_sync_short.cons(), c_out, wait=False)
-    rt.drain(of_out_sync_short_meta.cons(), d_out, wait=True)
+    rt = Runtime(runtime_sequence, [
+        in_tensor_ty, sync_short_out_tensor_ty, sync_short_out_meta_tensor_ty,
+        of_in.prod(), of_out_sync_short.cons(), of_out_sync_short_meta.cons(),
+    ])
+    my_program = Program(dev, rt, workers=[
+        worker_autocorr, worker_magsq, worker_threshold, worker_sync_short,
+    ])
 
-my_program = Program(dev, rt)
-module = my_program.resolve_program(SequentialPlacer())
+module = (my_program.resolve_program(SequentialPlacer())
+          if SequentialPlacer is not None else my_program.resolve_program())
 print(module)

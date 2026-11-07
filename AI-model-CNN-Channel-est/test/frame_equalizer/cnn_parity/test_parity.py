@@ -21,7 +21,6 @@ import numpy as np
 
 
 ROOT = Path(__file__).resolve().parents[3]
-TRAINING = ROOT / "utils" / "frame_equalizer_channel_ai" / "training"
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
@@ -34,7 +33,8 @@ from utils.frame_equalizer_channel_ai.common.dataset import (
     estimate_snr_ratio_x16,
     snr_feature_q15,
 )
-from utils.frame_equalizer_channel_ai.verification.quantized import integer_estimate, load_npz
+from utils.frame_equalizer_channel_ai.common.updater import load_cnn_header
+from utils.frame_equalizer_channel_ai.verification.quantized import integer_estimate
 
 
 def make_lts() -> np.ndarray:
@@ -78,7 +78,7 @@ def cpu_estimate(lts: np.ndarray, split_mode: str = 'by_frame') -> np.ndarray:
         real/imaginary components.
     :raises ValueError: Propagated by the reference utilities for malformed
         tensor shapes.
-    :raises FileNotFoundError: If the exported weight archive is missing.
+    :raises FileNotFoundError: If the exported weight header is missing.
     """
     corrected = lts * LONG[None, :, None]
     ls = average_lts(corrected[0], corrected[1])
@@ -98,8 +98,8 @@ def cpu_estimate(lts: np.ndarray, split_mode: str = 'by_frame') -> np.ndarray:
         np.zeros((1, 64, 2), dtype=np.int32),
         shifts,
     )
-    weights = TRAINING / "artifacts" / split_mode / "channel_estimator_weights.npz"
-    return integer_estimate(load_npz(weights), corpus)[0]
+    weights = ROOT / "kernel/channel_estimator/model" / f"frame_equalizer_channel_ai_weights_{split_mode}.h"
+    return integer_estimate(load_cnn_header(weights), corpus)[0]
 
 
 def assert_exact(actual: np.ndarray, expected: np.ndarray, lts: np.ndarray) -> None:
@@ -154,18 +154,22 @@ def main() -> None:
 
     # Compute the expected result before touching the device.  This keeps the
     # reference independent of any state retained by the AIE runtime.
+    cases = [np.rint(lts * scale).astype(np.int32)
+             for lts in (make_lts(), make_high_snr_lts())
+             for scale in (0.25, 1, 4, -1)]
+    references = [cpu_estimate(lts, args.split_mode) for lts in cases]
     handle = DefaultNPURuntime.load(
         NPUKernel(str(args.xclbin), str(args.insts), kernel_name="MLIR_AIE")
     )
-    for lts in (make_lts(), make_high_snr_lts()):
-        expected = cpu_estimate(lts, args.split_mode)
+    for lts, expected in zip(cases, references):
         output = iron.zeros(64 * 2, dtype=np.int32)
         DefaultNPURuntime.run(
             handle, [iron.tensor(lts.reshape(-1), dtype=np.int32), output]
         )
         actual = output.numpy().reshape(64, 2)
         assert_exact(actual, expected, lts)
-    print("CNN parity PASS: all 64 complex channel estimates match exactly")
+    print(f"CNN parity PASS: all 64 complex channel estimates match exactly "
+          f"for {len(cases)} scale/sign/SNR cases")
 
 
 if __name__ == "__main__":

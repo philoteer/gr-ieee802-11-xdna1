@@ -21,7 +21,7 @@ static constexpr int state_sync = 1;
 static constexpr int state_copy = 2;
 
 /// Reversed long-training FIR taps in signed Q2.14.
-alignas(32) static constexpr cint16 long_taps[long_length] = {
+alignas(aie::vector_decl_align) static constexpr cint16 long_taps[long_length] = {
     { 22721,      0 }, {  -745,  17496 }, {  5780,  16163 }, { 14080, -12039 },
     {  3070,  -4055 }, {  8698,  12753 }, {-16741,   8023 }, { -5572,  15439 },
     { 14184,   3765 }, {  7756,   -593 }, {   144,  16723 }, {-19893,   6889 },
@@ -40,7 +40,7 @@ alignas(32) static constexpr cint16 long_taps[long_length] = {
     {  3070,   4055 }, { 14080,  12039 }, {  5780, -16163 }, {  -745, -17496 }
 };
 
-alignas(32) static constexpr uint32_t phase_lane_indices[vec_factor] = {
+alignas(aie::vector_decl_align) static constexpr uint32_t phase_lane_indices[vec_factor] = {
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
 };
 
@@ -62,8 +62,8 @@ static int32_t d_freq_offset_q29 = 0;
 /// Whether the first output still needs its refined-CFO tag.
 static bool d_tag_pending = false;
 /// Buffered correlations and shifted powers for peak selection.
-alignas(32) static cint32 d_correlations[sync_length] = {};
-alignas(32) static int32_t d_power_hi[sync_length] = {};
+alignas(aie::vector_decl_align) static cint32 d_correlations[sync_length] = {};
+alignas(aie::vector_decl_align) static int32_t d_power_hi[sync_length] = {};
 /// Four strongest peaks used to find a repeated long-training pair.
 static int32_t d_top_real[4] = {};
 static int32_t d_top_imag[4] = {};
@@ -398,8 +398,8 @@ void sync_long_cf(cint16 *__restrict _in, int32_t *__restrict in_meta,
                         processed += vec_factor;
                     }
                     if (processed < run) {
-                        alignas(32) cint16 input_lanes[vec_factor] = {};
-                        alignas(32) cint16 output_lanes[vec_factor];
+                        alignas(aie::vector_decl_align) cint16 input_lanes[vec_factor] = {};
+                        alignas(aie::vector_decl_align) cint16 output_lanes[vec_factor];
                         for (int i = processed; i < run; i++) {
                             input_lanes[i - processed] = in_current[local_start + i];
                         }

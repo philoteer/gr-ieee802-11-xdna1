@@ -11,7 +11,7 @@
 .DELETE_ON_ERROR:
 srcdir := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 kernel_srcdir := $(realpath ${srcdir}/../../../kernel)
-JOBS ?= 2
+include ${srcdir}/../../toolchain.mk
 DFRAME_EQUALIZER_OUTPUT_SYMBOLS ?= 0
 EQUALIZER_ALGORITHM ?= LS
 SUPPORTED_EQUALIZER_ALGORITHMS := LS COMB CNN
@@ -96,12 +96,12 @@ ${BUILD_DIR}/aie.mlir: ${srcdir}/aie2_memtile_caching.py ${BUILD_CONFIG}
 
 ${BUILD_DIR}/${KERNEL_NAME}.o: ${srcdir}/${KERNEL_NAME}.cc ${KERNEL_DEPS} ${BUILD_CONFIG}
 	mkdir -p ${@D}
-	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP2_FLAGS} -c $< -o ${@F}
+	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
 ${BUILD_DIR}/final.xclbin: ${BUILD_DIR}/aie.mlir ${KERNEL_OBJECTS}
 	mkdir -p ${@D}
-	cd ${@D} && aiecc.py --aie-generate-xclbin --no-compile-host --xclbin-name=${@F} \
-		--aie-generate-npu-insts --npu-insts-name=insts.bin $(abspath $<)
+	cd ${@D} && $(AIECC) -j$(COMPILE_JOBS) $(AIECC_FLAGS) --xclbin-name=${@F} \
+		--npu-insts-name=insts.bin $(abspath $<)
 
 ${BUILD_DIR}/insts.bin: ${BUILD_DIR}/final.xclbin
 	@test -f $@
@@ -111,4 +111,4 @@ clean:
 
 compile:
 	${MAKE} clean
-	${MAKE} -j${JOBS} all
+	${MAKE} -j${COMPILE_JOBS} all

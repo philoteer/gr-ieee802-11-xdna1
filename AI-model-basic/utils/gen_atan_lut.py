@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-    """Generate the atan/reciprocal section of kernel/common/aie_trig_luts.h.
+"""Generate the atan/reciprocal section of kernel/common/aie_trig_luts.h.
 
 Produces the atan portion of the combined trig LUT header, without an include
 guard or includes, so the output can replace that section in
-    kernel/common/aie_trig_luts.h.  Two tables are emitted:
+kernel/common/aie_trig_luts.h.  Two tables are emitted:
 
     - ``kAtanLutQ29``: signed Q3.29 ``atan(i/N)`` for i = 0..N-1.  The table
       covers the first octant only; ``atan(1)`` is kept as the separate
@@ -95,11 +95,11 @@ def gen_reciprocal_seed_table(seed_bits: int) -> list[int]:
 
 
 def format_table(name: str, values: list[int], signed: bool = True) -> list[str]:
-    """Format a scalar table as an ``alignas(32)`` C array definition.
+    """Format a scalar table using the target's vector alignment.
 
     The smallest sufficient 32-bit element type is selected from the values,
-    matching the AIE vector load requirements (32-byte alignment, 8 int32
-    lanes per vector).  Eight values per source line keep the generated
+    matching the AIE vector load requirements (32 bytes on AIE2, 64 on
+    AIE2P). Eight values per source line keep the generated
     header readable and diffable.
 
     Args:
@@ -109,7 +109,7 @@ def format_table(name: str, values: list[int], signed: bool = True) -> list[str]
             when false emit ``uint32_t`` (the reciprocal seeds).
 
     Returns:
-        The C declaration as a list of lines, from ``alignas(32) ... = {``
+        The C declaration as a list of lines, from ``alignas(...) ... = {``
         through the closing ``};``.  The list carries no trailing newline.
 
     Raises:
@@ -123,7 +123,7 @@ def format_table(name: str, values: list[int], signed: bool = True) -> list[str]
     else:
         raise ValueError(f"values out of range for {'int32_t' if signed else 'uint32_t'}")
 
-    lines = [f"alignas(32) static const {c_type} {name}[{len(values)}] = {{"]
+    lines = [f"alignas(aie::vector_decl_align) static const {c_type} {name}[{len(values)}] = {{"]
     row: list[str] = []
     formatted: list[str] = []
     for v in values:

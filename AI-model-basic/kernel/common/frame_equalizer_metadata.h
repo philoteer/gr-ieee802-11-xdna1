@@ -45,7 +45,9 @@ struct alignas(8) frame_equalizer_tag_metadata {
     // Metadata attached to one output frame/symbol. The CSI array retains the
     // existing host-visible ABI and is not part of the inter-kernel handoff.
     int32_t offset;
-    uint32_t reserved;
+    // Bit 0 marks the first payload symbol; the host emits frame bytes and
+    // encoding only for tags with this bit set.
+    uint32_t frame_start;
     uint64_t frame_bytes;
     uint64_t encoding;
     uint64_t snr_linear; // linear SNR in Q4.4 units
@@ -63,6 +65,8 @@ struct alignas(8) frame_equalizer_tile_metadata {
 
 static_assert(sizeof(frame_equalizer_tag_metadata) == 560,
               "frame equalizer tag metadata ABI changed");
+static_assert(offsetof(frame_equalizer_tag_metadata, frame_start) == 4,
+              "frame equalizer frame start ABI changed");
 static_assert(offsetof(frame_equalizer_tag_metadata, snr_linear) == 24,
               "frame equalizer linear SNR ABI changed");
 static_assert(offsetof(frame_equalizer_tag_metadata, center_frequency_mhz) == 32,

@@ -8,8 +8,9 @@ a Q15 offset. The generator searches nearby integer coefficient pairs and
 chooses the pair with the smallest maximum Q15 error over the segment.
 
 AMD's four-access LUT intrinsic requires four physical copies: two interleaved
-copies in each of the AB and CD arrays. Thus an N-entry int16 slope/offset table
-occupies N * 16 bytes (4 KiB for the default 256 entries).
+copies in each of the AB and CD arrays. Repetition is at the memory-bank width:
+128 bits on AIE2, 256 bits on AIE2P. Thus an N-entry int16 slope/offset table
+occupies N * 16 bytes (4 KiB for the default 256 entries) on either target.
 """
 
 from __future__ import annotations
@@ -68,19 +69,24 @@ def optimize_coefficients(entries: int) -> list[tuple[int, int]]:
     return coefficients
 
 
-def duplicate_for_four_accesses(coefficients: list[tuple[int, int]]) -> list[int]:
-    if len(coefficients) % 4:
-        raise ValueError("entry count must be divisible by four")
+def duplicate_for_four_accesses(coefficients: list[tuple[int, int]],
+                                bank_bytes: int = 16) -> list[int]:
+    if bank_bytes not in (16, 32):
+        raise ValueError("bank width must be 16 or 32 bytes")
+    entries_per_bank = bank_bytes // 4  # int16 slope + int16 offset
+    if len(coefficients) % entries_per_bank:
+        raise ValueError("entry count must fill complete memory banks")
     values = []
-    for base in range(0, len(coefficients), 4):
-        bank_width = [value for pair in coefficients[base:base + 4] for value in pair]
+    for base in range(0, len(coefficients), entries_per_bank):
+        bank_width = [value for pair in coefficients[base:base + entries_per_bank]
+                      for value in pair]
         values.extend(bank_width)
         values.extend(bank_width)
     return values
 
 
 def format_array(name: str, values: list[int]) -> list[str]:
-    lines = [f"alignas(32) static const int16_t {name}[{len(values)}] = {{"]
+    lines = [f"alignas(aie::vector_decl_align) static const int16_t {name}[{len(values)}] = {{"]
     for base in range(0, len(values), 12):
         lines.append("    " + ", ".join(str(value) for value in values[base:base + 12]) + ",")
     lines.append("};")
@@ -94,14 +100,16 @@ def generate_header(entries: int) -> str:
     if step_bits < 3:
         raise ValueError("int16 linear_approx requires step_bits >= 3")
     coefficients = optimize_coefficients(entries)
-    duplicated = duplicate_for_four_accesses(coefficients)
-    physical_bytes = 2 * len(duplicated) * 2
+    duplicated_aie2 = duplicate_for_four_accesses(coefficients, bank_bytes=16)
+    duplicated_aie2p = duplicate_for_four_accesses(coefficients, bank_bytes=32)
+    physical_bytes = 2 * len(duplicated_aie2) * 2
 
     lines = [
         "#ifndef AIE_SIN_LINEAR_LUT_Q15_H",
         "#define AIE_SIN_LINEAR_LUT_Q15_H",
         "",
         "#include <stdint.h>",
+        "#include <aie_api/aie.hpp>",
         "",
         f"constexpr unsigned kSinLinearLutEntries = {entries};",
         f"constexpr unsigned kSinLinearLutStepBits = {step_bits};",
@@ -109,9 +117,19 @@ def generate_header(entries: int) -> str:
         "",
         f"// Q15 sine offsets and integer segment slopes for {entries} quarter-wave",
         f"// segments. Four-access bank duplication makes the physical table {physical_bytes} bytes.",
-        *format_array("kSinLinearLutAb", duplicated),
+        "#if __AIE_ARCH__ == 21 || __AIE_ARCH__ == 22",
+        "// AIE2P: repeat eight slope/offset pairs per 256-bit memory bank.",
+        "constexpr unsigned kSinLinearLutBankBytes = 32;",
+        *format_array("kSinLinearLutAb", duplicated_aie2p),
         "",
-        *format_array("kSinLinearLutCd", duplicated),
+        *format_array("kSinLinearLutCd", duplicated_aie2p),
+        "#else",
+        "// AIE2: retain four slope/offset pairs per 128-bit memory bank.",
+        "constexpr unsigned kSinLinearLutBankBytes = 16;",
+        *format_array("kSinLinearLutAb", duplicated_aie2),
+        "",
+        *format_array("kSinLinearLutCd", duplicated_aie2),
+        "#endif",
         "",
         "#endif",
         "",

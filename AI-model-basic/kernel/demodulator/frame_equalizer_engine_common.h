@@ -364,7 +364,9 @@ static inline void copy_equalized(frame_equalizer_csi symbols[FRAME_EQUALIZER_CS
 static inline void fill_tag(frame_equalizer_tag_metadata &tag, int offset) {
     // Attach frame information to the first payload output. Test builds instead
     // attach one normalized equalized-symbol vector to every payload output.
-    tag.offset = offset; tag.reserved = 0; tag.frame_bytes = d_frame_bytes;
+    tag.offset = offset;
+    tag.frame_start = d_equalizer_current_symbol == 3 ? 1u : 0u;
+    tag.frame_bytes = d_frame_bytes;
     tag.encoding = d_encoding; tag.snr_linear = d_snr_linear;
     tag.center_frequency_mhz = d_center_frequency_mhz;
     // Keep both phase values in Q3.29; GNU Radio converts them to float tags.

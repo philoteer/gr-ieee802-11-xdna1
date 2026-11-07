@@ -2,13 +2,24 @@
 # Standalone trig-estimator accuracy graph for XDNA1 / XDNA2.
 
 import numpy as np
+import sys
 
 from aie.iron import Kernel, ObjectFifo, Program, Runtime, Worker
 from aie.iron.controlflow import range_
-from aie.iron.placers import SequentialPlacer
+try:
+    from aie.iron.placers import SequentialPlacer
+except ModuleNotFoundError as exc:
+    if exc.name != "aie.iron.placers":
+        raise
+    SequentialPlacer = None
 import aie.iron as iron
 
-dev = iron.get_current_device()
+if len(sys.argv) > 1:
+    from aie.iron.device import NPU1, NPU2
+
+    dev = {"npu": NPU1, "npu1": NPU1, "npu2": NPU2}[sys.argv[1]]()
+else:
+    dev = iron.get_current_device()
 
 sample_count = 4096
 tile_count = 16
@@ -39,14 +50,28 @@ def trig_core_fn(of_in, of_out, trig_utils_scalar):
         of_out.release(1)
 
 
-worker = Worker(trig_core_fn, [of_in.cons(), of_out.prod(), trig_utils_fn])
+# The kernel's local LUT state plus nested trig calls exceed the default 1 KiB
+# stack on AIE2P. Match the production preprocess worker's stack reservation.
+worker = Worker(trig_core_fn, [of_in.cons(), of_out.prod(), trig_utils_fn],
+                stack_size=2560)
 
-rt = Runtime()
-with rt.sequence(in_tensor_ty, out_tensor_ty) as (a_in, b_out):
-    rt.start(worker)
-    rt.fill(of_in.prod(), a_in)
-    rt.drain(of_out.cons(), b_out, wait=True)
+if hasattr(Runtime, "sequence"):
+    rt = Runtime()
+    with rt.sequence(in_tensor_ty, out_tensor_ty) as (a_in, b_out):
+        rt.start(worker)
+        rt.fill(of_in.prod(), a_in)
+        rt.drain(of_out.cons(), b_out, wait=True)
+    program = Program(dev, rt)
+else:
+    def runtime_sequence(a_in, b_out, input_fifo, output_fifo):
+        input_fifo.fill(a_in)
+        output_fifo.drain(b_out, wait=True)
 
-program = Program(dev, rt)
-module = program.resolve_program(SequentialPlacer())
+    rt = Runtime(runtime_sequence, [
+        in_tensor_ty, out_tensor_ty, of_in.prod(), of_out.cons(),
+    ])
+    program = Program(dev, rt, workers=[worker])
+
+module = (program.resolve_program(SequentialPlacer())
+          if SequentialPlacer is not None else program.resolve_program())
 print(module)

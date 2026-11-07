@@ -4,7 +4,12 @@ import sys
 import numpy as np
 from aie.iron import Kernel, ObjectFifo, Program, Runtime, Worker
 from aie.iron.controlflow import range_
-from aie.iron.placers import SequentialPlacer
+try:
+    from aie.iron.placers import SequentialPlacer
+except ModuleNotFoundError as exc:
+    if exc.name != "aie.iron.placers":
+        raise
+    SequentialPlacer = None
 from aie.iron.device import NPU1Col1, NPU2Col1
 
 tile_size = 1024
@@ -41,11 +46,23 @@ def core(src, src_meta, dst_meta, estimate):
 
 worker = Worker(core, [input_fifo.cons(), input_meta_fifo.cons(),
                        output_meta_fifo.prod(), kernel], stack_size=2560)
-runtime = Runtime()
-with runtime.sequence(samples, prepared_meta, estimated_meta) as (a, b, c):
-    runtime.start(worker)
-    runtime.fill(input_fifo.prod(), a)
-    runtime.fill(input_meta_fifo.prod(), b)
-    runtime.drain(output_meta_fifo.cons(), c, wait=True)
+if hasattr(Runtime, "sequence"):
+    runtime = Runtime()
+    with runtime.sequence(samples, prepared_meta, estimated_meta) as (a, b, c):
+        runtime.start(worker)
+        runtime.fill(input_fifo.prod(), a)
+        runtime.fill(input_meta_fifo.prod(), b)
+        runtime.drain(output_meta_fifo.cons(), c, wait=True)
+else:
+    def runtime_sequence(a, b, c, source, metadata, destination):
+        source.fill(a)
+        metadata.fill(b)
+        destination.drain(c, wait=True)
+
+    runtime = Runtime(runtime_sequence, [samples, prepared_meta, estimated_meta,
+        input_fifo.prod(), input_meta_fifo.prod(), output_meta_fifo.cons()])
 device = NPU2Col1() if len(sys.argv) > 1 and sys.argv[1] == "npu2" else NPU1Col1()
-print(Program(device, runtime).resolve_program(SequentialPlacer()))
+program = (Program(device, runtime) if hasattr(Runtime, "sequence")
+           else Program(device, runtime, workers=[worker]))
+print(program.resolve_program(SequentialPlacer())
+      if SequentialPlacer is not None else program.resolve_program())

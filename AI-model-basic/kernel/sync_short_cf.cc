@@ -32,7 +32,8 @@ static uint16_t segment_len[max_segments_per_tile];
 static uint16_t segment_copied[max_segments_per_tile];
 static int32_t segment_freq_offset_q29[max_segments_per_tile];
 static cint16 d_delay[delay_samples] = {};
-alignas(32) static constexpr uint32_t phase_lane_indices[vec_factor] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+// Use the target's vector boundary (32 bytes on AIE2, 64 bytes on AIE2P).
+alignas(aie::vector_decl_align) static constexpr uint32_t phase_lane_indices[vec_factor] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
 extern "C" {
 
@@ -51,7 +52,7 @@ void sync_short_cf(cint16 *__restrict in1, cint32 *__restrict abs_in, int8_t *__
     int32_t tag_count = 0;
     int32_t segment_count = 0;
     int32_t active_segment = -1;
-    alignas(32) int32_t metadata[2 + 2 * max_tags_per_tile] = {};
+    alignas(aie::vector_decl_align) int32_t metadata[2 + 2 * max_tags_per_tile] = {};
 
     // Resume an unfinished segment from the preceding tile.
     if (d_state != state_search) {
@@ -183,7 +184,7 @@ void sync_short_cf(cint16 *__restrict in1, cint32 *__restrict abs_in, int8_t *__
 
         // Zero-pad the final SIMD load; only remaining samples are valid.
         if (remaining > 0) {
-            alignas(32) cint16 tail_in_i16[vec_factor] = {};
+            alignas(aie::vector_decl_align) cint16 tail_in_i16[vec_factor] = {};
 
             for (int j = 0; j < remaining; j++) {
                 tail_in_i16[j] = in1[sample_idx];

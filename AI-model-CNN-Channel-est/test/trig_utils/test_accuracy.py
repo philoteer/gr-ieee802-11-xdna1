@@ -3,6 +3,7 @@
 
 import argparse
 from pathlib import Path
+import runpy
 
 import aie.iron as iron
 from aie.utils import DefaultNPURuntime, NPUKernel
@@ -29,6 +30,61 @@ def error_stats(actual, expected):
     return float(np.max(np.abs(error))), float(np.sqrt(np.mean(error * error)))
 
 
+def linear_reference_q15(phase, coefficients):
+    """Scalar arithmetic independent of physical duplication and the AIE API."""
+    phase = phase.astype(np.int64)
+    quadrant = phase >> 30
+    offset = phase & ((1 << 30) - 1)
+    folded = np.where(quadrant & 1, (1 << 30) - offset, offset)
+    coordinate = np.clip((folded - (1 << 29) + (1 << 13)) >> 14,
+                         -32768, 32767)
+    step_bits = 16 - (len(coefficients).bit_length() - 1)
+    index = (coordinate >> step_bits) + len(coefficients) // 2
+    remainder = coordinate & ((1 << step_bits) - 1)
+    slope = coefficients[index, 0]
+    intercept = coefficients[index, 1]
+    magnitude = np.clip(
+        (intercept * (1 << step_bits) + slope * remainder
+         + (1 << (step_bits - 1))) >> step_bits, -32768, 32767)
+    return np.where(quadrant & 2, -magnitude, magnitude)
+
+
+def check_exhaustive_linear(handle):
+    generator = runpy.run_path(str(
+        Path(__file__).resolve().parents[2] / "utils/gen_sin_linear_lut_q15.py"))
+    coefficients = np.array(generator["optimize_coefficients"](256), dtype=np.int64)
+    # Every int16 quarter-wave coordinate in all quadrants, shuffled across lanes.
+    phase = (np.arange(4 * 65536, dtype=np.uint64) << 14).astype(np.uint32)
+    np.random.default_rng(80211).shuffle(phase)
+    max_error = 0.0
+    for start in range(0, len(phase), SAMPLE_COUNT):
+        batch = phase[start:start + SAMPLE_COUNT]
+        packed_in = np.zeros((TILE_COUNT, 3, TILE_SIZE), dtype=np.int32)
+        packed_in[:, 0, :] = batch.view(np.int32).reshape(TILE_COUNT, TILE_SIZE)
+        packed_out = iron.zeros(10 * SAMPLE_COUNT, dtype=np.int32)
+        DefaultNPURuntime.run(handle, [
+            iron.tensor(packed_in.reshape(-1), dtype=np.int32), packed_out])
+        result = packed_out.numpy().reshape(TILE_COUNT, 10, TILE_SIZE)
+        for channel, quarter_turn in ((2, 0), (3, 1 << 30)):
+            shifted = ((batch.astype(np.uint64) + quarter_turn)
+                       & ((1 << 32) - 1)).astype(np.uint32)
+            actual = result[:, channel, :].reshape(-1).astype(np.int64)
+            expected = linear_reference_q15(shifted, coefficients)
+            if not np.array_equal(actual, expected):
+                mismatch = np.flatnonzero(actual != expected)[0]
+                raise SystemExit(
+                    f"linear LUT mismatch at phase={int(batch[mismatch]):#010x}, "
+                    f"channel={channel}: actual={actual[mismatch]}, "
+                    f"expected={expected[mismatch]}")
+            angle = shifted.astype(np.float64) * (2.0 * np.pi / (1 << 32))
+            max_error = max(max_error, float(np.max(np.abs(
+                actual / Q15_SCALE - np.sin(angle)))))
+    print(f"EXHAUSTIVE LINEAR: {len(phase)} phases, sin and cos bit-exact; "
+          f"max_abs={max_error:.9g}")
+    if max_error > 5.0e-5:
+        raise SystemExit("exhaustive linear sine/cosine exceeded its acceptance bound")
+
+
 def main():
     """Run the NPU accuracy comparison and enforce its acceptance bounds.
 
@@ -39,6 +95,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--xclbin", type=Path, default=Path("build/final.xclbin"))
     parser.add_argument("--insts", type=Path, default=Path("build/insts.bin"))
+    parser.add_argument("--exhaustive-linear", action="store_true",
+                        help="also check every int16 LUT coordinate in all quadrants")
     args = parser.parse_args()
 
     # Half the vectors sweep every quadrant at fixed magnitude. The rest cover
@@ -73,7 +131,8 @@ def main():
     # Exercise quadrant folds and Q30 -> Q16 coordinate rounding boundaries,
     # in addition to random interpolation remainders.
     phase_edges = np.array([
-        0, 1, (1 << 14) - 1, 1 << 14, (1 << 14) + 1,
+        0, 1, (1 << 13) - 1, 1 << 13, (1 << 13) + 1,
+        (1 << 14) - 1, 1 << 14, (1 << 14) + 1,
         (1 << 30) - 1, 1 << 30, (1 << 30) + 1,
         (1 << 31) - 1, 1 << 31, (1 << 31) + 1,
         (3 << 30) - 1, 3 << 30, (3 << 30) + 1,
@@ -132,6 +191,8 @@ def main():
         raise SystemExit("linear-LUT sine/cosine exceeded its acceptance bound")
     if cordic_max > 5.0e-6 or lut_max > 5.0e-6:
         raise SystemExit("atan2 accuracy exceeded its acceptance bound")
+    if args.exhaustive_linear:
+        check_exhaustive_linear(handle)
 
 
 if __name__ == "__main__":

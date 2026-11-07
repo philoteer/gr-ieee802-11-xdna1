@@ -72,6 +72,27 @@ def load_mlp_header(path: Path) -> tuple[tuple[np.ndarray, np.ndarray], int]:
     return (arrays[0], arrays[1]), int(gate.group(1))
 
 
+def infer(features, weights):
+    """Run the integer Q7 MLP reference without a training/PyTorch dependency.
+
+    Args:
+        features: ``int16`` input array shaped ``(N, 4, 61)``.
+        weights: Pair of padded Q7 weight arrays.
+
+    Returns:
+        ``int16`` residual predictions shaped ``(N, 4, 26)``.
+    """
+    result = np.zeros((len(features), 4, 26), dtype=np.int16)
+    w1, w2 = weights
+    for group in range(4):
+        inputs = features[:, group].astype(np.int32)
+        hidden = np.maximum((inputs @ w1[group, :61].astype(np.int32)) >> 7, 0)
+        hidden = np.clip(hidden, 0, 32767).astype(np.int32)
+        output = (hidden @ w2[group, :, :26].astype(np.int32)) >> 7
+        result[:, group] = np.clip(output, -32768, 32767)
+    return result
+
+
 def normalize(value: np.ndarray, shifts: np.ndarray) -> np.ndarray:
     """Applies per-example power-of-two scaling and clamps values to Q15.
 

@@ -45,14 +45,14 @@
 
 namespace {
 
-// Each row keeps an eight-column zero halo on both sides. The halo is wider
-// than the 7-tap, 5-tap, and 3-tap padding needs so the first data column
-// starts on a 32-byte boundary; with FFT_SIZE + 16 element rows, every store
-// in the estimator can use an aligned vector store. The halo itself is never
-// written, so it stays zero for the convolution edge taps.
-alignas(aie::vector_decl_align) static int32_t d_cnn_input[6][FFT_SIZE + 16];
-alignas(aie::vector_decl_align) static int32_t d_cnn_hidden0[12][FFT_SIZE + 16];
-alignas(aie::vector_decl_align) static int32_t d_cnn_hidden1[12][FFT_SIZE + 16];
+// Keep the first data column and every row aligned to the target's store
+// boundary (32 bytes on AIE2, 64 on AIE2P). The zero halo is never written.
+constexpr unsigned kCnnHalo =
+    aie::vector_ldst_align_v<int32_t, 16> / sizeof(int32_t);
+constexpr unsigned kCnnRowStride = FFT_SIZE + 2 * kCnnHalo;
+alignas(aie::vector_decl_align) static int32_t d_cnn_input[6][kCnnRowStride];
+alignas(aie::vector_decl_align) static int32_t d_cnn_hidden0[12][kCnnRowStride];
+alignas(aie::vector_decl_align) static int32_t d_cnn_hidden1[12][kCnnRowStride];
 alignas(aie::vector_decl_align) static int32_t d_cnn_residual[2][FFT_SIZE];
 
 static_assert(__alignof__(d_cnn_input) >= aie::vector_ldst_align_v<int32_t, 16>,
@@ -63,9 +63,10 @@ static_assert(__alignof__(d_cnn_hidden1) >= aie::vector_ldst_align_v<int32_t, 16
               "d_cnn_hidden1 rows must support aligned 16-lane stores");
 static_assert(__alignof__(d_cnn_residual) >= aie::vector_ldst_align_v<int32_t, 16>,
               "d_cnn_residual rows must support aligned 16-lane stores");
-static_assert((8 * sizeof(int32_t)) % aie::vector_ldst_align_v<int32_t, 16> == 0,
+static_assert(kCnnHalo >= 3, "CNN halo must cover the seven-tap convolution");
+static_assert((kCnnHalo * sizeof(int32_t)) % aie::vector_ldst_align_v<int32_t, 16> == 0,
               "CNN data offset must preserve aligned 16-lane stores");
-static_assert(((FFT_SIZE + 16) * sizeof(int32_t)) %
+static_assert((kCnnRowStride * sizeof(int32_t)) %
                       aie::vector_ldst_align_v<int32_t, 16> == 0,
               "CNN row stride must preserve aligned 16-lane stores");
 
@@ -87,17 +88,17 @@ struct CnnChannelEstimator {
 
         const int normalization_shift = CnnInputNormalize::forward(
             d_first_long, second, snr_ratio_x16,
-            &d_cnn_input[0][8], FFT_SIZE + 16);
+            &d_cnn_input[0][kCnnHalo], kCnnRowStride);
         CnnConv1dRelu<6, 12, 7>::forward(
-            &d_cnn_input[0][8], FFT_SIZE + 16,
-            &d_cnn_hidden0[0][8], FFT_SIZE + 16,
+            &d_cnn_input[0][kCnnHalo], kCnnRowStride,
+            &d_cnn_hidden0[0][kCnnHalo], kCnnRowStride,
             frame_equalizer_channel_ai::kW1);
         CnnConv1dRelu<12, 12, 5>::forward(
-            &d_cnn_hidden0[0][8], FFT_SIZE + 16,
-            &d_cnn_hidden1[0][8], FFT_SIZE + 16,
+            &d_cnn_hidden0[0][kCnnHalo], kCnnRowStride,
+            &d_cnn_hidden1[0][kCnnHalo], kCnnRowStride,
             frame_equalizer_channel_ai::kW2);
         CnnConv1d<12, 2, 3>::forward(
-            &d_cnn_hidden1[0][8], FFT_SIZE + 16,
+            &d_cnn_hidden1[0][kCnnHalo], kCnnRowStride,
             &d_cnn_residual[0][0], FFT_SIZE,
             frame_equalizer_channel_ai::kW3);
         CnnResidualAdd::forward(

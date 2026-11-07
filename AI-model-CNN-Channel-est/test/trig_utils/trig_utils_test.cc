@@ -38,8 +38,8 @@ extern "C" void trig_utils_test(const int32_t *__restrict packed_in,
         const auto phase_v = aie::load_v<16>(phase + i);
         const auto sin_v = sin_estimate_MINIMAX_v(phase_v);
         const auto cos_v = cos_estimate_MINIMAX_v(phase_v);
-        alignas(32) int16_t sin_values[16];
-        alignas(32) int16_t cos_values[16];
+        alignas(aie::vector_decl_align) int16_t sin_values[16];
+        alignas(aie::vector_decl_align) int16_t cos_values[16];
         aie::store_v(sin_values, sin_v);
         aie::store_v(cos_values, cos_v);
         for (int lane = 0; lane < 16; ++lane) {
@@ -56,8 +56,8 @@ extern "C" void trig_utils_test(const int32_t *__restrict packed_in,
         const auto phase_v = aie::load_v<16>(phase + i);
         const auto sin_v = sincos_lut.sin(phase_v);
         const auto cos_v = sincos_lut.cos(phase_v);
-        alignas(32) int16_t sin_values[16];
-        alignas(32) int16_t cos_values[16];
+        alignas(aie::vector_decl_align) int16_t sin_values[16];
+        alignas(aie::vector_decl_align) int16_t cos_values[16];
         aie::store_v(sin_values, sin_v);
         aie::store_v(cos_values, cos_v);
         for (int lane = 0; lane < 16; ++lane) {

@@ -89,6 +89,27 @@ static inline int32_t phase_of_sum(int64_t real, int64_t imag) {
         (int32_t)(imag >> shift), (int32_t)(real >> shift));
 }
 
+/// Sum current * conj(previous) in lane zero, with 64-bit wraparound.
+static inline aie::accum<cacc64, 2> correlate_pilots(
+    const aie::vector<cint32, 4> &previous,
+    const aie::vector<cint32, 4> &current) {
+#if __AIE_ARCH__ == 21
+    // AIE2P's sliding_mul dispatcher omits conjugated operations. Reduce
+    // element-wise products without narrowing or the complex MAC+ADD rewrite.
+    const auto products = aie::mul<cacc64>(aie::op_conj(previous), current)
+                              .template cast_to<acc64>();
+    const auto pairs = aie::add(products.template extract<4>(0),
+                                products.template extract<4>(1));
+    const auto words = aie::vector_cast<uint32_t>(pairs);
+    const auto swapped = aie::vector_cast<acc64>(
+        aie::shuffle_down_rotate(words, 4));
+    return aie::add(pairs, swapped).template cast_to<cacc64>();
+#else
+    return aie::sliding_mul<2, 4, 1, 1, 1, cacc64>(
+        aie::op_conj(previous), 0, current, 0);
+#endif
+}
+
 /** @brief Correlates the current pilots against the previous symbol's pilots.
  *
  *  The correlation phase is scaled by the sample-rate/center-frequency ratio
@@ -99,8 +120,7 @@ static inline int32_t phase_of_sum(int64_t real, int64_t imag) {
 static inline int32_t update_sampling_error() {
     const auto previous = aie::load_v<4>(d_prev_pilots);
     const auto current = aie::load_v<4>(d_pilots);
-    const auto correlation = aie::sliding_mul<2, 4, 1, 1, 1, cacc64>(
-        aie::op_conj(previous), 0, current, 0);
+    const auto correlation = correlate_pilots(previous, current);
     const auto components = correlation.template cast_to<acc64>();
     const auto words = aie::vector_cast<uint32_t>(components);
     const auto lower = aie::filter_even(words, 1);

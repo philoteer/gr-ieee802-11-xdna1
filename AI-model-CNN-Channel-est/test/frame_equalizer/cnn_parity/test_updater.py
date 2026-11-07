@@ -16,9 +16,8 @@ from utils.frame_equalizer_channel_ai.common.dataset import (
     estimate_snr_ratio_x16, snr_feature_q15,
 )
 from utils.frame_equalizer_channel_ai.common.updater import (
-    OCCUPIED_BINS, PILOT_BINS, load_cnn_header, load_mlp_header, normalize,
+    OCCUPIED_BINS, PILOT_BINS, infer, load_cnn_header, load_mlp_header, normalize,
 )
-from utils.frame_equalizer_channel_ai.training.updater import infer
 from utils.frame_equalizer_channel_ai.verification.quantized import integer_estimate
 
 

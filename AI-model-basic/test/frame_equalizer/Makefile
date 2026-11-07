@@ -2,7 +2,9 @@
 .DEFAULT_GOAL := compile
 srcdir := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 kernel_srcdir := $(realpath ${srcdir}/../../kernel)
-JOBS ?= 2
+include ${srcdir}/../toolchain.mk
+# GNU Radio may use a different NumPy ABI from the MLIR-AIE build environment.
+GR_PYTHON ?= python3
 DFRAME_EQUALIZER_OUTPUT_SYMBOLS ?= 0
 EQUALIZER_ALGORITHM ?= LS
 SUPPORTED_EQUALIZER_ALGORITHMS := LS LMS COMB STA CNN
@@ -74,16 +76,16 @@ build/aie.mlir: ${srcdir}/aie2_memtile_caching.py
 
 build/frame_equalizer_preprocess.o: ${kernel_srcdir}/frame_equalizer_preprocess.cc ${kernel_srcdir}/common/frame_equalizer_metadata.h ${kernel_srcdir}/common/aie_kernel_utils.h ${kernel_srcdir}/common/aie_trig_utils.h ${kernel_srcdir}/common/aie_trig_luts.h
 	mkdir -p ${@D}
-	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP2_FLAGS} -c $< -o ${@F}
+	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
 build/frame_equalizer_equalize.o: ${kernel_srcdir}/frame_equalizer_equalize.cc ${EQUALIZER_HEADERS}
 	mkdir -p ${@D}
-	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP2_FLAGS} -c $< -o ${@F}
+	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
 build/final.xclbin: build/aie.mlir ${KERNEL_OBJECTS}
 	mkdir -p ${@D}
-	cd ${@D} && aiecc.py --aie-generate-xclbin --no-compile-host --xclbin-name=${@F} \
-		--aie-generate-npu-insts --npu-insts-name=insts.bin $(<:%=../%)
+	cd ${@D} && $(AIECC) -j$(COMPILE_JOBS) $(AIECC_FLAGS) --xclbin-name=${@F} \
+		--npu-insts-name=insts.bin $(<:%=../%)
 
 build/insts.bin: build/final.xclbin
 	@test -f $@
@@ -93,7 +95,7 @@ clean:
 
 compile:
 	${MAKE} clean
-	${MAKE} -j${JOBS} all
+	${MAKE} -j${COMPILE_JOBS} all
 
 # The symbol tests need the symbols build mode. Force a clean rebuild so the
 # flag change actually recompiles the kernels and refreshes the mode marker;
@@ -106,14 +108,14 @@ test:
 test-grc:
 	${MAKE} DFRAME_EQUALIZER_OUTPUT_SYMBOLS=1 EQUALIZER_ALGORITHM=${EQUALIZER_ALGORITHM} compile
 	EQUALIZER_ALGORITHM=${EQUALIZER_ALGORITHM} grcc -o build ${srcdir}/test-symbols.grc
-	EQUALIZER_ALGORITHM=${EQUALIZER_ALGORITHM} python3 build/test_symbols_grc.py
+	EQUALIZER_ALGORITHM=${EQUALIZER_ALGORITHM} $(GR_PYTHON) build/test_symbols_grc.py
 
 compare:
 	${MAKE} DFRAME_EQUALIZER_OUTPUT_SYMBOLS=1 EQUALIZER_ALGORITHM=${EQUALIZER_ALGORITHM} compile
 	EQUALIZER_ALGORITHM=${EQUALIZER_ALGORITHM} grcc -o build ${srcdir}/compare-recorded-symbols.grc
 	EQUALIZER_ALGORITHM=${EQUALIZER_ALGORITHM} \
 		RECORDED_INPUT="${RECORDED_INPUT}" RECORDED_HEADER="${RECORDED_HEADER}" \
-		RECORDED_SAMPLES=${RECORDED_SAMPLES} python3 build/compare_recorded_symbols_grc.py
+		RECORDED_SAMPLES=${RECORDED_SAMPLES} $(GR_PYTHON) build/compare_recorded_symbols_grc.py
 
 # Benchmark the statically selected classic or learned engine on an identical
 # seeded corpus. Run this target once per ENGINE to compare the JSON reports.
@@ -121,7 +123,7 @@ learned-ber:
 	${MAKE} DFRAME_EQUALIZER_OUTPUT_SYMBOLS=0 EQUALIZER_ALGORITHM=${EQUALIZER_ALGORITHM} ENGINE=${ENGINE} MODEL=${MODEL} compile
 	grcc -o build ${srcdir}/test-learned-ber-basic.grc
 	EQUALIZER_ALGORITHM=${EQUALIZER_ALGORITHM} BER_BATCHES=${BER_BATCHES} BER_SEED=${BER_SEED} BER_OUTPUT="${BER_OUTPUT}" \
-		python3 build/test_learned_ber_grc.py
+		$(GR_PYTHON) build/test_learned_ber_grc.py
 
 test-cnn:
 	${MAKE} -C ${srcdir}/cnn_parity JOBS=${JOBS} test

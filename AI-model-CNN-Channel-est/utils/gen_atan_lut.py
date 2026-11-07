@@ -96,11 +96,11 @@ def gen_reciprocal_seed_table(seed_bits: int) -> list[int]:
 
 
 def format_table(name: str, values: list[int], signed: bool = True) -> list[str]:
-    """Format a scalar table as an ``alignas(32)`` C array definition.
+    """Format a scalar table using the target's AIE vector alignment.
 
     The ``signed`` flag selects ``int32_t`` or ``uint32_t``, and the values
     are range-checked against that type, matching the AIE vector load
-    requirements (32-byte alignment, 8 int32 lanes per vector).  Eight values
+    requirements (32 bytes on AIE2, 64 bytes on AIE2P). Eight values
     per source line keep the generated header readable and diffable.
 
     Args:
@@ -110,7 +110,7 @@ def format_table(name: str, values: list[int], signed: bool = True) -> list[str]
             when false emit ``uint32_t`` (the reciprocal seeds).
 
     Returns:
-        The C declaration as a list of lines, from ``alignas(32) ... = {``
+        The C declaration as a list of lines, from ``alignas(...) ... = {``
         through the closing ``};``.  The list carries no trailing newline.
 
     Raises:
@@ -124,7 +124,7 @@ def format_table(name: str, values: list[int], signed: bool = True) -> list[str]
     else:
         raise ValueError(f"values out of range for {'int32_t' if signed else 'uint32_t'}")
 
-    lines = [f"alignas(32) static const {c_type} {name}[{len(values)}] = {{"]
+    lines = [f"alignas(aie::vector_decl_align) static const {c_type} {name}[{len(values)}] = {{"]
     row: list[str] = []
     formatted: list[str] = []
     for v in values:

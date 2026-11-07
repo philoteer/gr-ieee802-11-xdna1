@@ -86,6 +86,8 @@ static inline aie::vector<int16_t, 16> cos_estimate_MINIMAX_v(aie::vector<uint32
  *
  *  One object owns the API scratch state and should be reused across all
  *  sine/cosine evaluations in a tile instead of reconstructed per symbol.
+ *  The LUT repeats at 128-bit (AIE2) or 256-bit (AIE2P) bank boundaries;
+ *  vector alignment alone does not make the AIE2 layout portable to AIE2P.
  */
 class SinCosLinearLutQ15 {
     using lut_type = aie::lut<4, int16_t, int16_t>;

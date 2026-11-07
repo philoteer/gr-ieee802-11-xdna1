@@ -1,11 +1,22 @@
 import numpy as np
+import sys
 
 import aie.iron as iron
 from aie.iron import Kernel, ObjectFifo, Program, Runtime, Worker
-from aie.iron.placers import SequentialPlacer
+try:
+    from aie.iron.placers import SequentialPlacer
+except ModuleNotFoundError as exc:
+    if exc.name != "aie.iron.placers":
+        raise
+    SequentialPlacer = None
 
 
-dev = iron.get_current_device()
+if len(sys.argv) > 1:
+    from aie.iron.device import NPU1, NPU2
+
+    dev = {"npu": NPU1, "npu1": NPU1, "npu2": NPU2}[sys.argv[1]]()
+else:
+    dev = iron.get_current_device()
 in_ty = np.ndarray[(7 * 64 * 2,), np.dtype[np.int32]]
 out_ty = np.ndarray[(2 * 64 * 2,), np.dtype[np.int32]]
 kernel = Kernel("updater_parity_test", "updater_parity_test.o", [in_ty, out_ty])
@@ -22,10 +33,19 @@ def core(source, destination, function):
 
 
 worker = Worker(core, [of_in.cons(), of_out.prod(), kernel])
-runtime = Runtime()
-with runtime.sequence(in_ty, out_ty) as (symbols, channel):
-    runtime.start(worker)
-    runtime.fill(of_in.prod(), symbols)
-    runtime.drain(of_out.cons(), channel, wait=True)
+if hasattr(Runtime, "sequence"):
+    runtime = Runtime()
+    with runtime.sequence(in_ty, out_ty) as (symbols, channel):
+        runtime.start(worker)
+        runtime.fill(of_in.prod(), symbols)
+        runtime.drain(of_out.cons(), channel, wait=True)
+    program = Program(dev, runtime)
+else:
+    def runtime_sequence(symbols, channel, source, destination):
+        source.fill(symbols)
+        destination.drain(channel, wait=True)
 
-print(Program(dev, runtime).resolve_program(SequentialPlacer()))
+    runtime = Runtime(runtime_sequence, [in_ty, out_ty, of_in.prod(), of_out.cons()])
+    program = Program(dev, runtime, workers=[worker])
+print(program.resolve_program(SequentialPlacer())
+      if SequentialPlacer is not None else program.resolve_program())

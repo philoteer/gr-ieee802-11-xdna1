@@ -22,7 +22,7 @@ namespace {
  *
  * Rows 0..3 hold the Q15-normalized, kLong-corrected real and imaginary parts
  * of the first and second LTS; row 4 holds the occupied-subcarrier mask. Each
- * row keeps an eight-column zero halo on both sides so the following
+ * row keeps a target-aligned zero halo on both sides so the following
  * convolutions can load full 16-lane windows at every bin, and the caller
  * passes the first data column with a padded row stride so every store is
  * vector-aligned.

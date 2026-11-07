@@ -2,11 +2,12 @@
 #define AIE_ATAN_LUT_Q29_H
 
 #include <stdint.h>
+#include <aie_api/aie.hpp>
 
 // atan(i / 512) in signed Q3.29 radians for i=0..511. atan(1) is kept as
 // the existing pi/4 constant, giving 512 interpolation intervals with a
 // 2 KiB table.
-alignas(32) static const int32_t kAtanLutQ29[512] = {
+alignas(aie::vector_decl_align) static const int32_t kAtanLutQ29[512] = {
     0, 1048575, 2097141, 3145692, 4194219, 5242713, 6291168, 7339575,
     8387925, 9436212, 10484427, 11532562, 12580609, 13628560, 14676407, 15724142,
     16771758, 17819246, 18866598, 19913806, 20960863, 22007760, 23054490, 24101045,
@@ -76,7 +77,7 @@ alignas(32) static const int32_t kAtanLutQ29[512] = {
 // Q2.30 reciprocal seeds for normalized unsigned Q1.31 denominators in
 // [1, 2). The top eight fractional bits select a midpoint seed; two Newton
 // refinements in atan2_estimate_lut_q29 recover the Q24 slope accurately.
-alignas(32) static const uint32_t kReciprocalSeedQ30[256] = {
+alignas(aie::vector_decl_align) static const uint32_t kReciprocalSeedQ30[256] = {
     1071648760, 1067487017, 1063357474, 1059259757, 1055193501, 1051158344, 1047153931, 1043179913,
     1039235943, 1035321683, 1031436799, 1027580961, 1023753843, 1019955128, 1016184499, 1012441646,
     1008726264, 1005038051, 1001376710, 997741949, 994133479, 990551016, 986994280, 983462994,
