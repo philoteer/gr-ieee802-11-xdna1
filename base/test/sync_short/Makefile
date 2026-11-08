@@ -2,13 +2,13 @@
 .DEFAULT_GOAL := compile
 srcdir := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 kernel_srcdir := $(realpath ${srcdir}/../../kernel)
-JOBS ?= 2
+include ${srcdir}/../toolchain.mk
 export LD_LIBRARY_PATH := /opt/vitis_aie_essentials/lib/lnx64.o/:$(LD_LIBRARY_PATH)
 export RDI_DATADIR := /opt/vitis_aie_essentials/data
 export PATH := /opt/vitis_aie_essentials/tps/lnx64/target_aie_ml/bin/LNa64bin/:$(PATH)
 
 AIETOOLS_DIR = /opt/vitis_aie_essentials/
-CHESSCCWRAP2_FLAGS = aie2 -I ${AIETOOLS_DIR}/include -I ${kernel_srcdir}
+CHESSCCWRAP2_FLAGS = aie2 -I ${AIETOOLS_DIR}/include -I ${kernel_srcdir} -I ${kernel_srcdir}/common
 
 .PHONY: all clean compile test
 
@@ -22,14 +22,14 @@ build/aie.mlir: ${srcdir}/aie2_memtile_caching.py
 	mkdir -p ${@D}
 	python3 $< ${devicename} > $@
 
-build/sync_short_test.o: ${srcdir}/sync_short_test.cc ${kernel_srcdir}/sync_short_cf.cc ${kernel_srcdir}/aie_kernel_utils.h ${kernel_srcdir}/aie_trig_utils.h ${kernel_srcdir}/aie_sin_linear_lut_q15.h
+build/sync_short_test.o: ${srcdir}/sync_short_test.cc ${kernel_srcdir}/sync_short_cf.cc $(wildcard ${kernel_srcdir}/common/aie_*.h)
 	mkdir -p ${@D}
-	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP2_FLAGS} -c $< -o ${@F}
+	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
 build/final.xclbin: build/aie.mlir build/sync_short_test.o
 	mkdir -p ${@D}
-	cd ${@D} && aiecc.py --aie-generate-xclbin --no-compile-host --xclbin-name=${@F} \
-		--aie-generate-npu-insts --npu-insts-name=insts.bin $(<:%=../%)
+	cd ${@D} && $(AIECC) -j$(COMPILE_JOBS) $(AIECC_FLAGS) --xclbin-name=${@F} \
+		--npu-insts-name=insts.bin $(<:%=../%)
 
 build/insts.bin: build/final.xclbin
 	@test -f $@
@@ -39,4 +39,4 @@ clean:
 
 compile:
 	${MAKE} clean
-	${MAKE} -j${JOBS} all
+	${MAKE} -j${COMPILE_JOBS} all

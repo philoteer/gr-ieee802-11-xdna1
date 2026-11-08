@@ -14,8 +14,7 @@
 #include <aie_api/aie.hpp>
 #include <aie_api/aie_types.hpp>
 
-#include "aie_atan_lut_q29.h"
-#include "aie_sin_linear_lut_q15.h"
+#include "aie_trig_luts.h"
 
 #ifndef AIE_TRIG_ATAN2_FUNCTION_QUALIFIER
 #define AIE_TRIG_ATAN2_FUNCTION_QUALIFIER inline
@@ -175,8 +174,8 @@ static AIE_TRIG_ATAN2_FUNCTION_QUALIFIER int32_t atan2_estimate_CORDIC_q29(int32
     return (int32_t)angle_q29;
 }
 
-// LUT alternative for users that can trade 2 KiB of local storage for lower
-// latency. Reduce to one octant, linearly interpolate atan(min/max) over 512
+// LUT alternative using 3 KiB of local storage (2 KiB atan plus 1 KiB
+// reciprocal seeds). Reduce to one octant, interpolate atan(min/max) over 512
 // intervals, then restore the quadrant. The Q24 ratio leaves interpolation and
 // ratio quantization well below one Q3.29 microradian.
 static AIE_TRIG_ATAN2_FUNCTION_QUALIFIER int32_t atan2_estimate_lut_q29(

@@ -1,1 +1,1 @@
-../../kernel/aie_trig_utils.h
+../../kernel/common/aie_trig_utils.h

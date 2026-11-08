@@ -1,13 +1,17 @@
 // Compile for both aie2 and aie2p; no device execution is needed.
 #include "aie_trig_luts.h"
 #include "frame_equalizer_metadata.h"
+#include "aie_kernel_utils.h"
+#include "channel_estimator/cnn.h"
 
 #if __AIE_ARCH__ == 20
 static_assert(aie::vector_decl_align == 32, "AIE2 alignment changed");
 static_assert(kSinLinearLutBankBytes == 16, "AIE2 LUT bank layout changed");
+static_assert(kCnnHalo == 8, "AIE2 CNN data offset changed");
 #elif __AIE_ARCH__ == 21
 static_assert(aie::vector_decl_align == 64, "AIE2P alignment changed");
 static_assert(kSinLinearLutBankBytes == 32, "AIE2P LUT must repeat at 256 bits");
+static_assert(kCnnHalo == 16, "AIE2P CNN data offset must be 64-byte aligned");
 #else
 #error "Compile this test for aie2 or aie2p"
 #endif

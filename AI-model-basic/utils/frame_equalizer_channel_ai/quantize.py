@@ -8,16 +8,25 @@ saturation.
 
 from __future__ import annotations
 
+import ast
 from dataclasses import dataclass
+from pathlib import Path
+import re
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 try:
     from .dataset import ChannelCorpus, OCCUPIED
-    from .model import ChannelEstimator
 except ImportError:
     from dataset import ChannelCorpus, OCCUPIED
-    from model import ChannelEstimator
+
+# Integer inference only needs NumPy, not the training framework.
+if TYPE_CHECKING:
+    try:
+        from .model import ChannelEstimator
+    except ImportError:
+        from model import ChannelEstimator
 
 
 @dataclass(frozen=True)
@@ -111,6 +120,29 @@ def integer_estimate(model: QuantizedEstimator, corpus: ChannelCorpus) -> np.nda
                                   -2147483648, 2147483647).astype(np.int32)
     estimate[:, ~OCCUPIED] = 0
     return estimate
+
+
+def load_header(path: Path) -> QuantizedEstimator:
+    """Read the deployed Q7 tensors without requiring private training artifacts.
+
+    The exporter writes nested integer initializer lists. Parse those as data,
+    checking the declared tensor shapes and int8 range before narrowing.
+    """
+    source = path.read_text()
+    weights = []
+    for index in range(1, 4):
+        match = re.search(
+            rf"\bkW{index}((?:\[\d+\])+)\s*=\s*(\{{.*?\}});", source, re.S)
+        if match is None:
+            raise ValueError(f"missing CNN weight kW{index} in {path}")
+        shape = tuple(int(size) for size in re.findall(r"\d+", match.group(1)))
+        values = np.asarray(ast.literal_eval(
+            match.group(2).replace("{", "[").replace("}", "]")))
+        if (values.shape != shape or not np.issubdtype(values.dtype, np.integer)
+                or np.any(values < -128) or np.any(values > 127)):
+            raise ValueError(f"invalid CNN weight kW{index} in {path}")
+        weights.append(values.astype(np.int8))
+    return QuantizedEstimator(tuple(weights))  # type: ignore[arg-type]
 
 
 def load_npz(path) -> QuantizedEstimator:

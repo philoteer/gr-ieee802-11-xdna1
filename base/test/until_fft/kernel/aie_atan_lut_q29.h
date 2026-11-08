@@ -1,1 +1,1 @@
-../../../kernel/aie_atan_lut_q29.h
+../../../kernel/common/aie_atan_lut_q29.h

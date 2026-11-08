@@ -1,1 +1,1 @@
-../../../kernel/aie_kernel_utils.h
+../../../kernel/common/aie_kernel_utils.h

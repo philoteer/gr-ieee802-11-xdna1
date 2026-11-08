@@ -50,7 +50,7 @@ struct alignas(8) frame_equalizer_tag_metadata {
     uint32_t frame_start;
     uint64_t frame_bytes;
     uint64_t encoding;
-    uint64_t snr_linear; // linear SNR in Q4.4 units
+    uint64_t snr_linear; // sum/difference power ratio scaled by 16
     uint32_t center_frequency_mhz;
     int32_t frequency_offset; // CFO in Q3.29 radians/sample
     int32_t beta;              // common phase in Q3.29 radians

@@ -14,6 +14,17 @@ constexpr int32_t threshold_q31 = 1202590843; // round(0.56 * 2^31)
 
 extern "C" {
 
+/** @brief Compare autocorrelation power against a scaled boxcar sum.
+ *
+ *  Emits 1 when |ac|^2 exceeds the square of 0.56 times the magnitude sum.
+ *  Adding 2^31 - 1 before the final shift preserves positive differences as
+ *  small as one Q48 LSB.
+ *
+ *  @param ac_in Autocorrelation sums, cint32 Q7.24.
+ *  @param mag_in Magnitude-squared boxcar sums, int32 Q8.23.
+ *  @param out Threshold flags (1 = threshold met), int8.
+ *  @param N Number of input samples; must be a multiple of 16.
+ */
 void threshold_cf(cint32 * __restrict ac_in, int32_t * __restrict mag_in, int8_t * __restrict out, int32_t N) {
     cint32 *__restrict pAc = ac_in;
     int32_t *__restrict pMag = mag_in;

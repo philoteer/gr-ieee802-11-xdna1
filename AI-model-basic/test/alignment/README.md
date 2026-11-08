@@ -9,9 +9,14 @@ python3 -m unittest discover -s AI-model-basic/test/alignment -v
 The generator tests reproduce the combined `kernel/common/aie_trig_luts.h`.
 The build-command tests cover the production and all component-test builds,
 including both compiler drivers and preservation of AI engine/model selection.
+Incremental-build checks cover effective device, engine, model, algorithm,
+output mode, and graph tuning without launching a compiler. Production defaults
+remain `ENGINE=AI`, `MODEL=MLP_16X16`, and `EQUALIZER_ALGORITHM=LS`.
 
 Compile `check_alignment.cc` with `xchesscc_wrapper` for both `aie2` and `aie2p`,
-using `-I <repo>/AI-model-basic/kernel/common`. Use separate output directories
+using `-I <repo>/AI-model-basic/kernel -I <repo>/AI-model-basic/kernel/common`.
+The test also includes the optional five-plane CNN and checks its target-specific
+halo: eight int32 elements on AIE2, sixteen on AIE2P. Use separate output directories
 for each architecture, and run compiler jobs serially under local memory limits.
 The LUT header includes the API itself, so the test needs no trig-utils include.
 
@@ -20,6 +25,11 @@ The four-access sine LUT also needs target-specific bank repetition: 128 bits on
 AIE2, 256 bits on AIE2P. Metadata's explicit 8-byte alignment is a host ABI and
 must not be changed. Narrow vector stores (e.g. 16 int8 decisions) still use their
 actual width's alignment; they do not require a 64-byte stride on AIE2P.
+
+The CNN parity reference reads the checked-in Q7 weight header rather than a
+private NPZ archive. Its integer path requires only NumPy; the five input planes,
+layer dimensions, weights, and inference arithmetic are unchanged. No SNR gate,
+payload updater, or additional compute stage is backported.
 
 The tag word at byte offset 4 is the host's `frame_start` flag, not padding.
 Symbol-accuracy tests alone do not prove that the full receiver emits the packet

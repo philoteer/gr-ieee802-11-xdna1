@@ -1,13 +1,15 @@
 # Baseline alignment regression checks
 
-Run the host-only generator checks from the repository root:
+Run the host-only generator, build-command, and graph checks from the repository
+root (graph checks require the MLIR-AIE Python bindings):
 
 ```sh
 python3 -m unittest discover -s base/test/alignment -v
 ```
 
 Compile `check_alignment.cc` with `xchesscc_wrapper` for **both** `aie2` and
-`aie2p`, using `-I <repo>/base/kernel`. It checks the real target API's LUT
+`aie2p`, using `-I <repo>/base/kernel -I <repo>/base/kernel/common`.
+It checks the real target API's LUT
 alignment and preserves the metadata ABI. The LUT headers deliberately include
 the API themselves so they also work without first including `aie_trig_utils.h`.
 

@@ -1,10 +1,23 @@
 # Standalone frame_equalizer_equalize: prepared samples/metadata -> decisions/frame tags.
 import os
+import sys
 import numpy as np
 from aie.iron import Kernel, ObjectFifo, Program, Runtime, Worker
 from aie.iron.controlflow import range_
-from aie.iron.placers import SequentialPlacer
+try:
+    from aie.iron.placers import SequentialPlacer
+except ModuleNotFoundError as exc:
+    if exc.name != "aie.iron.placers":
+        raise
+    SequentialPlacer = None
 import aie.iron as iron
+
+if len(sys.argv) > 1:
+    from aie.iron.device import NPU1, NPU2
+
+    dev = {"npu": NPU1, "npu1": NPU1, "npu2": NPU2}[sys.argv[1]]()
+else:
+    dev = iron.get_current_device()
 
 tile_size = 1024
 n_tiles = int(os.environ.get("AIE_TILES_PER_BATCH", "16"))
@@ -47,11 +60,24 @@ def core(src, src_meta, dst, dst_meta, equalize):
 
 worker = Worker(core, [input_fifo.cons(), input_meta_fifo.cons(), output_fifo.prod(),
                        output_meta_fifo.prod(), kernel], stack_size=2560)
-runtime = Runtime()
-with runtime.sequence(samples, prepared_meta, decisions, output_meta) as (a, b, c, d):
-    runtime.start(worker)
-    runtime.fill(input_fifo.prod(), a)
-    runtime.fill(input_meta_fifo.prod(), b)
-    runtime.drain(output_fifo.cons(), c, wait=False)
-    runtime.drain(output_meta_fifo.cons(), d, wait=True)
-print(Program(iron.get_current_device(), runtime).resolve_program(SequentialPlacer()))
+if hasattr(Runtime, "sequence"):
+    runtime = Runtime()
+    with runtime.sequence(samples, prepared_meta, decisions, output_meta) as (a, b, c, d):
+        runtime.start(worker)
+        runtime.fill(input_fifo.prod(), a)
+        runtime.fill(input_meta_fifo.prod(), b)
+        runtime.drain(output_fifo.cons(), c, wait=False)
+        runtime.drain(output_meta_fifo.cons(), d, wait=True)
+    program = Program(dev, runtime)
+else:
+    def runtime_sequence(a, b, c, d, source, metadata, destination, output_metadata):
+        source.fill(a)
+        metadata.fill(b)
+        destination.drain(c, wait=False)
+        output_metadata.drain(d, wait=True)
+
+    runtime = Runtime(runtime_sequence, [samples, prepared_meta, decisions, output_meta,
+        input_fifo.prod(), input_meta_fifo.prod(), output_fifo.cons(), output_meta_fifo.cons()])
+    program = Program(dev, runtime, workers=[worker])
+print(program.resolve_program(SequentialPlacer())
+      if SequentialPlacer is not None else program.resolve_program())

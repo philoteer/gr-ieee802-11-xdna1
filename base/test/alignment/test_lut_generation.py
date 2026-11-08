@@ -20,14 +20,14 @@ class LutGenerationTest(unittest.TestCase):
         generator = load_generator("gen_atan_lut")
         self.assertEqual(
             generator.generate_header(512, 8),
-            (BASE / "kernel" / "aie_atan_lut_q29.h").read_text(),
+            (BASE / "kernel" / "common" / "aie_atan_lut_q29.h").read_text(),
         )
 
     def test_sine_header_matches_generator(self):
         generator = load_generator("gen_sin_linear_lut_q15")
         self.assertEqual(
             generator.generate_header(256),
-            (BASE / "kernel" / "aie_sin_linear_lut_q15.h").read_text(),
+            (BASE / "kernel" / "common" / "aie_sin_linear_lut_q15.h").read_text(),
         )
 
     def test_custom_tables_keep_target_alignment(self):

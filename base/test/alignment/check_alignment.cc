@@ -1,6 +1,5 @@
 // Compile for both aie2 and aie2p; no device execution is needed.
-#include "aie_atan_lut_q29.h"
-#include "aie_sin_linear_lut_q15.h"
+#include "aie_trig_luts.h"
 #include "frame_equalizer_metadata.h"
 
 #if __AIE_ARCH__ == 20

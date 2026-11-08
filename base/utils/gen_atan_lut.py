@@ -7,7 +7,7 @@ Produces a C header containing:
 
 Examples:
     # Default 512-entry atan, 256-entry reciprocal seed (matches current header)
-    python3 gen_atan_lut.py > ../kernel/aie_atan_lut_q29.h
+    python3 gen_atan_lut.py > ../kernel/common/aie_atan_lut_q29.h
 
     # Smaller table: 256-entry atan, 128-entry seed
     python3 gen_atan_lut.py --atan-size 256 --seed-bits 7 > /tmp/test.h

@@ -2,16 +2,13 @@
 .DEFAULT_GOAL := compile
 srcdir := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 kernel_srcdir := $(realpath ${srcdir}/../../kernel)
-JOBS ?= 1
-AIECC ?= $(shell command -v aiecc || command -v aiecc.py)
-AIECC_FLAGS = $(if $(filter aiecc.py,$(notdir $(AIECC))),--aie-generate-xclbin --no-compile-host --aie-generate-npu-insts,--aietools=${AIETOOLS_DIR} --get-xclbin --get-npu-insts --xchesscc --placer=sequential_placer)
+include ${srcdir}/../toolchain.mk
 export LD_LIBRARY_PATH := /opt/vitis_aie_essentials/lib/lnx64.o/:$(LD_LIBRARY_PATH)
 export RDI_DATADIR := /opt/vitis_aie_essentials/data
 export PATH := /opt/vitis_aie_essentials/tps/lnx64/target_aie_ml/bin/LNa64bin/:$(PATH)
 
 AIETOOLS_DIR = /opt/vitis_aie_essentials/
-export AIETOOLS := $(AIETOOLS_DIR)
-CHESSCCWRAP_FLAGS = $(if $(filter npu2,$(devicename)),aie2p,aie2) -aietools ${AIETOOLS_DIR} -I ${AIETOOLS_DIR}/include -I ${kernel_srcdir}
+CHESSCCWRAP2_FLAGS = aie2 -I ${AIETOOLS_DIR}/include -I ${kernel_srcdir} -I ${kernel_srcdir}/common
 
 .PHONY: all clean compile test
 
@@ -25,13 +22,13 @@ build/aie.mlir: ${srcdir}/aie2_memtile_caching.py
 	mkdir -p ${@D}
 	python3 $< ${devicename} > $@
 
-build/trig_utils_test.o: ${srcdir}/trig_utils_test.cc ${kernel_srcdir}/aie_trig_utils.h ${kernel_srcdir}/aie_atan_lut_q29.h ${kernel_srcdir}/aie_sin_linear_lut_q15.h
+build/trig_utils_test.o: ${srcdir}/trig_utils_test.cc $(wildcard ${kernel_srcdir}/common/aie_*.h)
 	mkdir -p ${@D}
 	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
 build/final.xclbin: build/aie.mlir build/trig_utils_test.o
 	mkdir -p ${@D}
-	cd ${@D} && $(AIECC) -j1 $(AIECC_FLAGS) --xclbin-name=${@F} \
+	cd ${@D} && $(AIECC) -j$(COMPILE_JOBS) $(AIECC_FLAGS) --xclbin-name=${@F} \
 		--npu-insts-name=insts.bin $(<:%=../%)
 
 build/insts.bin: build/final.xclbin
@@ -42,7 +39,7 @@ clean:
 
 compile:
 	${MAKE} clean
-	${MAKE} -j${JOBS} all
+	${MAKE} -j${COMPILE_JOBS} all
 
 test: all
 	python3 ${srcdir}/test_accuracy.py --xclbin build/final.xclbin --insts build/insts.bin

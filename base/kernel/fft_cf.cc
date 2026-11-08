@@ -38,6 +38,11 @@ static inline void copy_samples(cint16 *__restrict dst,
     }
 }
 
+/** @brief 64-point radix-4 DIT FFT in GNU Radio's shifted bin order.
+ *
+ *  Runs three radix-4 stages with Q15 twiddles and per-stage shifts, then
+ *  swaps the two 32-bin halves so negative frequencies precede DC.
+ */
 static inline void fft64(const cint16 *__restrict input,
                          cint32 *__restrict output) {
     aie::fft_dit_r4_stage<16>(input, kStage0Tw2, kStage0Tw1, kStage0Tw3,
@@ -60,6 +65,17 @@ static inline void fft64(const cint16 *__restrict input,
 
 extern "C" {
 
+/** @brief Transform complete symbols, carrying partial symbols and tags.
+ *
+ *  Input/output metadata is [sample count, tag count, (offset, value) pairs].
+ *  Tag offsets round up to the next 64-sample boundary to match GNU Radio's
+ *  vector port behavior. N and meta_N are unused; counts come from metadata.
+ *
+ *  @param in Time-domain samples, cint16 Q0.15.
+ *  @param in_meta Input sample count and tags.
+ *  @param out FFT bins in shifted order, cint32.
+ *  @param out_meta Produced sample count and tags.
+ */
 void fft_cf(cint16 *__restrict in, int32_t *__restrict in_meta,
             cint32 *__restrict out, int32_t *__restrict out_meta,
             int32_t N, int32_t meta_N) {

@@ -1,5 +1,6 @@
 ##===- Makefile -----------------------------------------------------------===##
 .DEFAULT_GOAL := compile
+.DELETE_ON_ERROR:
 srcdir := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 kernel_srcdir := $(realpath ${srcdir}/../../kernel)
 include ${srcdir}/../toolchain.mk
@@ -32,7 +33,7 @@ CHESSCCWRAP2_FLAGS = aie2 -I ${AIETOOLS_DIR}/include -I ${kernel_srcdir} -I ${ke
 	-DFRAME_EQUALIZER_ENGINE=FRAME_EQUALIZER_ENGINE_${ENGINE} \
 	-DFRAME_EQUALIZER_MODEL=FRAME_EQUALIZER_MODEL_${MODEL}
 
-.PHONY: all clean compile test test-grc compare learned-ber test-cnn
+.PHONY: all clean compile test test-grc compare learned-ber test-cnn check-build-mode FORCE
 
 BUILD_OUTPUTS := build/final.xclbin build/insts.bin
 KERNEL_OBJECTS := build/frame_equalizer_preprocess.o build/frame_equalizer_equalize.o
@@ -55,6 +56,7 @@ EQUALIZER_HEADERS := \
 # the active flags in a marker so the test scripts can refuse a mismatched
 # build instead of silently comparing the wrong data.
 BUILD_MODE_MARKER := build/frame_equalizer_build_mode.txt
+BUILD_CONFIG := build/.frame_equalizer_build_mode
 RECORDED_INPUT ?= /home/piloteer/바탕화면/fft_full.iqdata
 RECORDED_HEADER ?= ${RECORDED_INPUT}.hdr
 RECORDED_SAMPLES ?= 2097152
@@ -64,9 +66,20 @@ BER_OUTPUT ?=
 
 all: ${BUILD_OUTPUTS} ${BUILD_MODE_MARKER}
 
-${BUILD_MODE_MARKER}: ${BUILD_OUTPUTS}
-	@printf 'DFRAME_EQUALIZER_OUTPUT_SYMBOLS=%s\nEQUALIZER_ALGORITHM=%s\nENGINE=%s\nMODEL=%s\nNPU2=%s\n' \
-		"${DFRAME_EQUALIZER_OUTPUT_SYMBOLS}" "${EQUALIZER_ALGORITHM}" "${ENGINE}" "${MODEL}" "${NPU2}" > $@
+check-build-mode: ${BUILD_CONFIG}
+
+FORCE:
+
+${BUILD_CONFIG}: FORCE
+	@mkdir -p ${@D}
+	@printf 'DFRAME_EQUALIZER_OUTPUT_SYMBOLS=%s\nEQUALIZER_ALGORITHM=%s\nENGINE=%s\nMODEL=%s\nNPU2=%s\nDEVICE=%s\nAIE_TILES_PER_BATCH=%s\n' \
+		"${DFRAME_EQUALIZER_OUTPUT_SYMBOLS}" "${EQUALIZER_ALGORITHM}" "${ENGINE}" "${MODEL}" \
+		"$(if $(filter npu2,${devicename}),1,0)" "${devicename}" \
+		"$(if ${AIE_TILES_PER_BATCH},${AIE_TILES_PER_BATCH},16)" > $@.tmp
+	@set -e; if ! cmp -s $@.tmp $@; then mv $@.tmp $@; else rm -f $@.tmp; fi
+
+${BUILD_MODE_MARKER}: ${BUILD_OUTPUTS} ${BUILD_CONFIG}
+	@cp ${BUILD_CONFIG} $@
 
 devicename ?= $(if $(filter 1,$(NPU2)),npu2,npu)
 
@@ -87,6 +100,8 @@ build/final.xclbin: build/aie.mlir ${KERNEL_OBJECTS}
 	cd ${@D} && $(AIECC) -j$(COMPILE_JOBS) $(AIECC_FLAGS) --xclbin-name=${@F} \
 		--npu-insts-name=insts.bin $(<:%=../%)
 
+build/aie.mlir ${KERNEL_OBJECTS}: ${BUILD_CONFIG}
+
 build/insts.bin: build/final.xclbin
 	@test -f $@
 
@@ -97,9 +112,8 @@ compile:
 	${MAKE} clean
 	${MAKE} -j${COMPILE_JOBS} all
 
-# The symbol tests need the symbols build mode. Force a clean rebuild so the
-# flag change actually recompiles the kernels and refreshes the mode marker;
-# `all` alone would skip recompilation and leave a stale (CSI-mode) marker.
+# The symbol tests need the symbols build mode. The configuration prerequisite
+# also keeps incremental `all` builds from reusing a stale CSI-mode object.
 test:
 	${MAKE} test-grc EQUALIZER_ALGORITHM=${EQUALIZER_ALGORITHM}
 

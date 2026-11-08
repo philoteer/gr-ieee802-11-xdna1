@@ -15,8 +15,6 @@ import argparse
 import sys
 from pathlib import Path
 
-import aie.iron as iron
-from aie.utils import DefaultNPURuntime, NPUKernel
 import numpy as np
 
 
@@ -25,7 +23,7 @@ REFERENCE = ROOT / "utils" / "frame_equalizer_channel_ai"
 sys.path.insert(0, str(REFERENCE))
 
 from dataset import ChannelCorpus, LONG, OCCUPIED, _shared_q15, average_lts
-from quantize import integer_estimate, load_npz
+from quantize import integer_estimate, load_header
 
 
 def make_lts() -> np.ndarray:
@@ -62,8 +60,7 @@ def cpu_estimate(lts: np.ndarray) -> np.ndarray:
     :param lts: Raw sign-coded LTS observations with shape ``(2, 64, 2)``.
     :return: Estimated channel with shape ``(64, 2)`` and signed int32
         real/imaginary components.
-    :raises ValueError: Propagated by the reference utilities for malformed
-        tensor shapes or unavailable weight artifacts.
+    :raises ValueError: If the exported weight header is malformed.
     """
     corrected = lts * LONG[None, :, None]
     ls = average_lts(corrected[0], corrected[1])
@@ -79,8 +76,8 @@ def cpu_estimate(lts: np.ndarray) -> np.ndarray:
         np.zeros((1, 64, 2), dtype=np.int32),
         shifts,
     )
-    weights = REFERENCE / "artifacts" / "channel_estimator_weights.npz"
-    return integer_estimate(load_npz(weights), corpus)[0]
+    weights = ROOT / "kernel/channel_estimator/model/frame_equalizer_channel_ai_weights.h"
+    return integer_estimate(load_header(weights), corpus)[0]
 
 
 def assert_exact(actual: np.ndarray, expected: np.ndarray, lts: np.ndarray) -> None:
@@ -127,6 +124,9 @@ def main() -> None:
     :raises AssertionError: If the AIE result is not bit-exact with the CPU
         reference.
     """
+    import aie.iron as iron
+    from aie.utils import DefaultNPURuntime, NPUKernel
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--xclbin", type=Path, default=Path("build/final.xclbin"))
     parser.add_argument("--insts", type=Path, default=Path("build/insts.bin"))

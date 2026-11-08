@@ -7,9 +7,9 @@
 ##===----------------------------------------------------------------------===##
 .DEFAULT_GOAL := compile
 srcdir := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-JOBS ?= 2
+JOBS ?= 1
 # Both kernel compilation and aiecc's internal compilation must fit in memory.
-COMPILE_JOBS := $(shell test $(JOBS) -eq 1 2>/dev/null && echo 1 || echo 2)
+COMPILE_JOBS := $(if $(filter 1,$(JOBS)),1,2)
 AIECC ?= $(shell command -v aiecc || command -v aiecc.py)
 # The Python driver uses AIETOOLS from the environment; only the declarative
 # driver accepts --aietools, along with its new output selectors.
@@ -31,8 +31,9 @@ CHESSCC1_FLAGS = -f -p me -P ${AIE_INCLUDE_DIR} -I ${AIETOOLS_DIR}/include
 CHESSCC2_FLAGS = -f -p me -P ${AIE2_INCLUDE_DIR} -I ${AIETOOLS_DIR}/include
 CHESS_FLAGS = -P ${AIE_INCLUDE_DIR}
 CHESSCCWRAP1_FLAGS = aie -I ${AIETOOLS_DIR}/include
-CHESSCCWRAP2_FLAGS = aie2 -aietools ${AIETOOLS_DIR} -I ${AIETOOLS_DIR}/include -I ${srcdir}
-CHESSCCWRAP2P_FLAGS = aie2p -aietools ${AIETOOLS_DIR} -I ${AIETOOLS_DIR}/include -I ${srcdir}
+CHESSCCWRAP_COMMON_FLAGS = -aietools ${AIETOOLS_DIR} -I ${AIETOOLS_DIR}/include -I ${srcdir} -I ${srcdir}/common
+CHESSCCWRAP2_FLAGS = aie2 $(CHESSCCWRAP_COMMON_FLAGS)
+CHESSCCWRAP2P_FLAGS = aie2p $(CHESSCCWRAP_COMMON_FLAGS)
 # Keep the object architecture consistent with the graph's selected device.
 CHESSCCWRAP_FLAGS = $(if $(filter npu2,$(devicename)),$(CHESSCCWRAP2P_FLAGS),$(CHESSCCWRAP2_FLAGS))
 PEANOWRAP2_FLAGS = -O2 -std=c++20 --target=aie2-none-unknown-elf ${WARNING_FLAGS} -DNDEBUG -I ${MLIR_AIE_DIR}/include
@@ -71,12 +72,12 @@ build/aie.mlir: ${srcdir}/aie2_memtile_caching.py
 	python3 $< ${devicename} > $@
 
 # Compile autocorr_cf.cc to autocorr_cf.o
-build/autocorr_cf.o: ${srcdir}/autocorr_cf.cc
+build/autocorr_cf.o: ${srcdir}/autocorr_cf.cc ${srcdir}/common/aie_kernel_utils.h
 	mkdir -p ${@D}
 	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
 # Compile magsq_avg_cf.cc to magsq_avg_cf.o
-build/magsq_avg_cf.o: ${srcdir}/magsq_avg_cf.cc
+build/magsq_avg_cf.o: ${srcdir}/magsq_avg_cf.cc ${srcdir}/common/aie_kernel_utils.h
 	mkdir -p ${@D}
 	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
@@ -84,23 +85,26 @@ build/threshold_cf.o: ${srcdir}/threshold_cf.cc
 	mkdir -p ${@D}
 	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
-build/sync_short_cf.o: ${srcdir}/sync_short_cf.cc ${srcdir}/aie_trig_utils.h ${srcdir}/aie_atan_lut_q29.h ${srcdir}/aie_sin_linear_lut_q15.h
+TRIG_HEADERS := $(wildcard ${srcdir}/common/aie_*.h)
+EQUALIZER_HEADERS := $(wildcard ${srcdir}/common/*.h ${srcdir}/channel_estimator/*.h)
+
+build/sync_short_cf.o: ${srcdir}/sync_short_cf.cc ${TRIG_HEADERS}
 	mkdir -p ${@D}
 	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
-build/sync_long_cf.o: ${srcdir}/sync_long_cf.cc ${srcdir}/aie_trig_utils.h ${srcdir}/aie_atan_lut_q29.h ${srcdir}/aie_sin_linear_lut_q15.h
+build/sync_long_cf.o: ${srcdir}/sync_long_cf.cc ${TRIG_HEADERS}
 	mkdir -p ${@D}
 	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
-build/fft_cf.o: ${srcdir}/fft_cf.cc ${srcdir}/fft64_twiddles.h
+build/fft_cf.o: ${srcdir}/fft_cf.cc ${srcdir}/common/fft64_twiddles.h ${srcdir}/common/aie_kernel_utils.h
 	mkdir -p ${@D}
 	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
-build/frame_equalizer_preprocess.o: ${srcdir}/frame_equalizer_preprocess.cc ${srcdir}/frame_equalizer_metadata.h ${srcdir}/aie_kernel_utils.h ${srcdir}/aie_trig_utils.h ${srcdir}/aie_atan_lut_q29.h ${srcdir}/aie_sin_linear_lut_q15.h
+build/frame_equalizer_preprocess.o: ${srcdir}/frame_equalizer_preprocess.cc ${srcdir}/common/frame_equalizer_metadata.h ${TRIG_HEADERS}
 	mkdir -p ${@D}
 	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 
-build/frame_equalizer_equalize.o: ${srcdir}/frame_equalizer_equalize.cc ${srcdir}/frame_equalizer_algorithm.h ${srcdir}/frame_equalizer_metadata.h ${srcdir}/aie_kernel_utils.h ${srcdir}/equalizer/select.h ${srcdir}/equalizer/common.h ${srcdir}/equalizer/constellation.h ${srcdir}/equalizer/ls.h ${srcdir}/equalizer/lms.h ${srcdir}/equalizer/comb.h ${srcdir}/equalizer/sta.h
+build/frame_equalizer_equalize.o: ${srcdir}/frame_equalizer_equalize.cc ${EQUALIZER_HEADERS}
 	mkdir -p ${@D}
 	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
 	

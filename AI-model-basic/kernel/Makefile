@@ -6,6 +6,7 @@
 # 
 ##===----------------------------------------------------------------------===##
 .DEFAULT_GOAL := compile
+.DELETE_ON_ERROR:
 srcdir := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 JOBS ?= 1
 # Bound both make's kernel jobs and aiecc's internal compilation.
@@ -64,7 +65,7 @@ else
 endif
 
 #################
-.PHONY: all clean compile
+.PHONY: all clean compile check-build-mode FORCE
 
 KERNEL_OBJECTS := \
 	build/autocorr_cf.o \
@@ -77,6 +78,8 @@ KERNEL_OBJECTS := \
 	build/frame_equalizer_equalize.o
 
 BUILD_OUTPUTS := build/final.xclbin build/insts.bin
+BUILD_MODE_MARKER := build/frame_equalizer_build_mode.txt
+BUILD_CONFIG := build/.frame_equalizer_build_mode
 
 # Every header the equalizer can include. Engine/model selection is
 # compile-time, so globbing lets new model headers participate without
@@ -88,7 +91,24 @@ EQUALIZER_HEADERS := \
 	$(wildcard ${srcdir}/channel_estimator/*.h) \
 	$(wildcard ${srcdir}/channel_estimator/model/*.h)
 
-all: ${BUILD_OUTPUTS}
+all: ${BUILD_OUTPUTS} ${BUILD_MODE_MARKER}
+
+check-build-mode: ${BUILD_CONFIG}
+
+FORCE:
+
+# Keep incremental builds consistent with the selected engine, model, and
+# effective target, including explicit devicename overrides of NPU2.
+${BUILD_CONFIG}: FORCE
+	@mkdir -p ${@D}
+	@printf 'EQUALIZER_ALGORITHM=%s\nENGINE=%s\nMODEL=%s\nDEVICE=%s\nAIE_TILE_SIZE=%s\nAIE_TILES_PER_BATCH=%s\nAIE_FIFO_DEPTH=%s\nAIE_FIFO_DEPTHS=%s\n' \
+		"${EQUALIZER_ALGORITHM}" "${ENGINE}" "${MODEL}" "${devicename}" \
+		"$(if ${AIE_TILE_SIZE},${AIE_TILE_SIZE},1024)" "$(if ${AIE_TILES_PER_BATCH},${AIE_TILES_PER_BATCH},16)" \
+		"$(if ${AIE_FIFO_DEPTH},${AIE_FIFO_DEPTH},2)" "${AIE_FIFO_DEPTHS}" > $@.tmp
+	@set -e; if ! cmp -s $@.tmp $@; then mv $@.tmp $@; else rm -f $@.tmp; fi
+
+${BUILD_MODE_MARKER}: ${BUILD_OUTPUTS} ${BUILD_CONFIG}
+	@cp ${BUILD_CONFIG} $@
 
 devicename ?= $(if $(filter 1,$(NPU2)),npu2,npu)
 
@@ -134,6 +154,9 @@ build/final.xclbin: build/aie.mlir ${KERNEL_OBJECTS}
 	mkdir -p ${@D}
 	cd ${@D} && $(AIECC) -j$(COMPILE_JOBS) $(AIECC_FLAGS) --xclbin-name=${@F} \
 		--npu-insts-name=insts.bin $(<:%=../%)
+
+# Add the configuration after source prerequisites so $< remains the source.
+build/aie.mlir ${KERNEL_OBJECTS}: ${BUILD_CONFIG}
 
 build/insts.bin: build/final.xclbin
 	@test -f $@

@@ -6,7 +6,7 @@
 
 #include "aie_kernel_utils.h"
 #include "frame_equalizer_metadata.h"
-#include "equalizer/select.h"
+#include "channel_estimator/select.h"
 
 // Test builds can replace the CSI metadata with one normalized equalized vector
 // for every payload symbol. Production builds retain one CSI vector per frame.
@@ -15,7 +15,7 @@
 #endif
 
 namespace {
-// The selected equalizer implementation is provided by equalizer/select.h,
+// The selected equalizer implementation is provided by channel_estimator/select.h,
 // which defines update_channel_estimate() and reset_channel_estimate().
 
 // Vectorized Viterbi transition tables. Entry s is the parity of

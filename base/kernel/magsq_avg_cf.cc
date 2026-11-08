@@ -15,7 +15,7 @@ constexpr unsigned mag_q = 23;
 
 // Four previous magnitude-squared blocks in int32 Q8.23. Q8.23 represents
 // values up to nearly 256, leaving headroom beyond the worst-case 64-sample
-// boxcar sum of just under 128.
+// boxcar sum of at most 128.
 static aie::vector<int32, vec_factor> h0 = aie::zeros<int32, vec_factor>();
 static aie::vector<int32, vec_factor> h1 = aie::zeros<int32, vec_factor>();
 static aie::vector<int32, vec_factor> h2 = aie::zeros<int32, vec_factor>();
@@ -26,7 +26,15 @@ static aie::vector<cint16, vec_factor> delay_hist = aie::zeros<cint16, vec_facto
 
 extern "C" {
 
-// CORE 2: Magnitude Squared & Boxcar Filter Kernel
+/** @brief Magnitude-squared samples followed by a 64-sample boxcar sum.
+ *
+ *  Static history requires consecutive blocks of one stream.
+ *
+ *  @param in Input samples, cint16 Q0.15.
+ *  @param out Boxcar sums, int32 Q8.23.
+ *  @param out_delay Previous input block, cint16 Q0.15.
+ *  @param N Number of input samples; must be a multiple of 16.
+ */
 void magsq_avg_cf(cint16 * __restrict in, int32_t * __restrict out, cint16 * __restrict out_delay, int32_t N) {
     cint16 *__restrict pIn = in;
     int32_t *__restrict pOut = out;

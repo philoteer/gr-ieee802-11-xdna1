@@ -20,7 +20,16 @@ static aie::vector<cint32, vec_factor> h2 = aie::zeros<cint32, vec_factor>();
 
 extern "C" {
 
-// N must be a multiple of 16.
+/** @brief Lag-16 autocorrelation followed by a 48-sample boxcar sum.
+ *
+ *  Computes corr[k] = input[k] * conjugate(input[k-16]) and emits the
+ *  running sum of the last 48 results. Static history requires consecutive
+ *  blocks of one stream.
+ *
+ *  @param in Input samples, cint16 Q0.15.
+ *  @param out Boxcar sums, cint32 Q7.24.
+ *  @param N Number of input samples; must be a multiple of 16.
+ */
 void autocorr_cf(cint16 *__restrict in, cint32 *__restrict out, int32_t N) {
     // All values after the correlation are cint32 Q7.24.  The seven integer
     // bits provide a range of approximately +/-128 for the 48-term sum.

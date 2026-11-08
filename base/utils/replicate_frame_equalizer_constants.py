@@ -335,7 +335,8 @@ def main() -> int:
     parser.add_argument(
         "--reference",
         type=Path,
-        default=Path(__file__).resolve().parents[2] / "stage34/original/equalizer/base.cc",
+        default=Path(__file__).resolve().parents[2]
+        / "gr-ieee802-11-modified/lib/equalizer/base.cc",
         help="reference source containing the standard LONG and POLARITY tables",
     )
     parser.add_argument(
@@ -349,12 +350,12 @@ def main() -> int:
     sources = args.source or [
         root / "kernel/frame_equalizer_preprocess.cc",
         root / "kernel/frame_equalizer_equalize.cc",
-        root / "kernel/equalizer/common.h",
-        root / "kernel/equalizer/constellation.h",
-        root / "kernel/equalizer/ls.h",
-        root / "kernel/equalizer/lms.h",
-        root / "kernel/equalizer/comb.h",
-        root / "kernel/equalizer/sta.h",
+        root / "kernel/channel_estimator/common.h",
+        root / "kernel/channel_estimator/constellation.h",
+        root / "kernel/channel_estimator/ls.h",
+        root / "kernel/channel_estimator/lms.h",
+        root / "kernel/channel_estimator/comb.h",
+        root / "kernel/channel_estimator/sta.h",
     ]
     source_text = "\n".join(source.read_text() for source in sources)
     reference_text = args.reference.read_text()

@@ -2,6 +2,7 @@
 #include <ieee802_11/constellations.h>
 
 #include "utils.h"
+#include "mac_address_metadata.h"
 #include "viterbi_decoder/viterbi_decoder.h"
 
 #include <gnuradio/io_signature.h>
@@ -180,6 +181,10 @@ public:
                                                       corrected_coded.begin() + n_ber_bits);
 
             pmt::pmt_t diag = pmt::make_dict();
+            if (d_frame.psdu_size >= 4) {
+                diag = add_mac_address_metadata(diag, out_bytes + 2,
+                                                d_frame.psdu_size - 4);
+            }
             diag = pmt::dict_add(diag,
                                  pmt::mp("pre_viterbi"),
                                  pmt::init_u8vector(pre_viterbi_bits.size(), pre_viterbi_bits));

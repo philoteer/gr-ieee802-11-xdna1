@@ -106,6 +106,15 @@ message(STATUS "Building for version: ${VERSION} / ${LIBVER}")
 # Build and register unit test
 ########################################################################
 include(GrTest)
+add_executable(qa_mac_address_metadata qa_mac_address_metadata.cc)
+target_link_libraries(qa_mac_address_metadata PRIVATE gnuradio::gnuradio-runtime)
+if(MSVC)
+    target_compile_options(qa_mac_address_metadata PRIVATE /UNDEBUG)
+else()
+    target_compile_options(qa_mac_address_metadata PRIVATE -UNDEBUG)
+endif()
+add_test(NAME qa_mac_address_metadata COMMAND qa_mac_address_metadata)
+
 add_executable(qa_channel_ai qa_channel_ai.cc equalizer/channel_ai_model.cc
     equalizer/cnn.cc equalizer/base.cc constellations_impl.cc)
 target_link_libraries(qa_channel_ai PRIVATE Eigen3::Eigen gnuradio::gnuradio-digital)

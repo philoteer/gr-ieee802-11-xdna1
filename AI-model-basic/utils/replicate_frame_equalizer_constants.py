@@ -678,7 +678,8 @@ def main() -> int:
     parser.add_argument(
         "--reference",
         type=Path,
-        default=Path(__file__).resolve().parents[2] / "stage34/original/equalizer/base.cc",
+        default=Path(__file__).resolve().parents[2]
+        / "gr-ieee802-11-modified/lib/equalizer/base.cc",
         help="reference source containing the standard LONG and POLARITY tables",
     )
     parser.add_argument(

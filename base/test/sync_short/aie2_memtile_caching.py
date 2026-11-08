@@ -2,13 +2,24 @@
 # Standalone sync_short_cf test graph for XDNA1 / XDNA2.
 
 import numpy as np
+import sys
 
 from aie.iron import Kernel, ObjectFifo, Program, Runtime, Worker
 from aie.iron.controlflow import range_
-from aie.iron.placers import SequentialPlacer
+try:
+    from aie.iron.placers import SequentialPlacer
+except ModuleNotFoundError as exc:
+    if exc.name != "aie.iron.placers":
+        raise
+    SequentialPlacer = None
 import aie.iron as iron
 
-dev = iron.get_current_device()
+if len(sys.argv) > 1:
+    from aie.iron.device import NPU1, NPU2
+
+    dev = {"npu": NPU1, "npu1": NPU1, "npu2": NPU2}[sys.argv[1]]()
+else:
+    dev = iron.get_current_device()
 
 tensor_size = 4096
 tile_size = tensor_size // 4
@@ -48,12 +59,21 @@ def sync_short_core_fn(of_in, of_out, sync_short_scalar):
 
 worker = Worker(sync_short_core_fn, [of_in.cons(), of_out.prod(), sync_short_fn], stack_size=2048)
 
-rt = Runtime()
-with rt.sequence(in_tensor_ty, out_tensor_ty) as (a_in, b_out):
-    rt.start(worker)
-    rt.fill(of_in.prod(), a_in)
-    rt.drain(of_out.cons(), b_out, wait=True)
+if hasattr(Runtime, "sequence"):
+    rt = Runtime()
+    with rt.sequence(in_tensor_ty, out_tensor_ty) as (a_in, b_out):
+        rt.start(worker)
+        rt.fill(of_in.prod(), a_in)
+        rt.drain(of_out.cons(), b_out, wait=True)
+    my_program = Program(dev, rt)
+else:
+    def runtime_sequence(a_in, b_out, source, destination):
+        source.fill(a_in)
+        destination.drain(b_out, wait=True)
 
-my_program = Program(dev, rt)
-module = my_program.resolve_program(SequentialPlacer())
+    rt = Runtime(runtime_sequence, [in_tensor_ty, out_tensor_ty,
+                                   of_in.prod(), of_out.cons()])
+    my_program = Program(dev, rt, workers=[worker])
+module = (my_program.resolve_program(SequentialPlacer())
+          if SequentialPlacer is not None else my_program.resolve_program())
 print(module)

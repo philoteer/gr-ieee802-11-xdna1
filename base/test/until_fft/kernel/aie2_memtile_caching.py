@@ -5,13 +5,24 @@
 
 import numpy as np
 import os
+import sys
 
 from aie.iron import Kernel, ObjectFifo, Program, Runtime, Worker
-from aie.iron.placers import SequentialPlacer
+try:
+    from aie.iron.placers import SequentialPlacer
+except ModuleNotFoundError as exc:
+    if exc.name != "aie.iron.placers":
+        raise
+    SequentialPlacer = None
 from aie.iron.controlflow import range_
 import aie.iron as iron
 
-dev = iron.get_current_device()
+if len(sys.argv) > 1:
+    from aie.iron.device import NPU1, NPU2
+
+    dev = {"npu": NPU1, "npu1": NPU1, "npu2": NPU2}[sys.argv[1]]()
+else:
+    dev = iron.get_current_device()
 
 tile_size = 1024
 divider = int(os.environ.get("AIE_TILES_PER_BATCH", "16"))
@@ -197,28 +208,33 @@ worker_sync_long = Worker(sync_long_core_fn, [of_out_sync_short_1.cons(), of_out
 worker_fft = Worker(fft_core_fn, [of_out_sync_long_1.cons(), of_out_sync_long_2.cons(), of_out_fft_1.prod(), of_out_fft_2.prod(), fft_fn])
 
 # Runtime operations to move data to/from the AIE-array
-rt = Runtime()
-with rt.sequence(in_tensor_ty, fft_out_tensor_ty, fft_out_meta_tensor_ty) as (a_in, c_out2, d_out3):
-    # Start cores in parallel
-    rt.start(worker_autocorr)
-    rt.start(worker_magsq)
-    rt.start(worker_threshold)
-    rt.start(worker_sync_short)
-    rt.start(worker_sync_long)
-    rt.start(worker_fft)
+if hasattr(Runtime, "sequence"):
+    rt = Runtime()
+    with rt.sequence(in_tensor_ty, fft_out_tensor_ty, fft_out_meta_tensor_ty) as (a_in, c_out2, d_out3):
+        rt.start(worker_autocorr)
+        rt.start(worker_magsq)
+        rt.start(worker_threshold)
+        rt.start(worker_sync_short)
+        rt.start(worker_sync_long)
+        rt.start(worker_fft)
+        rt.fill(of_in.prod(), a_in)
+        rt.drain(of_out_fft_1.cons(), c_out2, wait=False)
+        rt.drain(of_out_fft_2.cons(), d_out3, wait=True)
+    my_program = Program(dev, rt)
+else:
+    def runtime_sequence(a_in, c_out2, d_out3, source, destination, metadata):
+        source.fill(a_in)
+        destination.drain(c_out2, wait=False)
+        metadata.drain(d_out3, wait=True)
 
-    # Push input once; MemTile implicitly broadcasts it to both cores
-    rt.fill(of_in.prod(), a_in)
-    
-    # Gather remaining outputs back to the host
-    rt.drain(of_out_fft_1.cons(), c_out2, wait=False)    # FFT output
-    rt.drain(of_out_fft_2.cons(), d_out3, wait=True)     # FFT tag metadata
-
-# Create the program from the device type and runtime
-my_program = Program(dev, rt)
-
-# Place components and generate the MLIR module
-module = my_program.resolve_program(SequentialPlacer())
+    rt = Runtime(runtime_sequence, [
+        in_tensor_ty, fft_out_tensor_ty, fft_out_meta_tensor_ty,
+        of_in.prod(), of_out_fft_1.cons(), of_out_fft_2.cons(),
+    ])
+    my_program = Program(dev, rt, workers=[worker_autocorr, worker_magsq,
+        worker_threshold, worker_sync_short, worker_sync_long, worker_fft])
+module = (my_program.resolve_program(SequentialPlacer())
+          if SequentialPlacer is not None else my_program.resolve_program())
 
 # Print the generated MLIR
 print(module)
