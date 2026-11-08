@@ -5,7 +5,7 @@ Use the release version ( https://github.com/philoteer/gr-ieee802-11-xdna1/relea
 # Prerequisites
 * a Linux machine with XDNA1 NPU
 * gnuradio
-* mlir-aie https://github.com/Xilinx/mlir-aie with xchesscc compiler
+* mlir-aie https://github.com/Xilinx/mlir-aie with xchesscc compiler (the default Peano compiler won't work).
 * gr-mlir_aie  https://github.com/philoteer/gr-mlir_aie
 * modified gr-foo (from this repo)
 * modified gr-ieee802-11 (from this repo)
