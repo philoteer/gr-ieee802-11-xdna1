@@ -4,6 +4,7 @@
 #include "common/decode_mac.h"
 
 #define NOINLINE __attribute__((noinline))
+#define FORCEINLINE __attribute__((always_inline)) inline
 
 namespace {
 alignas(aie::vector_decl_align) static uint8_t d_metric[64];
@@ -76,12 +77,12 @@ static inline void descramble_byte(uint8_t bits) {
     d_bits += 8;
 }
 
-static NOINLINE void traceback_byte() {
+static FORCEINLINE void traceback_byte(aie::vector<uint8_t, 64> &metrics,
+                                      aie::vector<uint8_t, 64> &paths) {
     if (++d_store_pos == d_traceback)
         d_store_pos = 0;
-    aie::store_v(d_history[d_store_pos], aie::load_v<32>(d_path));
-    aie::store_v(d_history[d_store_pos] + 32, aie::load_v<32>(d_path + 32));
-    const auto metrics = aie::load_v<64>(d_metric);
+    // Only history is committed here; the symbol's live vectors stay local.
+    aie::store_v(d_history[d_store_pos], paths);
     const uint8_t maximum = aie::reduce_max(metrics);
     int state = aie::eq(aie::reverse(metrics), maximum).clz();
     int position = d_store_pos;
@@ -96,50 +97,40 @@ static NOINLINE void traceback_byte() {
     ++d_windows;
     if ((d_windows & 7) == 0) {
         const uint8_t minimum = aie::reduce_min(metrics);
-        aie::store_v(d_metric, aie::sub(metrics.extract<32>(0), minimum));
-        aie::store_v(d_metric + 32, aie::sub(metrics.extract<32>(1), minimum));
+        metrics = aie::sub(metrics, minimum);
     }
-    aie::store_v(d_path, aie::zeros<uint8_t, 32>());
-    aie::store_v(d_path + 32, aie::zeros<uint8_t, 32>());
+    paths = aie::zeros<uint8_t, 64>();
 }
 
-static NOINLINE void viterbi_run(const uint8_t *pairs, int count) {
-    auto lo = aie::load_v<32>(d_metric);
-    auto hi = aie::load_v<32>(d_metric + 32);
-    auto path_lo = aie::load_v<32>(d_path);
-    auto path_hi = aie::load_v<32>(d_path + 32);
+static FORCEINLINE void viterbi_run(const uint8_t *pairs, int count,
+                                   aie::vector<uint8_t, 64> &metrics,
+                                   aie::vector<uint8_t, 64> &paths) {
     AIE_LOOP_NO_UNROLL
     AIE_PREPARE_FOR_PIPELINING
     AIE_LOOP_RANGE(1, 8)
     for (int step = 0; step < count; ++step) {
-        const auto shifted_lo = aie::add(path_lo, path_lo);
-        const auto shifted_hi = aie::add(aie::add(path_hi, path_hi), uint8_t(1));
+        // Duplicate each predecessor half with native full-width shuffles.
+        // Keeping whole vectors avoids copies between half-vector registers.
+        const auto metric_halves = aie::interleave_zip(metrics, metrics, 32);
+        const auto doubled_paths = aie::add(paths, paths);
+        const auto path_halves = aie::interleave_zip(doubled_paths, doubled_paths, 32);
         const auto score_lo = aie::load_v<64>(
             decode_mac_detail::kViterbiBranchScores.row[4 * pairs[2 * step] + pairs[2 * step + 1]]);
-        const auto score_hi = aie::concat(
-            score_lo.extract<32>(1), score_lo.extract<32>(0));
-        const auto candidate_lo = aie::add(aie::concat(lo, lo), score_lo);
-        const auto candidate_hi = aie::add(aie::concat(hi, hi), score_hi);
+        const auto score_hi = aie::shuffle_down_rotate(score_lo, 32);
+        const auto candidate_lo = aie::add(metric_halves.first, score_lo);
+        const auto candidate_hi = aie::add(metric_halves.second, score_hi);
+        // Preserve the high-predecessor choice on equal metrics.
         const auto [maximum, choose_lo] = aie::max_cmp(candidate_hi, candidate_lo);
         const auto selected_path = aie::select(
-            aie::concat(shifted_hi, shifted_hi),
-            aie::concat(shifted_lo, shifted_lo), choose_lo);
-        const auto metrics = aie::interleave_zip(
-            maximum.extract<32>(0), maximum.extract<32>(1), 1);
-        const auto paths = aie::interleave_zip(
-            selected_path.extract<32>(0), selected_path.extract<32>(1), 1);
-        lo = metrics.first;
-        hi = metrics.second;
-        path_lo = paths.first;
-        path_hi = paths.second;
+            aie::add(path_halves.second, uint8_t(1)),
+            path_halves.first, choose_lo);
+        // Hypothesis-major [even states, odd states] -> normal state order.
+        metrics = aie::transpose(maximum, 2, 32);
+        paths = aie::transpose(selected_path, 2, 32);
     }
-    aie::store_v(d_metric, lo);
-    aie::store_v(d_metric + 32, hi);
-    aie::store_v(d_path, path_lo);
-    aie::store_v(d_path + 32, path_hi);
 }
 
-static inline void decode_symbol(const uint8_t *decisions) {
+static FORCEINLINE void decode_symbol(const uint8_t *decisions) {
     switch (d_bpsc) {
 		case BPSK: decode_mac_detail::unpack_deinterleave<BPSK>(decisions, d_coded); break;
 		case QPSK: decode_mac_detail::unpack_deinterleave<QPSK>(decisions, d_coded); break;
@@ -151,18 +142,24 @@ static inline void decode_symbol(const uint8_t *decisions) {
         d_coded, d_pairs, d_dbps, d_puncture_period);
     const int remaining = 16 + 8 * (int)d_phy.frame_bytes + 6 - d_steps;
     const int count = remaining < d_dbps ? remaining : d_dbps;
+    // Keep state live across every run/traceback boundary within this symbol.
+    auto metrics = aie::load_v<64>(d_metric);
+    auto paths = aie::load_v<64>(d_path);
     int step = 0;
     AIE_LOOP_NO_UNROLL
     while (step < count) {
         const int until_trace = d_steps < 6 ? 6 - d_steps : 8 - ((d_steps - 6) & 7);
         const int available = count - step;
         const int run = available < until_trace ? available : until_trace;
-        viterbi_run(pairs + 2 * step, run);
+        viterbi_run(pairs + 2 * step, run, metrics, paths);
         d_steps += run;
         step += run;
         if (run == until_trace)
-            traceback_byte();
+            traceback_byte(metrics, paths);
     }
+    // Commit before finish_frame() or a subsequent symbol/frame-start tag.
+    aie::store_v(d_metric, metrics);
+    aie::store_v(d_path, paths);
 }
 
 static NOINLINE void finish_frame(uint8_t *out, decode_mac_tile_metadata &metadata) {
