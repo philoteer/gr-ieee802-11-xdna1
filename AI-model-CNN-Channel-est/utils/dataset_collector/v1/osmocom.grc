@@ -251,7 +251,7 @@ blocks:
     code: 'from pathlib import Path
 
 
-      build = Path(''../../kernel/build'')
+      build = Path(''../../../test/until_equalize/kernel/build'')
 
       marker = build / ''frame_equalizer_build_mode.txt''
 
@@ -260,16 +260,17 @@ blocks:
       missing = [str(path) for path in [marker, *artifacts] if not path.is_file()]
 
       if missing: raise RuntimeError(''EVM diagnostics require kernel build output(s):
-      '' + '', ''.join(missing) + ''; run `make -C kernel DFRAME_EQUALIZER_OUTPUT_SYMBOLS=1
-      compile` from stage42/'')
+      '' + '', ''.join(missing) + ''; build test/until_equalize/kernel with DFRAME_EQUALIZER_OUTPUT_SYMBOLS=1'')
 
       mode = dict((parts[0].strip(), parts[1].strip()) for parts in (line.split(''='',
       1) for line in marker.read_text(encoding=''ascii'').splitlines()) if len(parts)
       == 2)
 
+      if mode.get(''OUTPUT_ABI'') != ''EQUALIZER_V1'': raise RuntimeError(''Collector requires the pre-MAC test/until_equalize/kernel image'')
+
       if mode.get(''DFRAME_EQUALIZER_OUTPUT_SYMBOLS'') != ''1'': raise RuntimeError(''EVM
       diagnostics require DFRAME_EQUALIZER_OUTPUT_SYMBOLS=1; rebuild with `make -C
-      kernel DFRAME_EQUALIZER_OUTPUT_SYMBOLS=1 compile`'')
+      ../../../test/until_equalize/kernel DFRAME_EQUALIZER_OUTPUT_SYMBOLS=1 all`'')
 
       if marker.stat().st_mtime_ns < max(path.stat().st_mtime_ns for path in artifacts):
       raise RuntimeError(str(marker) + '' is older than the NPU artifacts; rebuild
@@ -330,8 +331,8 @@ blocks:
     minoutbuf: '0'
     nominal_frequency: freq
     num_slots: '2'
-    path_insts_bin: '"../../kernel/build/insts.bin"'
-    path_xclbin: '"../../kernel/build/final.xclbin"'
+    path_insts_bin: '"../../../test/until_equalize/kernel/build/insts.bin"'
+    path_xclbin: '"../../../test/until_equalize/kernel/build/final.xclbin"'
     weights_path: ''''''
   states:
     bus_sink: false

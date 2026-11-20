@@ -1,0 +1,255 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: Custom
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: wifi_rx
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: run
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: ''
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 12.0]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: file_path
+  id: variable
+  parameters:
+    comment: ''
+    value: str(__import__("pathlib").Path(globals().get("__file__", "base/test/decode_mac/wifi_rx.py")).resolve().parents[3]
+      / "AI-model-CNN-Channel-est/data/raw_capture/206.sigmf")
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [936, 8.0]
+    rotation: 0
+    state: enabled
+- name: freq
+  id: variable
+  parameters:
+    comment: ''
+    value: 2412e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [240, 16.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 20e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [808, 16.0]
+    rotation: 0
+    state: enabled
+- name: sync_length
+  id: variable
+  parameters:
+    comment: ''
+    value: '320'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 148.0]
+    rotation: 0
+    state: enabled
+- name: window_size
+  id: variable
+  parameters:
+    comment: ''
+    value: '48'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 80.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_meta_source_0
+  id: blocks_file_meta_source
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    detached: 'True'
+    file: /home/piloteer/xdna_phy/gr-ieee802-11-aie/base/test/decode_mac/d.ump
+    hdr_file: /home/piloteer/xdna_phy/gr-ieee802-11-aie/base/test/decode_mac/d.ump.hdr
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    repeat: 'False'
+    type: byte
+    vlen: '48'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [160, 208.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_sink_0
+  id: blocks_file_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    append: 'False'
+    comment: ''
+    file: out.pcap
+    type: byte
+    unbuffered: 'True'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [144, 480.0]
+    rotation: 180
+    state: enabled
+- name: blocks_message_debug_1
+  id: blocks_message_debug
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    en_uvec: 'True'
+    log_level: info
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [808, 120.0]
+    rotation: 0
+    state: enabled
+- name: blocks_probe_rate_1
+  id: blocks_probe_rate
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha: '0.15'
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    mintime: '500.0'
+    name: ''
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [504, 128.0]
+    rotation: 0
+    state: enabled
+- name: blocks_vector_to_stream_0
+  id: blocks_vector_to_stream
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '48'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [328, 128.0]
+    rotation: 0
+    state: enabled
+- name: foo_wireshark_connector_0
+  id: foo_wireshark_connector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    tech: '127'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [488, 488.0]
+    rotation: 180
+    state: enabled
+- name: ieee802_11_parse_mac_0
+  id: ieee802_11_parse_mac
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug: 'True'
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [512, 376.0]
+    rotation: 180
+    state: enabled
+- name: mlir_aie_cpp_decode_mac_test_0
+  id: mlir_aie_mlir_aie_cpp_decode_mac_test
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: NPU deinterleave, depuncture, Viterbi, descramble, CRC; MAC PDUs on out.
+    kernel_name: MLIR_AIE
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    path_insts_bin: str(__import__("pathlib").Path(globals().get("__file__", "base/test/decode_mac/wifi_rx.py")).resolve().parent
+      / "build/insts.bin")
+    path_xclbin: str(__import__("pathlib").Path(globals().get("__file__", "base/test/decode_mac/wifi_rx.py")).resolve().parent
+      / "build/final.xclbin")
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [520, 264.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_file_meta_source_0, '0', blocks_vector_to_stream_0, '0']
+- [blocks_file_meta_source_0, '0', mlir_aie_cpp_decode_mac_test_0, '0']
+- [blocks_probe_rate_1, rate, blocks_message_debug_1, print]
+- [blocks_vector_to_stream_0, '0', blocks_probe_rate_1, '0']
+- [foo_wireshark_connector_0, '0', blocks_file_sink_0, '0']
+- [mlir_aie_cpp_decode_mac_test_0, out, foo_wireshark_connector_0, in]
+- [mlir_aie_cpp_decode_mac_test_0, out, ieee802_11_parse_mac_0, in]
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

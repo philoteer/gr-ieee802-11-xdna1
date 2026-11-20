@@ -6,6 +6,7 @@
 # 
 ##===----------------------------------------------------------------------===##
 .DEFAULT_GOAL := compile
+.DELETE_ON_ERROR:
 srcdir := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 JOBS ?= 1
 # Bound both make's kernel jobs and aiecc's internal compilation.
@@ -40,9 +41,7 @@ $(error MODEL must be one of: ${SUPPORTED_MODELS})
 endif
 DFRAME_EQUALIZER_OUTPUT_SYMBOLS ?= 0
 ifneq (${DFRAME_EQUALIZER_OUTPUT_SYMBOLS},0)
-ifneq (${DFRAME_EQUALIZER_OUTPUT_SYMBOLS},1)
-$(error DFRAME_EQUALIZER_OUTPUT_SYMBOLS must be 0 or 1)
-endif
+$(error Per-symbol diagnostics belong in test/until_equalize/kernel; the production pipeline always returns MAC PDUs)
 endif
 export LD_LIBRARY_PATH := /opt/vitis_aie_essentials/lib/lnx64.o/:$(LD_LIBRARY_PATH) 
 export RDI_DATADIR := /opt/vitis_aie_essentials/data
@@ -94,7 +93,8 @@ KERNEL_OBJECTS := \
 	build/fft_cf.o \
 	build/frame_equalizer_preprocess.o \
 	build/frame_equalizer_channel_estimate.o \
-	build/frame_equalizer_equalize.o
+	build/frame_equalizer_equalize.o \
+	build/decode_mac.o
 
 BUILD_OUTPUTS := build/final.xclbin build/insts.bin
 BUILD_MODE_MARKER := build/frame_equalizer_build_mode.txt
@@ -122,8 +122,11 @@ FORCE:
 
 ${BUILD_CONFIG}: FORCE
 	@mkdir -p build
-	@printf 'DFRAME_EQUALIZER_OUTPUT_SYMBOLS=%s\nEQUALIZER_ALGORITHM=%s\nENGINE=%s\nMODEL=%s\nCNN_DATA_UPDATER=%s\nCNN_WEIGHTS=%s\nDEVICE=%s\n' \
-		"${DFRAME_EQUALIZER_OUTPUT_SYMBOLS}" "${EQUALIZER_ALGORITHM}" "${ENGINE}" "${MODEL}" "${CNN_DATA_UPDATER}" "${CNN_WEIGHTS}" "${devicename}" > ${BUILD_CONFIG}.tmp
+	@printf 'OUTPUT_ABI=MAC_V1\nDFRAME_EQUALIZER_OUTPUT_SYMBOLS=%s\nEQUALIZER_ALGORITHM=%s\nENGINE=%s\nMODEL=%s\nCNN_DATA_UPDATER=%s\nCNN_WEIGHTS=%s\nDEVICE=%s\nTILE=%s\nTILES=%s\nFIFO_DEPTH=%s\nFIFO_DEPTHS=%s\n' \
+		"${DFRAME_EQUALIZER_OUTPUT_SYMBOLS}" "${EQUALIZER_ALGORITHM}" "${ENGINE}" "${MODEL}" "${CNN_DATA_UPDATER}" "${CNN_WEIGHTS}" "${devicename}" \
+		'$(if ${AIE_TILE_SIZE},${AIE_TILE_SIZE},1024)' \
+		'$(if ${AIE_TILES_PER_BATCH},${AIE_TILES_PER_BATCH},16)' \
+		'$(if ${AIE_FIFO_DEPTH},${AIE_FIFO_DEPTH},2)' '${AIE_FIFO_DEPTHS}' > ${BUILD_CONFIG}.tmp
 	@set -e; if ! cmp -s ${BUILD_CONFIG}.tmp ${BUILD_CONFIG}; then \
 		mv ${BUILD_CONFIG}.tmp ${BUILD_CONFIG}; \
 	else \
@@ -176,7 +179,11 @@ build/frame_equalizer_channel_estimate.o: ${srcdir}/frame_equalizer_channel_esti
 build/frame_equalizer_equalize.o: ${srcdir}/frame_equalizer_equalize.cc ${EQUALIZER_HEADERS}
 	mkdir -p ${@D}
 	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
-	
+
+build/decode_mac.o: ${srcdir}/decode_mac.cc ${srcdir}/common/decode_mac.h ${srcdir}/common/frame_equalizer_metadata.h ${srcdir}/common/viterbi_tables.h ${srcdir}/common/aie_kernel_utils.h
+	mkdir -p ${@D}
+	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
+
 build/final.xclbin: build/aie.mlir ${KERNEL_OBJECTS}
 	mkdir -p ${@D}
 	cd ${@D} && $(AIECC) -j$(COMPILE_JOBS) $(AIECC_FLAGS) --xclbin-name=${@F} \

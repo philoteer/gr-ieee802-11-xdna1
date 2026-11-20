@@ -6,6 +6,7 @@
 
 #include "aie_kernel_utils.h"
 #include "frame_equalizer_metadata.h"
+#include "viterbi_tables.h"
 #include "channel_estimator/select.h"
 
 // Test builds can replace the CSI metadata with one normalized equalized vector
@@ -23,22 +24,6 @@ namespace {
 // correspond to generator polynomials 0155 (A) and 0117 (B); the hypothesis
 // bit is XORed into the loaded vector at runtime because both masks include
 // the least-significant bit of the transition register.
-alignas(aie::vector_decl_align) static constexpr uint8_t kViterbiParityA[64] = {
-    0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0,
-    1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1,
-    1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1,
-    0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0,
-};
-alignas(aie::vector_decl_align) static constexpr uint8_t kViterbiParityB[64] = {
-    0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1,
-    0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1,
-    1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0,
-    1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0,
-};
-alignas(aie::vector_decl_align) static constexpr uint8_t kViterbiStates[32] = {
-    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-    16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-};
 // Persistent kernel state. Calls may contain only part of a frame, so channel
 // estimates, tracking loops, and frame counters must survive between calls.
 alignas(aie::vector_decl_align) static cint32 d_channel[64];

@@ -99,9 +99,10 @@ payload; do not rename or rewrite the capture based only on that metadata field.
 
 Additional binary files in this directory include `wifi_iq_hackrf.bin` and
 `output_head_short.bin`. They have no SigMF sidecars here. The
-`utils/compare_channel_estimators.py` utility defaults to
-`wifi_iq_hackrf.bin` and expects interleaved-byte IQ input; check the producing
-flowgraph before interpreting other standalone binary files.
+`utils/compare_channel_estimators.py` utility uses the diagnostic graphs under
+`test/until_equalize/` and defaults to `stress_test.sigmf-data` (`ci16_le` at
+20 MS/s), with its sidecar. Check the producing flowgraph before interpreting
+the standalone binary files.
 
 ## Collector and output notes
 

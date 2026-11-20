@@ -21,6 +21,7 @@
 #include <gnuradio/block_detail.h>
 
 #include <chrono>
+#include <cmath>
 #include <iostream>
 #include <iomanip>
 
@@ -129,6 +130,17 @@ wireshark_connector_impl::handle_pdu(pmt::pmt_t pdu) {
 		rhdr->flags       = 0;
 		rhdr->rate        = rate;
 		rhdr->channel     = 178;
+		// Radiotap CHANNEL packs frequency (MHz) followed by channel flags.
+		// Preserve the historical fallback only when no PHY frequency exists.
+		pmt::pmt_t frequency = pmt::dict_ref(
+			dict, pmt::mp("nominal frequency"), pmt::PMT_NIL);
+		if(pmt::is_number(frequency)) {
+			long mhz = std::lround(pmt::to_double(frequency) / 1e6);
+			if(mhz > 0 && mhz <= 65535) {
+				uint32_t flags = 0x0040 | (mhz < 3000 ? 0x0080 : 0x0100);
+				rhdr->channel = static_cast<uint32_t>(mhz) | (flags << 16);
+			}
+		}
 		rhdr->signal      = signal;
 		rhdr->noise       = noise;
 		rhdr->antenna     = 1;

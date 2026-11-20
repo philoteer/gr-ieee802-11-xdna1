@@ -6,6 +6,7 @@
 # 
 ##===----------------------------------------------------------------------===##
 .DEFAULT_GOAL := compile
+.DELETE_ON_ERROR:
 srcdir := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 JOBS ?= 1
 # Both kernel compilation and aiecc's internal compilation must fit in memory.
@@ -49,7 +50,7 @@ else
 endif
 
 #################
-.PHONY: all clean compile
+.PHONY: all clean compile FORCE
 
 KERNEL_OBJECTS := \
 	build/autocorr_cf.o \
@@ -59,7 +60,8 @@ KERNEL_OBJECTS := \
 	build/sync_long_cf.o \
 	build/fft_cf.o \
 	build/frame_equalizer_preprocess.o \
-	build/frame_equalizer_equalize.o
+	build/frame_equalizer_equalize.o \
+	build/decode_mac.o
 
 BUILD_OUTPUTS := build/final.xclbin build/insts.bin
 
@@ -67,7 +69,19 @@ all: ${BUILD_OUTPUTS}
 
 devicename ?= $(if $(filter 1,$(NPU2)),npu2,npu)
 
-build/aie.mlir: ${srcdir}/aie2_memtile_caching.py
+FORCE:
+
+# Track graph/device settings so an older equalizer-only xclbin cannot be
+# silently reused with the new MAC-output host ABI.
+build/.config: FORCE
+	@mkdir -p ${@D}
+	@printf 'OUTPUT=MAC_V1\nDEVICE=%s\nTILE=%s\nTILES=%s\nFIFO_DEPTH=%s\nFIFO_DEPTHS=%s\n' \
+		'${devicename}' '$(if ${AIE_TILE_SIZE},${AIE_TILE_SIZE},1024)' \
+		'$(if ${AIE_TILES_PER_BATCH},${AIE_TILES_PER_BATCH},16)' \
+		'$(if ${AIE_FIFO_DEPTH},${AIE_FIFO_DEPTH},2)' '${AIE_FIFO_DEPTHS}' > $@.tmp
+	@if ! cmp -s $@.tmp $@; then mv $@.tmp $@; else rm -f $@.tmp; fi
+
+build/aie.mlir: ${srcdir}/aie2_memtile_caching.py build/.config
 	mkdir -p ${@D}
 	python3 $< ${devicename} > $@
 
@@ -107,7 +121,13 @@ build/frame_equalizer_preprocess.o: ${srcdir}/frame_equalizer_preprocess.cc ${sr
 build/frame_equalizer_equalize.o: ${srcdir}/frame_equalizer_equalize.cc ${EQUALIZER_HEADERS}
 	mkdir -p ${@D}
 	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
-	
+
+build/decode_mac.o: ${srcdir}/decode_mac.cc ${srcdir}/common/decode_mac.h ${srcdir}/common/frame_equalizer_metadata.h ${srcdir}/common/viterbi_tables.h ${srcdir}/common/aie_kernel_utils.h
+	mkdir -p ${@D}
+	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
+
+${KERNEL_OBJECTS}: build/.config
+
 build/final.xclbin: build/aie.mlir ${KERNEL_OBJECTS}
 	mkdir -p ${@D}
 	cd ${@D} && $(AIECC) -j$(COMPILE_JOBS) $(AIECC_FLAGS) --xclbin-name=${@F} \

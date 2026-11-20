@@ -1,0 +1,1 @@
+../../../../kernel/common/frame_equalizer_metadata.h

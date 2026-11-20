@@ -1,1 +1,0 @@
-../../kernel/sync_short_cf.cc

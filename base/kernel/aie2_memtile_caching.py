@@ -1,6 +1,6 @@
 # -*- Python -*-
 #
-# GNU Radio Wi-Fi receive pipeline through frame equalization via IRON.
+# GNU Radio Wi-Fi receive pipeline through CRC-validated MAC frames via IRON.
 # Target: XDNA1 / XDNA2 (npu1 / npu2)
 
 import numpy as np
@@ -26,8 +26,8 @@ else:
 
 tile_size = int(os.environ.get("AIE_TILE_SIZE", "1024"))
 tiles_per_batch = int(os.environ.get("AIE_TILES_PER_BATCH", "16"))
-if tile_size < 64 or tile_size % 64 != 0:
-    raise ValueError("AIE_TILE_SIZE must be a positive multiple of 64")
+if tile_size != 1024:
+    raise ValueError("the MAC decoder ABI requires AIE_TILE_SIZE=1024")
 if tiles_per_batch < 1:
     raise ValueError("AIE_TILES_PER_BATCH must be positive")
 tensor_size = tile_size * tiles_per_batch
@@ -69,6 +69,9 @@ frame_equalizer_tag_metadata_words = 140
 frame_equalizer_metadata_words_per_tile = (
     2 + frame_equalizer_max_tags_per_tile * frame_equalizer_tag_metadata_words
 )
+# decode_mac.h: 8192 output bytes and 9096 metadata bytes per tile.
+mac_output_bytes_per_tile = 8192
+mac_metadata_words_per_tile = 2274
 
 # Define tensor types
 # Input is complex cint16 (requires *2 for real/imag interleaved components)
@@ -111,6 +114,10 @@ frame_equalizer_prepared_meta_tile_ty = np.ndarray[
 ]
 frame_equalizer_out_meta_tensor_ty = np.ndarray[(tiles_per_batch * frame_equalizer_metadata_words_per_tile,), np.dtype[np.int32]]
 frame_equalizer_out_meta_tile_ty = np.ndarray[(frame_equalizer_metadata_words_per_tile,), np.dtype[np.int32]]
+mac_out_tile_ty = np.ndarray[(mac_output_bytes_per_tile,), np.dtype[np.int8]]
+mac_out_tensor_ty = np.ndarray[(tiles_per_batch * mac_output_bytes_per_tile,), np.dtype[np.int8]]
+mac_out_meta_tile_ty = np.ndarray[(mac_metadata_words_per_tile,), np.dtype[np.int32]]
+mac_out_meta_tensor_ty = np.ndarray[(tiles_per_batch * mac_metadata_words_per_tile,), np.dtype[np.int32]]
 center_frequency_ty = np.ndarray[(2,), np.dtype[np.int32]]
 center_frequency_rtp = Buffer(
     center_frequency_ty,
@@ -173,6 +180,12 @@ frame_equalizer_equalize_fn = Kernel(
     "frame_equalizer_equalize.o",
     [frame_equalizer_prepared_tile_ty, frame_equalizer_prepared_meta_tile_ty, frame_equalizer_out_tile_ty, frame_equalizer_out_meta_tile_ty, np.int32, np.int32],
 )
+decode_mac_fn = Kernel(
+    "decode_mac",
+    "decode_mac.o",
+    [frame_equalizer_out_tile_ty, frame_equalizer_out_meta_tile_ty,
+     mac_out_tile_ty, mac_out_meta_tile_ty, np.int32, np.int32],
+)
 
 # Input data movement
 of_in = ObjectFifo(in_tile_ty, depth=fifo_depth("in"), name="in")
@@ -195,6 +208,10 @@ of_frame_equalizer_prepared = ObjectFifo(frame_equalizer_prepared_tile_ty, depth
 of_frame_equalizer_prepared_meta = ObjectFifo(frame_equalizer_prepared_meta_tile_ty, depth=fifo_depth("frame_equalizer_prepared_meta"), name="frame_equalizer_prepared_meta")
 of_out_frame_equalizer_1 = ObjectFifo(frame_equalizer_out_tile_ty, depth=fifo_depth("frame_equalizer_out"), name="frame_equalizer_out")
 of_out_frame_equalizer_2 = ObjectFifo(frame_equalizer_out_meta_tile_ty, depth=fifo_depth("frame_equalizer_out_meta"), name="frame_equalizer_out_meta")
+# Keep the large host-facing buffers single-buffered by default; input/output
+# DMA tasks are both armed before waiting, so the paired handoff cannot deadlock.
+of_out_mac = ObjectFifo(mac_out_tile_ty, depth=fifo_depth_overrides.get("mac_out", 1), name="mac_out")
+of_out_mac_meta = ObjectFifo(mac_out_meta_tile_ty, depth=fifo_depth_overrides.get("mac_out_meta", 1), name="mac_out_meta")
 
 # 2. Define independent core tasks
 def autocorr_core_fn(of_in, of_out_autocorr, autocorr_scalar):
@@ -302,6 +319,22 @@ def frame_equalizer_equalize_core_fn(of_in, of_in_meta, of_out, of_out_meta, equ
         of_out_meta.release(1)
         
         
+def decode_mac_core_fn(of_in, of_in_meta, of_out, of_out_meta, decode_scalar):
+    for _ in range_(tiles_per_batch):
+        elem_in = of_in.acquire(1)
+        elem_in_meta = of_in_meta.acquire(1)
+        elem_out = of_out.acquire(1)
+        elem_out_meta = of_out_meta.acquire(1)
+
+        decode_scalar(elem_in, elem_in_meta, elem_out, elem_out_meta,
+                      tile_size, frame_equalizer_metadata_words_per_tile)
+
+        of_in.release(1)
+        of_in_meta.release(1)
+        of_out.release(1)
+        of_out_meta.release(1)
+
+
 # Create a worker to perform the task
 worker_autocorr = Worker(autocorr_core_fn, [of_in_mem.cons(), of_out_autocorr.prod(), autocorr_fn])
 worker_magsq = Worker(magsq_core_fn, [of_in_mem.cons(), of_out_magsq.prod(), of_out_magsq_delay.prod(), mag_sq_fn])
@@ -311,11 +344,12 @@ worker_sync_long = Worker(sync_long_core_fn, [of_out_sync_short_1.cons(), of_out
 worker_fft = Worker(fft_core_fn, [of_out_sync_long_1.cons(), of_out_sync_long_2.cons(), of_out_fft_1.prod(), of_out_fft_2.prod(), fft_fn])
 worker_frame_equalizer_preprocess = Worker(frame_equalizer_preprocess_core_fn, [of_out_fft_1.cons(), of_out_fft_2.cons(), of_frame_equalizer_prepared.prod(), of_frame_equalizer_prepared_meta.prod(), center_frequency_rtp, frame_equalizer_preprocess_fn], stack_size=2560)
 worker_frame_equalizer_equalize = Worker(frame_equalizer_equalize_core_fn, [of_frame_equalizer_prepared.cons(), of_frame_equalizer_prepared_meta.cons(), of_out_frame_equalizer_1.prod(), of_out_frame_equalizer_2.prod(), frame_equalizer_equalize_fn], stack_size=2560)
+worker_decode_mac = Worker(decode_mac_core_fn, [of_out_frame_equalizer_1.cons(), of_out_frame_equalizer_2.cons(), of_out_mac.prod(), of_out_mac_meta.prod(), decode_mac_fn], stack_size=2048)
 
 # Runtime operations to move data to/from the AIE-array
 if hasattr(Runtime, "sequence"):
     rt = Runtime()
-    with rt.sequence(in_tensor_ty, frame_equalizer_out_tensor_ty, frame_equalizer_out_meta_tensor_ty) as (a_in, c_out2, d_out3):
+    with rt.sequence(in_tensor_ty, mac_out_tensor_ty, mac_out_meta_tensor_ty) as (a_in, c_out2, d_out3):
         rt.inline_ops(write_center_frequency_rtp, [center_frequency_rtp])
         # Start cores in parallel
         rt.start(worker_autocorr)
@@ -326,13 +360,14 @@ if hasattr(Runtime, "sequence"):
         rt.start(worker_fft)
         rt.start(worker_frame_equalizer_preprocess)
         rt.start(worker_frame_equalizer_equalize)
+        rt.start(worker_decode_mac)
 
         # Push input once; MemTile implicitly broadcasts it to both cores.
         rt.fill(of_in.prod(), a_in)
 
         # Gather remaining outputs back to the host
-        rt.drain(of_out_frame_equalizer_1.cons(), c_out2, wait=False)
-        rt.drain(of_out_frame_equalizer_2.cons(), d_out3, wait=True)
+        rt.drain(of_out_mac.cons(), c_out2, wait=False)
+        rt.drain(of_out_mac_meta.cons(), d_out3, wait=True)
     my_program = Program(dev, rt)
 else:
     # New IRON runtimes take a callback and register endpoints explicitly.
@@ -343,14 +378,14 @@ else:
         metadata_fifo.drain(d_out3, wait=True)
 
     rt = Runtime(runtime_sequence, [
-        in_tensor_ty, frame_equalizer_out_tensor_ty, frame_equalizer_out_meta_tensor_ty,
-        of_in.prod(), of_out_frame_equalizer_1.cons(), of_out_frame_equalizer_2.cons(),
+        in_tensor_ty, mac_out_tensor_ty, mac_out_meta_tensor_ty,
+        of_in.prod(), of_out_mac.cons(), of_out_mac_meta.cons(),
         center_frequency_rtp,
     ])
     my_program = Program(dev, rt, workers=[
         worker_autocorr, worker_magsq, worker_threshold, worker_sync_short,
         worker_sync_long, worker_fft, worker_frame_equalizer_preprocess,
-        worker_frame_equalizer_equalize,
+        worker_frame_equalizer_equalize, worker_decode_mac,
     ])
 
 # Place the pipeline workers and resolve the data-movement graph.
