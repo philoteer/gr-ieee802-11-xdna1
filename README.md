@@ -18,5 +18,4 @@ Use the release version ( https://github.com/philoteer/gr-ieee802-11-xdna1/relea
 * gr-foo-modified: modified gr-foo (original implementation from  https://github.com/bastibl/gr-foo ).
 * gr-ieee802-11-modified: modified gr-ieee802-11 (ditto, from https://github.com/bastibl/gr-ieee802-11 )
 * base: IEEE 802.11a/g implementation on NPU, with LS equalizer. kernel codes are located under base/kernel.
-* AI-model-basic: IEEE 802.11a/g implementation on NPU, with a basic neural network-based demodulator
 * AI-model-CNN-Channel-est: ditto, with CNN-based channel estimator (recommended)
