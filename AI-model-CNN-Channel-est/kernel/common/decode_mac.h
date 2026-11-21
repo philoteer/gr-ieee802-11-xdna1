@@ -129,14 +129,15 @@ static_assert(sizeof(kDescramble) == 512);
 // then extract each bit plane with the same shift across all sixteen lanes.
 
 /// @brief Reorder 48 packed decisions into three sixteen-carrier streams.
-// Input must be 16-byte aligned; the FIFO base and 48-byte symbol stride are.
+// Inter-core FIFO buffers are not necessarily vector aligned. In particular,
+// the AIE2 allocator can place these after metadata at an 8-byte boundary.
 static inline aie::vector<uint8_t, 64> deinterleave_carriers(const uint8_t *in) {
     // Use a supported 64-lane vector; only its first 48 lanes carry symbol data.
     auto carriers = aie::zeros<uint8_t, 64>();
     // Fill lanes 0--15, 16--31, and 32--47 without reading past the symbol.
-    carriers.insert<16>(0, aie::load_v<16>(in));
-    carriers.insert<16>(1, aie::load_v<16>(in + 16));
-    carriers.insert<16>(2, aie::load_v<16>(in + 32));
+    carriers.insert<16>(0, aie::load_unaligned_v<16>(in));
+    carriers.insert<16>(1, aie::load_unaligned_v<16>(in + 16));
+    carriers.insert<16>(2, aie::load_unaligned_v<16>(in + 32));
     // Four half-symbol zips transpose the 16 x 3 carrier layout to 3 x 16:
     // lanes 0--15 = in[0,3,...,45], 16--31 = in[1,4,...,46],
     // and 32--47 = in[2,5,...,47]. Lanes 48--63 are scratch, not output.
@@ -205,7 +206,7 @@ static inline void unpack_stream(aie::vector<uint8_t, 16> carriers, uint8_t *out
  * @brief Unpack and deinterleave one symbol without per-bit division or scatter.
  * @param in Forty-eight packed carrier-decision bytes.
  * @param out Space for 48 * Bpsc coded-bit bytes, in Viterbi input order.
- * @pre Both buffers are 16-byte aligned and do not overlap.
+ * @pre out is 16-byte aligned; the buffers do not overlap.
  */
 template<int Bpsc>
 static inline void unpack_deinterleave(const uint8_t *in, uint8_t *out) {

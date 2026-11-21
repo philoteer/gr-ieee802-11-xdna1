@@ -37,7 +37,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '"data/raw_capture/206.sigmf"'
+    value: '"data/raw_capture/stress_test.sigmf"'
   states:
     bus_sink: false
     bus_source: false

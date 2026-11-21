@@ -207,7 +207,7 @@ blocks:
     comment: ''
     detached: 'True'
     extra_dict: pmt.make_dict()
-    file: d.ump
+    file: dump.iqdata
     max_seg_size: '1000000'
     rel_rate: '1'
     samp_rate: samp_rate

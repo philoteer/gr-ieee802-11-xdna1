@@ -101,8 +101,8 @@ blocks:
     alias: ''
     comment: ''
     detached: 'True'
-    file: /home/piloteer/xdna_phy/gr-ieee802-11-aie/base/test/decode_mac/d.ump
-    hdr_file: /home/piloteer/xdna_phy/gr-ieee802-11-aie/base/test/decode_mac/d.ump.hdr
+    file: dump.iqdata
+    hdr_file: dump.iqdata.hdr
     maxoutbuf: '0'
     minoutbuf: '0'
     repeat: 'False'

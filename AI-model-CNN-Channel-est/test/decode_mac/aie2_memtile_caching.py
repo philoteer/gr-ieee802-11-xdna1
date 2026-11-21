@@ -1,6 +1,7 @@
 """Stateful MAC decoder accepting the frame equalizer's data/metadata ABI."""
 
 import sys
+import os
 import numpy as np
 from aie.iron import Kernel, ObjectFifo, Program, Runtime, Worker
 from aie.iron.controlflow import range_
@@ -15,7 +16,8 @@ except ModuleNotFoundError as exc:
 
 device = {"npu": NPU1, "npu1": NPU1, "npu2": NPU2}[
     sys.argv[1] if len(sys.argv) > 1 else "npu"]()
-tile_ty = np.ndarray[(1024,), np.dtype[np.int8]]
+input_offset = int(os.environ.get("DECODE_MAC_INPUT_OFFSET", "0"))
+tile_ty = np.ndarray[(1024 + input_offset,), np.dtype[np.int8]]
 # sizeof(frame_equalizer_tile_metadata) == 8968, including aligned tag padding.
 meta_ty = np.ndarray[(2242,), np.dtype[np.int32]]
 out_ty = np.ndarray[(8192,), np.dtype[np.int8]]

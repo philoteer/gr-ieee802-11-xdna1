@@ -10,6 +10,7 @@ export RDI_DATADIR := ${AIETOOLS_DIR}/data
 export PATH := ${AIETOOLS_DIR}/tps/lnx64/target_aie_ml/bin/LNa64bin/:$(PATH)
 CHESSCCWRAP2_FLAGS = aie2 -I ${AIETOOLS_DIR}/include -I ${srcdir}/../../kernel
 devicename ?= $(if $(filter 1,$(NPU2)),npu2,npu)
+INPUT_OFFSET ?= 0
 
 .PHONY: all compile clean test check-grc FORCE
 all: build/final.xclbin build/insts.bin
@@ -19,16 +20,16 @@ FORCE:
 
 build/.device: FORCE
 	mkdir -p ${@D}
-	@printf '%s\n' '${devicename}' > $@.tmp
+	@printf '%s\nINPUT_OFFSET=%s\n' '${devicename}' '${INPUT_OFFSET}' > $@.tmp
 	@if ! cmp -s $@.tmp $@; then mv $@.tmp $@; else rm -f $@.tmp; fi
 
 build/aie.mlir: ${srcdir}/aie2_memtile_caching.py build/.device
 	mkdir -p ${@D}
-	python3 $< ${devicename} > $@
+	DECODE_MAC_INPUT_OFFSET=${INPUT_OFFSET} python3 $< ${devicename} > $@
 
 build/decode_mac.o: ${srcdir}/decode_mac.cc ${srcdir}/../../kernel/decode_mac.cc $(wildcard ${srcdir}/../../kernel/common/*.h) build/.device
 	mkdir -p ${@D}
-	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -c $< -o ${@F}
+	cd ${@D} && xchesscc_wrapper ${CHESSCCWRAP_FLAGS} -DDECODE_MAC_INPUT_OFFSET=${INPUT_OFFSET} -c $< -o ${@F}
 
 build/final.xclbin: build/aie.mlir build/decode_mac.o
 	cd ${@D} && $(AIECC) -j1 $(AIECC_FLAGS) --xclbin-name=${@F} --npu-insts-name=insts.bin aie.mlir
